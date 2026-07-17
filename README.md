@@ -1,22 +1,41 @@
-# Kadastro360 Web Pilot v1.0
+# Kadastro360 Web Pilot v1.1
 
-Bu paket gerçek servislerle çalışan kapalı web pilotudur. Örnek, rastgele veya sanal parsel/yakın yer sonucu üretmez. Dış servis cevap vermezse kullanıcıya hata gösterilir.
+Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim veya sahte yakın yer üretmez.
 
-## Yerel çalıştırma
+## Bu sürümde yeni
 
-1. `.env.example` değerlerini ortam değişkeni olarak tanımlayın.
-2. `npm start` çalıştırın.
-3. `http://127.0.0.1:10000` adresini açın.
+- TUCBS / Ulusal Coğrafi Bilgi Platformu geçiş köprüsü
+- Seçilen parselin il, ilçe, mahalle, ada/parsel ve merkez koordinatını TUCBS için hazırlama
+- TUCBS koordinat ve parsel özeti kopyalama
+- TKGM, eğim, yakın yer ve TUCBS durum göstergeleri
+- Parsel sorgusunda aşamalı ilerleme
+- SQLite tabanlı kullanıcılar, günlük kota ve sorgu geçmişi
+- Yönetici panelinden kullanıcı oluşturma, pasifleştirme ve kota değiştirme
+- Başarısız giriş denemesi kilidi
+- Mobil haritayı küçültme/açma
 
-## Render
+## TUCBS sınırı
 
-Depoyu GitHub'a yükleyin, Render'da Blueprint veya Web Service oluşturun. `TEST_PASSWORD` belirleyin; `SESSION_SECRET` Render tarafından üretilebilir.
+TUCBS e-Devlet oturumu ve kendi katman seçim ekranını kullanır. Kadastro360 kullanıcı adına e-Devlet girişi yapmaz. Bu sürüm TUCBS'yi tek tıkla açar ve seçilen parsel koordinatını/özetini hazırlar. TUCBS doğrudan URL ile katman ve koordinat kabul ettiğini resmen belgelemediği için var olmayan bir katmanı seçilmiş gibi göstermez.
 
-## Gerçek veri kaynakları
+TUCBS içinde önerilen aramalar:
 
-- Parsel: TKGM servisleri
-- Eğim: Terrain Tiles; başarısız olursa Open-Meteo / Open-Elevation
-- Yakın yerler: OpenStreetMap / Overpass
-- Bölge fiyatı: Endeksa'ya doğrudan yönlendirme; veri kazıması yok
+- Arazi Kullanımı
+- İlgili ilin Çevre Düzeni Planı
+- E-Plan Kesinleşmiş
 
-Bu pilot, harita mühendisliği veya resmî değerleme belgesi değildir.
+## Kurulum
+
+Node.js 22 gerekir.
+
+```bash
+npm install
+npm run check
+npm start
+```
+
+Gerekli değişkenler `.env.example` dosyasındadır. Render'da `TEST_PASSWORD` ve `SESSION_SECRET` mutlaka ayarlanmalıdır.
+
+## Veri kalıcılığı
+
+Kullanıcı ve geçmiş verileri `DATA_DIR` içindeki SQLite dosyasında tutulur. Render ücretsiz dosya sistemi yeniden dağıtımda kalıcı olmayabilir. Kalıcı kullanımda Render Persistent Disk veya harici veritabanı kullanılmalıdır ve `DATA_DIR` kalıcı diske yönlendirilmelidir.

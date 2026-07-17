@@ -1,10 +1,20 @@
-KADASTRO360 WEB PILOT
+KADASTRO360 WEB PILOT v1.1
 
-1) Bu klasördeki dosyaları GitHub deposunun ana dizinine yükleyin.
-2) Render: New > Blueprint veya New > Web Service.
-3) Depoyu seçin.
-4) TEST_PASSWORD alanına giriş parolanızı yazın.
-5) Deploy düğmesine basın.
-6) Giriş kullanıcı adı varsayılan olarak admin'dir.
+1. Node.js 22 kurun.
+2. Klasörde terminal açın.
+3. npm install
+4. TEST_USERNAME, TEST_PASSWORD ve SESSION_SECRET değişkenlerini ayarlayın.
+5. npm start
 
-Bu sürüm sahte veya örnek sonuç üretmez.
+Render:
+- ZIP içeriğini GitHub deposuna yükleyin.
+- Render Blueprint veya Web Service ile yayınlayın.
+- TEST_PASSWORD için güçlü yeni parola belirleyin.
+- SESSION_SECRET otomatik üretilebilir.
+- Kullanıcı/geçmiş kalıcı olsun isteniyorsa Persistent Disk ekleyip DATA_DIR değerini o dizine yazın.
+
+TUCBS:
+- Kadastro360'dan parsel sorgulayın.
+- Bağlantılar > TUCBS'de Bu Konumu Aç.
+- Koordinatı kopyalayın.
+- TUCBS'de e-Devlet ile giriş yaptıktan sonra katmanı ekleyin ve koordinata gidin.

@@ -1,17 +1,22 @@
-PARSEL & EĞİM + YAKIN REHBER — VERİ KAYNAKLARI
+KADASTRO360 WEB PILOT v1.1 — VERİ KAYNAKLARI
 
-AWS Terrain Tiles
-https://registry.opendata.aws/terrain-tiles/
-Mapzen / Tilezen Joerd dokümantasyonu ve atıf koşulları:
-https://github.com/tilezen/joerd/tree/master/docs
+1. Parsel ve idari birimler
+   Kaynak: TKGM MEGSİS web servisleri
+   İl, ilçe, mahalle, ada/parsel ve geometri canlı kaynaktan alınır.
 
-OpenStreetMap
-https://www.openstreetmap.org/copyright
+2. Arazi eğimi
+   Kaynaklar: uygulamadaki terrain.js canlı yükseklik zinciri (Open-Meteo Elevation ve yedek servis)
+   Sonuç yaklaşık arazi analizidir; uydurma değer üretilmez.
 
-Open-Meteo Elevation
-https://open-meteo.com/en/docs/elevation-api
+3. Yakın yerler
+   Kaynak: OpenStreetMap / Overpass
+   Sonuç yok ile servis hatası ayrı gösterilir. Sahte nokta eklenmez.
 
-TKGM Parsel Sorgu
-https://parselsorgu.tkgm.gov.tr/
+4. Piyasa analizi
+   Endeksa bölge bağlantıları hazırlanır; dış siteden fiyat kazınmaz.
 
-Endeksa verisi uygulamaya alınmaz veya kazınmaz; yalnızca kullanıcıyı halka açık analiz sayfasına yönlendiren bağlantı oluşturulur.
+5. TUCBS / UCBP
+   Resmî harita görüntüleyici: https://ucbp.tucbs.gov.tr/harita-goruntuleyici
+   Kadastro360 seçilen parselin konum özetini hazırlar ve platformu açar.
+   e-Devlet girişi, katman yetkisi, katman bulunabilirliği ve katman seçimi TUCBS tarafındadır.
+   Uygulama bulunmayan katmanı varmış gibi göstermez ve renk kodundan otomatik değer üretmez.

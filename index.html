@@ -35,7 +35,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 .status{min-height:30px;padding:6px 12px;border-bottom:1px solid var(--line);font-size:11px;display:flex;align-items:center;gap:7px;color:var(--muted)}
 .dot{width:7px;height:7px;border-radius:50%;background:#9da7b1;flex:0 0 auto}.dot.ok{background:var(--green)}.dot.loading{background:#e2a100;animation:pulse .8s infinite}.dot.error{background:var(--red)}
 @keyframes pulse{50%{opacity:.25}}
-.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1100;background:#fff;box-shadow:0 2px 5px rgba(22,33,43,.04)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1100;background:#fff;box-shadow:0 2px 5px rgba(22,33,43,.04)}
 .tab{height:38px;border:0;background:#fff;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;border-bottom:2px solid transparent}.tab.active{color:var(--green);border-bottom-color:var(--green);background:#fbfdfc}
 .content{padding:10px 12px 22px;overflow:visible;min-height:260px}.pane{display:none}.pane.active{display:block}
 .empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:11px;line-height:1.55}.empty .big{font-size:26px;margin-bottom:5px}
@@ -54,8 +54,11 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 @media(max-height:720px) and (min-width:821px){
   .subtitle{display:none}.brand{padding:7px 11px}.logo{width:27px;height:27px;font-size:15px}.search{padding:7px 10px 8px}.field{margin-bottom:4px}.field label{margin-bottom:2px}.combo input,.plain-input,.select{height:31px}.primary{height:33px}.status{min-height:27px;padding:5px 10px}.tab{height:35px}.content{padding:8px 10px 18px;min-height:230px}
 }
+
+.userbar{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:9px;color:var(--muted);flex-wrap:wrap}.userbar a{color:var(--green);text-decoration:none;font-weight:800}.user-pill{padding:3px 7px;border-radius:99px;background:#eef5f2;color:#0e6b51;font-weight:800}.service-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:6px 10px;border-bottom:1px solid var(--line);background:#fbfcfc}.service-chip{border:1px solid var(--line);border-radius:7px;padding:5px 4px;font-size:8px;text-align:center;color:var(--muted);background:#fff}.service-chip b{display:block;font-size:9px;color:var(--text);margin-bottom:2px}.service-chip.ok{border-color:#9fd3bf;background:#eff9f5}.service-chip.error{border-color:#e5b4ad;background:#fff4f2}.service-chip.external{border-color:#b9c9ea;background:#f4f7ff}.process{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:7px 10px;border-bottom:1px solid var(--line)}.process-step{font-size:8px;text-align:center;color:var(--muted);padding:5px 3px;border-radius:6px;background:#f4f6f8;border:1px solid transparent}.process-step.loading{background:#fff8e7;border-color:#e3c77d;color:#765400}.process-step.ok{background:#eaf7f2;border-color:#9fd3bf;color:#0e6b51}.process-step.error{background:#fff1ef;border-color:#e5b4ad;color:#8b2d22}.tucbs-box{border:1px solid #9fb7e8;background:#f5f7ff;border-radius:9px;padding:9px;margin:9px 0}.tucbs-heading{font-size:11px;font-weight:850;color:#254f9b;margin-bottom:4px}.tucbs-meta{font-size:9px;color:#53616e;line-height:1.5;margin-bottom:7px}.secondary-btn{width:100%;border:1px solid #8aa8e4;background:#315fae;color:#fff;border-radius:8px;padding:10px;font-size:11px;font-weight:800;cursor:pointer}.secondary-btn:disabled{opacity:.45;cursor:not-allowed}.history-list{display:grid;gap:7px}.history-item{border:1px solid var(--line);border-radius:8px;padding:9px;background:#fff}.history-title{font-size:11px;font-weight:800}.history-meta{font-size:9px;color:var(--muted);line-height:1.5;margin-top:3px}.history-actions{display:flex;gap:6px;margin-top:7px}.history-actions a{font-size:9px;text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:6px 8px;color:var(--text);font-weight:750}.modal{position:fixed;inset:0;background:rgba(15,28,37,.55);display:none;place-items:center;z-index:5000;padding:18px}.modal.open{display:grid}.modal-card{width:min(520px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;box-shadow:0 30px 90px rgba(0,0,0,.3)}.modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}.modal-head h2{font-size:15px;margin:0}.modal-close{border:0;background:#eef2f4;width:30px;height:30px;border-radius:8px;cursor:pointer}.modal-body{padding:15px;font-size:11px;line-height:1.6}.coord-box{display:flex;gap:7px;margin:9px 0}.coord-box input{flex:1;height:36px;border:1px solid #cfd8e1;border-radius:7px;padding:0 8px}.coord-box button{border:1px solid var(--line);border-radius:7px;background:#fff;padding:0 10px;cursor:pointer;font-weight:750}.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.modal-actions a,.modal-actions button{text-decoration:none;text-align:center;border-radius:8px;padding:10px;border:1px solid var(--line);font-weight:800;font-size:11px}.modal-actions .go{background:#315fae;color:#fff;border-color:#315fae}.map-toggle{display:none;position:absolute;right:10px;top:10px;z-index:1200;border:0;border-radius:8px;background:#fff;padding:8px 10px;box-shadow:0 3px 12px rgba(0,0,0,.18);font-weight:800;font-size:10px}
+
 @media(max-width:820px){
-  html,body{height:auto;min-height:100%;overflow:auto}.app{height:auto;min-height:100vh;display:block;overflow:visible}.sidebar{height:auto;min-height:0;overflow:visible;border-right:0;border-bottom:1px solid var(--line)}.tabs{top:0}.content{min-height:280px}.map-wrap{height:45vh;min-height:320px}.map-badge{display:none}
+  html,body{height:auto;min-height:100%;overflow:auto}.app{height:auto;min-height:100vh;display:block;overflow:visible}.sidebar{height:auto;min-height:0;overflow:visible;border-right:0;border-bottom:1px solid var(--line)}.tabs{top:0}.content{min-height:280px}.map-wrap{height:45vh;min-height:320px}.map-badge{display:none}.map-toggle{display:block}.map-wrap.collapsed{height:52px;min-height:52px}.map-wrap.collapsed #map{visibility:hidden}
 }
 </style>
 </head>
@@ -64,6 +67,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-row"><div class="logo">⌖</div><div><h1>Kadastro360</h1><div class="subtitle">Gerçek veriyle parsel, eğim ve yakın yer analizi</div></div></div>
+      <div class="userbar"><span class="user-pill" id="user-summary">Hesap yükleniyor…</span><a id="admin-link" href="/admin" hidden>Yönetim</a><a href="/logout">Çıkış</a></div>
     </div>
 
     <div class="search">
@@ -78,12 +82,22 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
     </div>
 
     <div class="status"><span class="dot" id="status-dot"></span><span id="status-text">Hazırlanıyor…</span></div>
+    <div class="service-strip" id="service-strip">
+      <div class="service-chip" data-service="tkgm"><b>TKGM</b><span>bekleniyor</span></div>
+      <div class="service-chip" data-service="terrain"><b>Eğim</b><span>bekleniyor</span></div>
+      <div class="service-chip" data-service="overpass"><b>Yakın yer</b><span>bekleniyor</span></div>
+      <div class="service-chip external" data-service="tucbs"><b>TUCBS</b><span>dış platform</span></div>
+    </div>
+    <div class="process" id="process">
+      <div class="process-step" data-step="tkgm">1. TKGM</div><div class="process-step" data-step="parcel">2. Parsel</div><div class="process-step" data-step="terrain">3. Eğim</div><div class="process-step" data-step="tucbs">4. TUCBS</div>
+    </div>
     <div class="notice info" style="margin:8px 12px 0"><strong>Canlı veri ilkesi:</strong> Sistem örnek, sanal veya tahmini parsel/yakın yer sonucu üretmez. Servis yanıt vermezse hata açıkça gösterilir.</div>
 
     <div class="tabs">
       <button class="tab active" data-pane="parcel-pane">Parsel</button>
       <button class="tab" data-pane="poi-pane">Yakın Yerler</button>
       <button class="tab" data-pane="links-pane">Bağlantılar</button>
+      <button class="tab" data-pane="history-pane">Geçmiş</button>
     </div>
 
     <div class="content">
@@ -144,26 +158,46 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
           </div>
           <div class="link-note">Mahalle ekranında yeterli veri bulunmazsa ilçe veya il bağlantısını kullanın. Bu bağlantılar da kriterleri otomatik taşır.</div>
         </div>
+        <div class="tucbs-box" id="tucbs-box">
+          <div class="tucbs-heading">TUCBS / Ulusal Coğrafi Bilgi Platformu</div>
+          <div class="tucbs-meta" id="tucbs-meta">Parsel sorgusundan sonra seçilen il ve koordinat hazırlanır. Katman bulunmuş gibi gösterilmez; TUCBS içinde kullanıcı tarafından seçilir.</div>
+          <button class="secondary-btn" id="tucbs-btn" disabled>TUCBS’de Bu Konumu Aç</button>
+        </div>
         <div class="link-grid">
           <a class="link-btn" href="https://parselsorgu.tkgm.gov.tr" target="_blank" rel="noopener noreferrer">TKGM Parsel Sorgu <span>↗</span></a>
           <a class="link-btn" href="https://www.turkiye.gov.tr/belediye-arsa-metrekare-birim-degeri-sorgulama" target="_blank" rel="noopener noreferrer">e-Devlet Resmî Rayiç Sorgu <span>↗</span></a>
           <a class="link-btn disabled" id="center-link" href="#" target="_blank" rel="noopener noreferrer">Parsel Merkezini Google Maps'te Aç <span>↗</span></a>
         </div>
       </section>
+
+      <section class="pane" id="history-pane">
+        <div class="notice info">Başarılı TKGM parsel sorguları kullanıcı hesabına kaydedilir. Sahte veya başarısız sorgu geçmişe eklenmez.</div>
+        <div id="history-output"><div class="empty"><div class="big">🕘</div>Geçmiş yükleniyor…</div></div>
+      </section>
     </div>
   </aside>
 
-  <main class="map-wrap">
+  <main class="map-wrap" id="map-wrap">
+    <button class="map-toggle" id="map-toggle">Haritayı Küçült</button>
     <div id="map" class="map"></div>
     <div class="loading-overlay" id="loading"><div class="spinner"></div></div>
     <div class="map-badge">Harita: OpenStreetMap · Veriler: canlı servisler · Sahte sonuç yok</div>
   </main>
+</div>
+<div class="modal" id="tucbs-modal" role="dialog" aria-modal="true" aria-labelledby="tucbs-title">
+  <div class="modal-card"><div class="modal-head"><h2 id="tucbs-title">TUCBS konum aktarımı</h2><button class="modal-close" id="tucbs-close">×</button></div><div class="modal-body">
+    <div id="tucbs-detail"></div>
+    <div class="coord-box"><input id="tucbs-coords" readonly><button id="copy-coords">Kopyala</button></div>
+    <div class="notice info"><strong>TUCBS içinde:</strong> e-Devlet ile giriş yapın; “Veri Ekle” bölümünde <strong>Arazi Kullanımı</strong>, ilgili ilin <strong>Çevre Düzeni Planı</strong> veya <strong>E-Plan Kesinleşmiş</strong> katmanlarını arayın. Katmanın mevcut olduğu kesinmiş gibi gösterilmez.</div>
+    <div class="modal-actions"><button id="copy-summary">Parsel özetini kopyala</button><a class="go" id="tucbs-open" href="https://ucbp.tucbs.gov.tr/harita-goruntuleyici" target="_blank" rel="noopener noreferrer">TUCBS’yi Aç ↗</a></div>
+  </div></div>
 </div>
 
 <script>
 'use strict';
 
 const API = '/api';
+const TUCBS_URL = 'https://ucbp.tucbs.gov.tr/harita-goruntuleyici';
 const CATEGORY_ICONS = {school:'🏫',market:'🛒',mosque:'🕌',bank:'🏦',atm:'🏧',beach:'🏖️',pharmacy:'💊',hospital:'🏥',bus_terminal:'🚌',train_station:'🚆',airport:'✈️'};
 const PRIORITY_CATEGORIES = ['school','market','mosque','pharmacy','hospital','bank','atm','beach','bus_terminal','train_station','airport'];
 const CATEGORY_NAMES = {school:'Okul',market:'Market',mosque:'Cami',bank:'Banka',atm:'ATM',beach:'Sahil / Plaj',pharmacy:'Eczane',hospital:'Hastane / Sağlık',bus_terminal:'Otogar',train_station:'Tren Garı / İstasyonu',airport:'Havaalanı'};
@@ -172,10 +206,111 @@ const store = {
   il:{items:[],selected:null}, ilce:{items:[],selected:null}, mah:{items:[],selected:null},
   map:null, parcelLayer:null, parcelFeature:null, parcelCenter:null,
   poiGroup:null, poiMarkers:new Map(), selectedLine:null, selectedLabel:null,
-  poiItems:[], poiSearchMeta:null, requestId:0, poiRequestId:0
+  poiItems:[], poiSearchMeta:null, requestId:0, poiRequestId:0, account:null, services:null
 };
 
 const $ = id => document.getElementById(id);
+
+function setProcess(step,state=''){
+  const node = document.querySelector(`.process-step[data-step="${step}"]`);
+  if(!node) return;
+  node.classList.remove('loading','ok','error');
+  if(state) node.classList.add(state);
+}
+function resetProcess(){ ['tkgm','parcel','terrain','tucbs'].forEach(key=>setProcess(key,'')); }
+
+function renderAccount(user){
+  store.account = user;
+  const quota = user.role === 'admin' ? 'sınırsız' : `${user.remainingToday}/${user.dailyQuota} sorgu`;
+  $('user-summary').textContent = `${user.username} · ${quota}`;
+  $('admin-link').hidden = user.role !== 'admin';
+}
+async function loadAccount(){
+  try{ renderAccount(await api('/me')); }catch(error){ $('user-summary').textContent = 'Hesap bilgisi alınamadı'; }
+}
+
+function renderServices(payload){
+  store.services = payload?.services || {};
+  for(const [key,value] of Object.entries(store.services)){
+    const chip = document.querySelector(`.service-chip[data-service="${key}"]`);
+    if(!chip) continue;
+    chip.classList.remove('ok','error','external');
+    if(value.status) chip.classList.add(value.status);
+    const label = value.status === 'ok' ? 'çalışıyor' : value.status === 'error' ? 'hata' : value.status === 'external' ? 'dış platform' : 'bekleniyor';
+    chip.querySelector('span').textContent = label;
+    chip.title = value.message || '';
+  }
+}
+async function loadServices(){ try{ renderServices(await api('/services')); }catch{} }
+
+async function copyText(text,button){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch{
+    const area=document.createElement('textarea');area.value=text;document.body.appendChild(area);area.select();document.execCommand('copy');area.remove();
+  }
+  if(button){ const old=button.textContent; button.textContent='Kopyalandı'; setTimeout(()=>button.textContent=old,1300); }
+}
+
+function tucbsSummary(){
+  if(!store.parcelCenter) return '';
+  return [
+    `İl: ${store.il.selected?.name || ''}`,
+    `İlçe: ${store.ilce.selected?.name || ''}`,
+    `Mahalle: ${store.mah.selected?.name || ''}`,
+    `Ada/Parsel: ${$('ada').value.trim()}/${$('parsel').value.trim()}`,
+    `Koordinat: ${store.parcelCenter.lat.toFixed(6)}, ${store.parcelCenter.lng.toFixed(6)}`,
+    'TUCBS katman araması: Arazi Kullanımı / ilgili il Çevre Düzeni Planı / E-Plan Kesinleşmiş'
+  ].join('\n');
+}
+
+function configureTucbs(){
+  const button=$('tucbs-btn');
+  if(!store.parcelCenter){
+    button.disabled=true;
+    $('tucbs-meta').textContent='Parsel sorgusundan sonra seçilen il ve koordinat hazırlanır. Katman bulunmuş gibi gösterilmez; TUCBS içinde kullanıcı tarafından seçilir.';
+    setProcess('tucbs','');
+    return;
+  }
+  const il=store.il.selected?.name || 'Seçilen il';
+  const c=`${store.parcelCenter.lat.toFixed(6)}, ${store.parcelCenter.lng.toFixed(6)}`;
+  $('tucbs-meta').textContent=`${il} için parsel merkezi hazır: ${c}. e-Devlet girişi ve katman seçimi TUCBS içinde yapılır.`;
+  button.disabled=false;
+  setProcess('tucbs','ok');
+}
+
+function openTucbsModal(){
+  if(!store.parcelCenter) return;
+  const il=store.il.selected?.name || '';
+  const ilce=store.ilce.selected?.name || '';
+  const mah=store.mah.selected?.name || '';
+  const coords=`${store.parcelCenter.lat.toFixed(6)}, ${store.parcelCenter.lng.toFixed(6)}`;
+  $('tucbs-detail').innerHTML=`<strong>${escapeHtml(il)} / ${escapeHtml(ilce)} / ${escapeHtml(mah)}</strong><br>Ada ${escapeHtml($('ada').value.trim())} · Parsel ${escapeHtml($('parsel').value.trim())}<br>Koordinatı kopyalayıp TUCBS harita görüntüleyicide “Konumları ara” alanına yapıştırın.`;
+  $('tucbs-coords').value=coords;
+  $('tucbs-open').href=TUCBS_URL;
+  $('tucbs-modal').classList.add('open');
+}
+function closeTucbsModal(){ $('tucbs-modal').classList.remove('open'); }
+
+async function loadHistory(){
+  const output=$('history-output');
+  output.innerHTML='<div class="empty"><div class="big">⏳</div>Geçmiş yükleniyor…</div>';
+  try{
+    const data=await api('/history?limit=30');
+    const items=Array.isArray(data.items)?data.items:[];
+    if(!items.length){ output.innerHTML='<div class="empty"><div class="big">🕘</div>Henüz başarılı parsel sorgusu yok.</div>'; return; }
+    const wrap=document.createElement('div');wrap.className='history-list';
+    for(const item of items){
+      const row=document.createElement('div');row.className='history-item';
+      const place=[item.province,item.district,item.neighborhood].filter(Boolean).join(' / ');
+      const mapLink=Number.isFinite(Number(item.latitude))&&Number.isFinite(Number(item.longitude))?`https://www.google.com/maps?q=${item.latitude},${item.longitude}`:'';
+      row.innerHTML=`<div class="history-title">Ada ${escapeHtml(item.blockNo)} · Parsel ${escapeHtml(item.parcelNo)}</div><div class="history-meta">${escapeHtml(place || 'Konum adı dönmedi')}<br>${new Date(item.createdAt).toLocaleString('tr-TR')} · Kaynak: ${escapeHtml(item.source || 'TKGM')}</div>${mapLink?`<div class="history-actions"><a href="${mapLink}" target="_blank" rel="noopener">Google Maps ↗</a></div>`:''}`;
+      wrap.appendChild(row);
+    }
+    output.innerHTML='';output.appendChild(wrap);
+  }catch(error){ output.innerHTML=`<div class="notice error">${escapeHtml(humanError(error))}</div>`; }
+}
+
 
 function normalizeTr(value){
   return String(value || '')
@@ -203,6 +338,7 @@ function showPane(id){
     const targetTop = Math.max(0, tabs.offsetTop);
     sidebar.scrollTo({top:targetTop, behavior:'smooth'});
   }
+  if(id === 'history-pane') loadHistory();
   setTimeout(() => store.map?.invalidateSize(), 0);
 }
 
@@ -376,6 +512,8 @@ function resetResult(){
   });
   $('endeksa-meta').textContent = 'Parsel sorgusundan sonra hazırlanır.';
   $('center-link').classList.add('disabled'); $('center-link').href = '#';
+  configureTucbs();
+  resetProcess();
   clearPoi();
 }
 
@@ -466,6 +604,7 @@ function samplePoints(feature, center, limit = 12){
 }
 
 async function loadElevation(feature, requestId){
+  setProcess('terrain','loading');
   $('elevation-box').innerHTML = '<div class="elevation-meta">30 m sınıfı arazi modeliyle parsel içi ızgara hazırlanıyor…</div>';
   try{
     const data = await api('/terrain-analysis',{
@@ -498,9 +637,13 @@ async function loadElevation(feature, requestId){
         Kaynak: ${escapeHtml(data.source || 'yükseklik servisi')}<br>${escapeHtml(data.sourceDetail || '')}
         ${warningText ? `<div class="terrain-warning">${warningText}</div>` : ''}
       </div>`;
+    setProcess('terrain','ok');
+    loadServices();
   }catch(error){
     if(requestId !== store.requestId) return;
     $('elevation-box').innerHTML = `<div class="notice error">${humanError(error)} Uydurma eğim değeri gösterilmedi.</div>`;
+    setProcess('terrain','error');
+    loadServices();
   }
 }
 
@@ -513,10 +656,12 @@ async function searchParcel(){
 
   resetResult();
   const requestId = store.requestId;
+  setProcess('tkgm','loading');
   setLoading(true); setStatus('loading','Parsel TKGM’den sorgulanıyor…'); $('search-btn').disabled = true;
   try{
     const payload = await api(`/parsel/${encodeURIComponent(mahalle.id)}/${encodeURIComponent(ada)}/${encodeURIComponent(parsel)}`,{},15000);
     if(requestId !== store.requestId) return;
+    setProcess('tkgm','ok');
     const feature = parcelFeature(payload);
     if(!feature?.geometry) throw new Error('Parsel bulunamadı veya geometri dönmedi.');
 
@@ -525,6 +670,7 @@ async function searchParcel(){
     const bounds = store.parcelLayer.getBounds();
     if(!bounds.isValid()) throw new Error('Parsel koordinatı geçersiz.');
     store.parcelCenter = bounds.getCenter();
+    setProcess('parcel','ok');
     store.map.fitBounds(bounds,{padding:[45,45],maxZoom:18});
 
     renderParcelInfo(feature);
@@ -532,6 +678,7 @@ async function searchParcel(){
     $('poi-btn').disabled = false;
 
     configureEndeksaLinks(feature);
+    configureTucbs();
     $('center-link').href = `https://www.google.com/maps?q=${store.parcelCenter.lat},${store.parcelCenter.lng}`;
     $('center-link').classList.remove('disabled');
     updateGooglePoiLink();
@@ -539,9 +686,14 @@ async function searchParcel(){
     setStatus('ok','Parsel bulundu. Yakın yer araması hazır.');
     showPane('parcel-pane');
     loadElevation(feature,requestId);
+    loadAccount();
+    loadHistory();
+    loadServices();
   }catch(error){
     if(requestId === store.requestId){
       resetResult();
+      setProcess('tkgm','error');
+      setProcess('parcel','error');
       setStatus('error',humanError(error));
       $('parcel-empty').innerHTML = `<div class="big">⚠️</div>${humanError(error)}<br>Önceki parsel sonucu temizlendi.`;
     }
@@ -865,11 +1017,21 @@ async function init(){
     });
   });
   document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click',() => showPane(tab.dataset.pane)));
+  $('tucbs-btn').addEventListener('click',openTucbsModal);
+  $('tucbs-close').addEventListener('click',closeTucbsModal);
+  $('tucbs-modal').addEventListener('click',event=>{if(event.target===$('tucbs-modal'))closeTucbsModal();});
+  $('copy-coords').addEventListener('click',()=>copyText($('tucbs-coords').value,$('copy-coords')));
+  $('copy-summary').addEventListener('click',()=>copyText(tucbsSummary(),$('copy-summary')));
+  $('map-toggle').addEventListener('click',()=>{const wrap=$('map-wrap');wrap.classList.toggle('collapsed');$('map-toggle').textContent=wrap.classList.contains('collapsed')?'Haritayı Aç':'Haritayı Küçült';setTimeout(()=>store.map?.invalidateSize(),100);});
   $('search-btn').addEventListener('click',searchParcel);
   $('poi-category').addEventListener('change',updateGooglePoiLink);
   $('poi-btn').addEventListener('click',searchPoi);
   ['ada','parsel'].forEach(id => $(id).addEventListener('keydown',event => { if(event.key === 'Enter') searchParcel(); }));
 
+  loadAccount();
+  loadServices();
+  loadHistory();
+  setInterval(loadServices,30000);
   setStatus('loading','İller TKGM’den yükleniyor…');
   try{
     const data = await api('/iller',{},15000);
@@ -877,6 +1039,7 @@ async function init(){
     if(!store.il.items.length) throw new Error('İl listesi boş döndü.');
     $('input-il').disabled = false;
     setStatus('ok',`${store.il.items.length} il yüklendi. İl seçin.`);
+    loadServices();
   }catch(error){ setStatus('error',humanError(error)); }
 }
 

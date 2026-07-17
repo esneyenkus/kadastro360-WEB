@@ -15,3 +15,7 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
+      - key: DEFAULT_DAILY_QUOTA
+        value: 20
+      - key: DATA_DIR
+        value: ./data

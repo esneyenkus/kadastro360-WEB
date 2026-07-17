@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { analyzeTerrain } = require('./terrain');
+const { AccountStore } = require('./account-store');
 
 const HOST = process.env.HOST || '0.0.0.0';
 const START_PORT = Number(process.env.PORT) || 10000;
@@ -15,6 +16,29 @@ const SESSION_SECRET = process.env.SESSION_SECRET || '';
 const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const COOKIE_SECURE = process.env.COOKIE_SECURE !== '0';
 const ROOT = __dirname;
+const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
+const DEFAULT_DAILY_QUOTA = Math.max(1, Number(process.env.DEFAULT_DAILY_QUOTA) || 20);
+const accounts = new AccountStore({
+  dataDir: DATA_DIR,
+  adminUsername: TEST_USERNAME,
+  adminPassword: TEST_PASSWORD,
+  defaultDailyQuota: DEFAULT_DAILY_QUOTA
+});
+
+const serviceHealth = {
+  tkgm: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz kontrol edilmedi.' },
+  terrain: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz kontrol edilmedi.' },
+  overpass: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz kontrol edilmedi.' },
+  tucbs: { status: 'external', lastSuccessAt: null, lastErrorAt: null, message: 'e-Devlet oturumu gerektiren dış platform.' }
+};
+
+function markService(name, ok, message = '') {
+  const row = serviceHealth[name];
+  if (!row) return;
+  row.status = ok ? 'ok' : 'error';
+  row[ok ? 'lastSuccessAt' : 'lastErrorAt'] = new Date().toISOString();
+  row.message = message || (ok ? 'Çalışıyor.' : 'Yanıt alınamadı.');
+}
 
 const TKGM_BASES = [
   'https://cbsapi.tkgm.gov.tr/megsiswebapi.v3.1/api',
@@ -63,21 +87,25 @@ function signSession(username, expiresAt) {
 }
 
 function validSession(req) {
-  if (!TEST_PASSWORD || !SESSION_SECRET) return false;
+  if (!TEST_PASSWORD || !SESSION_SECRET) return null;
   const token = parseCookies(req).kadastro360_session;
-  if (!token) return false;
+  if (!token) return null;
   try {
     const decoded = Buffer.from(token, 'base64url').toString('utf8');
     const [username, expiresRaw, signature] = decoded.split('|');
     const expiresAt = Number(expiresRaw);
-    if (username !== TEST_USERNAME || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) return false;
+    if (!username || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
     const expected = crypto.createHmac('sha256', SESSION_SECRET)
       .update(`${username}|${expiresAt}`).digest('hex');
     const a = Buffer.from(signature || '', 'hex');
     const b = Buffer.from(expected, 'hex');
-    return a.length === b.length && crypto.timingSafeEqual(a, b);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+    const user = accounts.getUser(username);
+    if (!user?.active) return null;
+    if (user.trialEndsAt && Date.parse(user.trialEndsAt) <= Date.now()) return null;
+    return user;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -97,7 +125,7 @@ function sendHtml(res, status, html, extraHeaders = {}) {
 
 function loginPage(message = '') {
   return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kadastro360 Giriş</title>
-  <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#eef3f6;font-family:Arial,sans-serif;color:#17242c}.box{width:min(390px,calc(100% - 32px));background:white;padding:30px;border-radius:18px;box-shadow:0 18px 60px #1b394322}.brand{font-size:30px;font-weight:800;margin-bottom:4px}.sub{color:#60727d;margin-bottom:24px}label{display:block;font-weight:700;margin:14px 0 6px}input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #bccbd2;border-radius:10px;font-size:16px}button{width:100%;margin-top:20px;padding:14px;border:0;border-radius:10px;background:#126b62;color:white;font-size:16px;font-weight:800;cursor:pointer}.msg{background:#fff0f0;color:#a12626;padding:10px;border-radius:9px;margin-bottom:12px}.note{font-size:12px;color:#71818a;margin-top:18px;text-align:center}</style></head><body><main class="box"><div class="brand">Kadastro360</div><div class="sub">Gerçek veri web pilotu</div>${message ? `<div class="msg">${escapeHtml(message)}</div>` : ''}<form method="post" action="/login"><label>Kullanıcı adı</label><input name="username" autocomplete="username" required><label>Parola</label><input name="password" type="password" autocomplete="current-password" required><button type="submit">Giriş yap</button></form><div class="note">Bu pilot yalnızca canlı veri kaynaklarını kullanır; örnek veya sanal sonuç üretmez.</div></main></body></html>`;
+  <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#eef3f6;font-family:Arial,sans-serif;color:#17242c}.box{width:min(390px,calc(100% - 32px));background:white;padding:30px;border-radius:18px;box-shadow:0 18px 60px #1b394322}.brand{font-size:30px;font-weight:800;margin-bottom:4px}.sub{color:#60727d;margin-bottom:24px}label{display:block;font-weight:700;margin:14px 0 6px}input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #bccbd2;border-radius:10px;font-size:16px}button{width:100%;margin-top:20px;padding:14px;border:0;border-radius:10px;background:#126b62;color:white;font-size:16px;font-weight:800;cursor:pointer}.msg{background:#fff0f0;color:#a12626;padding:10px;border-radius:9px;margin-bottom:12px}.note{font-size:12px;color:#71818a;margin-top:18px;text-align:center}</style></head><body><main class="box"><div class="brand">Kadastro360</div><div class="sub">Gerçek veri web pilotu · TUCBS deneme entegrasyonu</div>${message ? `<div class="msg">${escapeHtml(message)}</div>` : ''}<form method="post" action="/login"><label>Kullanıcı adı</label><input name="username" autocomplete="username" required><label>Parola</label><input name="password" type="password" autocomplete="current-password" required><button type="submit">Giriş yap</button></form><div class="note">Bu pilot yalnızca canlı veri kaynaklarını kullanır; örnek veya sanal sonuç üretmez.</div></main></body></html>`;
 }
 
 function readFormBody(req, limit = 50_000) {
@@ -999,6 +1027,65 @@ async function getPoi(lat, lng, radiusMode, category, geometry) {
   });
 }
 
+
+function firstProperty(object, keys) {
+  for (const key of keys) {
+    const value = object?.[key];
+    if (value !== undefined && value !== null && String(value).trim() !== '') return value;
+  }
+  return null;
+}
+
+function payloadFeature(payload) {
+  if (payload?.type === 'Feature' && payload.geometry) return payload;
+  if (payload?.geometry) return { type: 'Feature', geometry: payload.geometry, properties: payload.properties || {} };
+  const rows = Array.isArray(payload?.features) ? payload.features
+    : Array.isArray(payload?.data?.features) ? payload.data.features
+      : Array.isArray(payload?.data) ? payload.data
+        : Array.isArray(payload) ? payload : [];
+  const found = rows.find(row => row?.geometry);
+  if (found) return found.type === 'Feature' ? found : { type: 'Feature', geometry: found.geometry, properties: found.properties || {} };
+  if (payload?.data?.geometry) return { type: 'Feature', geometry: payload.data.geometry, properties: payload.data.properties || {} };
+  return null;
+}
+
+function geometryCenter(geometry) {
+  const points = [];
+  const walk = value => {
+    if (!Array.isArray(value)) return;
+    if (value.length >= 2 && Number.isFinite(Number(value[0])) && Number.isFinite(Number(value[1]))) {
+      points.push([Number(value[0]), Number(value[1])]);
+      return;
+    }
+    value.forEach(walk);
+  };
+  walk(geometry?.coordinates);
+  if (!points.length) return { lat: null, lng: null };
+  const minLng = Math.min(...points.map(p => p[0]));
+  const maxLng = Math.max(...points.map(p => p[0]));
+  const minLat = Math.min(...points.map(p => p[1]));
+  const maxLat = Math.max(...points.map(p => p[1]));
+  return { lat: (minLat + maxLat) / 2, lng: (minLng + maxLng) / 2 };
+}
+
+const loginFailures = new Map();
+function loginKey(req, username = '') {
+  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  return `${forwarded || req.socket.remoteAddress || 'unknown'}:${String(username).toLocaleLowerCase('tr-TR')}`;
+}
+function loginBlocked(req, username) {
+  const row = loginFailures.get(loginKey(req, username));
+  return row && row.blockedUntil > Date.now();
+}
+function recordLoginFailure(req, username) {
+  const key = loginKey(req, username);
+  const now = Date.now();
+  const row = loginFailures.get(key);
+  const count = row && row.resetAt > now ? row.count + 1 : 1;
+  loginFailures.set(key, { count, resetAt: now + 15 * 60_000, blockedUntil: count >= 5 ? now + 15 * 60_000 : 0 });
+}
+function clearLoginFailures(req, username) { loginFailures.delete(loginKey(req, username)); }
+
 const requestWindows = new Map();
 function requestAllowed(req, pathname) {
   if (!pathname.startsWith('/api/') || pathname === '/api/health') return true;
@@ -1028,7 +1115,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.0.0', dataMode: 'live-only', mockData: false });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.1.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
@@ -1046,11 +1133,17 @@ const server = http.createServer(async (req, res) => {
       const form = await readFormBody(req);
       const username = form.get('username') || '';
       const password = form.get('password') || '';
-      if (!secureEqual(username, TEST_USERNAME) || !secureEqual(password, TEST_PASSWORD)) {
-        return sendHtml(res, 401, loginPage('Kullanıcı adı veya parola yanlış.'));
+      if (loginBlocked(req, username)) {
+        return sendHtml(res, 429, loginPage('Çok fazla başarısız giriş yapıldı. 15 dakika sonra tekrar deneyin.'));
       }
+      const user = accounts.authenticate(username, password);
+      if (!user) {
+        recordLoginFailure(req, username);
+        return sendHtml(res, 401, loginPage('Kullanıcı adı, parola veya hesap süresi geçersiz.'));
+      }
+      clearLoginFailures(req, username);
       const expiresAt = Date.now() + SESSION_MAX_AGE_SECONDS * 1000;
-      const token = signSession(TEST_USERNAME, expiresAt);
+      const token = signSession(user.username, expiresAt);
       res.writeHead(302, {
         Location: '/',
         'Set-Cookie': `kadastro360_session=${encodeURIComponent(token)}; Path=/; Max-Age=${SESSION_MAX_AGE_SECONDS}; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Lax`
@@ -1066,7 +1159,8 @@ const server = http.createServer(async (req, res) => {
       return res.end();
     }
 
-    if (!validSession(req)) {
+    const sessionUser = validSession(req);
+    if (!sessionUser) {
       if (pathname.startsWith('/api/')) return sendJson(res, 401, { error: 'Oturum gerekli.' });
       res.writeHead(302, { Location: '/login' }); return res.end();
     }
@@ -1076,29 +1170,80 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && pathname === '/endeksa-utils.js') {
       return sendFile(res, path.join(ROOT, 'endeksa-utils.js'), 'application/javascript; charset=utf-8');
     }
+    if (req.method === 'GET' && pathname === '/admin') {
+      if (sessionUser.role !== 'admin') return sendHtml(res, 403, '<h1>Yetkisiz erişim</h1>');
+      return sendFile(res, path.join(ROOT, 'admin.html'), 'text/html; charset=utf-8');
+    }
     if (req.method === 'GET' && pathname === '/favicon.ico') {
       res.writeHead(204); return res.end();
     }
+    let match;
+    if (req.method === 'GET' && pathname === '/api/me') {
+      return sendJson(res, 200, accounts.publicUser(sessionUser));
+    }
+    if (req.method === 'GET' && pathname === '/api/history') {
+      return sendJson(res, 200, { items: accounts.history(sessionUser.username, requestUrl.searchParams.get('limit') || 30) });
+    }
+    if (req.method === 'GET' && pathname === '/api/services') {
+      return sendJson(res, 200, { updatedAt: new Date().toISOString(), services: serviceHealth });
+    }
+    if (req.method === 'GET' && pathname === '/api/admin/users') {
+      if (sessionUser.role !== 'admin') return sendJson(res, 403, { error: 'Yönetici yetkisi gerekli.' });
+      return sendJson(res, 200, { users: accounts.listUsers() });
+    }
+    if (req.method === 'POST' && pathname === '/api/admin/users') {
+      if (sessionUser.role !== 'admin') return sendJson(res, 403, { error: 'Yönetici yetkisi gerekli.' });
+      return sendJson(res, 201, { user: accounts.createUser(await readJsonBody(req)) });
+    }
+    match = pathname.match(/^\/api\/admin\/users\/([^/]+)$/);
+    if (req.method === 'PATCH' && match) {
+      if (sessionUser.role !== 'admin') return sendJson(res, 403, { error: 'Yönetici yetkisi gerekli.' });
+      return sendJson(res, 200, { user: accounts.updateUser(decodeURIComponent(match[1]), await readJsonBody(req)) });
+    }
     if (req.method === 'GET' && pathname === '/api/iller') {
-      return sendJson(res, 200, await tkgmGet('/idariYapi/ilListe'));
+      const result = await tkgmGet('/idariYapi/ilListe');
+      markService('tkgm', true, 'TKGM idari liste servisi çalışıyor.');
+      return sendJson(res, 200, result);
     }
 
-    let match = pathname.match(/^\/api\/ilceler\/(\d+)$/);
+    match = pathname.match(/^\/api\/ilceler\/(\d+)$/);
     if (req.method === 'GET' && match) {
-      return sendJson(res, 200, await tkgmGet(`/idariYapi/ilceListe/${match[1]}`));
+      const result = await tkgmGet(`/idariYapi/ilceListe/${match[1]}`);
+      markService('tkgm', true, 'TKGM ilçe servisi çalışıyor.');
+      return sendJson(res, 200, result);
     }
 
     match = pathname.match(/^\/api\/mahalleler\/(\d+)$/);
     if (req.method === 'GET' && match) {
-      return sendJson(res, 200, await tkgmGet(`/idariYapi/mahalleListe/${match[1]}`));
+      const result = await tkgmGet(`/idariYapi/mahalleListe/${match[1]}`);
+      markService('tkgm', true, 'TKGM mahalle servisi çalışıyor.');
+      return sendJson(res, 200, result);
     }
 
     match = pathname.match(/^\/api\/parsel\/(\d+)\/([^/]+)\/([^/]+)$/);
     if (req.method === 'GET' && match) {
+      const allowance = accounts.canQuery(sessionUser);
+      if (!allowance.ok) return sendJson(res, 429, { error: allowance.reason });
       const [, mahalleId, adaRaw, parselRaw] = match;
-      const ada = encodeURIComponent(decodeURIComponent(adaRaw));
-      const parsel = encodeURIComponent(decodeURIComponent(parselRaw));
-      return sendJson(res, 200, await tkgmGet(`/parsel/${mahalleId}/${ada}/${parsel}`));
+      const blockNo = decodeURIComponent(adaRaw);
+      const parcelNo = decodeURIComponent(parselRaw);
+      const ada = encodeURIComponent(blockNo);
+      const parsel = encodeURIComponent(parcelNo);
+      const payload = await tkgmGet(`/parsel/${mahalleId}/${ada}/${parsel}`);
+      markService('tkgm', true, 'TKGM parsel servisi çalışıyor.');
+      const feature = payloadFeature(payload);
+      if (feature?.geometry) {
+        const props = feature.properties || {};
+        const center = geometryCenter(feature.geometry);
+        accounts.logQuery({
+          username: sessionUser.username,
+          province: firstProperty(props, ['ilAd','ilAdi','IL_AD','il']),
+          district: firstProperty(props, ['ilceAd','ilceAdi','ILCE_AD','ilce']),
+          neighborhood: firstProperty(props, ['mahalleAd','mahalleAdi','MAHALLE_AD','mahalle']),
+          blockNo, parcelNo, latitude: center.lat, longitude: center.lng, source: 'TKGM', status: 'success'
+        });
+      }
+      return sendJson(res, 200, payload);
     }
 
     if (req.method === 'POST' && pathname === '/api/elevation') {
@@ -1106,7 +1251,9 @@ const server = http.createServer(async (req, res) => {
       if (!Array.isArray(locations) || locations.length < 2 || locations.length > 30) {
         return sendJson(res, 400, { error: '2-30 arasında koordinat gönderilmelidir.' });
       }
-      return sendJson(res, 200, await getElevation(locations));
+      const result = await getElevation(locations);
+      markService('terrain', true, `Yükseklik kaynağı: ${result.source || 'canlı servis'}.`);
+      return sendJson(res, 200, result);
     }
 
     if (req.method === 'POST' && pathname === '/api/terrain-analysis') {
@@ -1121,6 +1268,7 @@ const server = http.createServer(async (req, res) => {
         center,
         fallbackElevation: getElevation
       });
+      markService('terrain', true, `Eğim kaynağı: ${result.source || 'canlı servis'}.`);
       return sendJson(res, 200, result);
     }
 
@@ -1138,6 +1286,7 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 400, { error: 'Geçersiz yakın yer türü.' });
       }
       const result = await getPoi(lat, lng, radiusMode, category, geometry);
+      markService('overpass', true, `OpenStreetMap/Overpass yanıt verdi (${result.providers?.join(', ') || 'sağlayıcı'}).`);
       return sendJson(res, 200, { success: true, data: result.items, ...result });
     }
 
@@ -1145,6 +1294,9 @@ const server = http.createServer(async (req, res) => {
   } catch (error) {
     console.error('[HATA]', req.method, pathname, error);
     const message = error?.message || 'Beklenmeyen sunucu hatası.';
+    if (/\/api\/(iller|ilceler|mahalleler|parsel)/.test(pathname)) markService('tkgm', false, message);
+    if (/\/api\/(elevation|terrain-analysis)/.test(pathname)) markService('terrain', false, message);
+    if (pathname === '/api/poi') markService('overpass', false, message);
     const upstream = /TKGM|yakın yer|eğim|HTTP|zaman aşımı/i.test(message);
     return sendJson(res, upstream ? 502 : 500, { error: message });
   }

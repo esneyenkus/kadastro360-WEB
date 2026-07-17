@@ -1,0 +1,15 @@
+KADASTRO360 WEB PILOT v1.1
+
+- TUCBS geçiş köprüsü eklendi.
+- Parselin il/ilçe/mahalle/ada/parsel ve koordinat özeti hazırlanıyor.
+- Koordinat ve TUCBS arama özeti tek tıkla kopyalanıyor.
+- TUCBS katmanı bulunmuş gibi sahte durum gösterilmiyor.
+- TKGM, eğim, yakın yer ve TUCBS servis durum göstergeleri eklendi.
+- TKGM > parsel > eğim > TUCBS aşamalı ilerleme göstergesi eklendi.
+- Kullanıcı bazlı SQLite hesap sistemi eklendi.
+- Günlük kota ve başarılı sorgu geçmişi eklendi.
+- Yönetici paneli eklendi.
+- Kullanıcı oluşturma, pasifleştirme ve kota değiştirme eklendi.
+- Başarısız giriş denemelerine 15 dakikalık kilit eklendi.
+- Mobil haritayı küçültme/açma düğmesi eklendi.
+- Canlı veri ve sahte sonuç üretmeme ilkesi korundu.
