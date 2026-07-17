@@ -1,0 +1,10 @@
+KADASTRO360 WEB PILOT
+
+1) Bu klasördeki dosyaları GitHub deposunun ana dizinine yükleyin.
+2) Render: New > Blueprint veya New > Web Service.
+3) Depoyu seçin.
+4) TEST_PASSWORD alanına giriş parolanızı yazın.
+5) Deploy düğmesine basın.
+6) Giriş kullanıcı adı varsayılan olarak admin'dir.
+
+Bu sürüm sahte veya örnek sonuç üretmez.

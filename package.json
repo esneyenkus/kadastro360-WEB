@@ -1,0 +1,14 @@
+{
+  "name": "kadastro360-web-pilot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kadastro360 gerçek veri web pilotu",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check terrain.js && node --check endeksa-utils.js && node test-pilot.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

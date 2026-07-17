@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kadastro360 — Web Pilot</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="endeksa-utils.js"></script>
+<style>
+:root{
+  --bg:#f2f5f8;--panel:#fff;--line:#dfe5eb;--text:#17212b;--muted:#687583;
+  --green:#168a68;--green2:#e8f6f1;--blue:#2463eb;--red:#c44141;--amber:#a56b00;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);background:var(--bg)}
+button,input,select{font:inherit}
+.app{height:100%;display:grid;grid-template-columns:360px minmax(0,1fr);overflow:hidden}
+.sidebar{
+  background:var(--panel);border-right:1px solid var(--line);min-width:0;z-index:1000;
+  height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;overscroll-behavior:contain;
+}
+.brand{padding:11px 13px 9px;border-bottom:1px solid var(--line)}
+.brand-row{display:flex;align-items:center;gap:9px}
+.logo{width:31px;height:31px;border-radius:9px;background:var(--green);color:#fff;display:grid;place-items:center;font-size:17px;flex:0 0 auto}
+h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.35}
+.search{padding:9px 12px 10px;border-bottom:1px solid var(--line)}
+.field{margin-bottom:6px}.field label{display:block;font-size:10px;font-weight:700;color:var(--muted);margin:0 0 3px}
+.combo{position:relative}.combo input,.plain-input,.select{width:100%;height:34px;border:1px solid #cfd8e1;border-radius:7px;background:#fff;padding:0 9px;color:var(--text);outline:none;font-size:12px}
+.combo input:focus,.plain-input:focus,.select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,138,104,.11)}
+.combo input:disabled{background:#f3f5f7;color:#98a2ad}
+.dropdown{display:none;position:absolute;top:38px;left:0;right:0;max-height:220px;overflow:auto;background:#fff;border:1px solid #cfd8e1;border-radius:8px;box-shadow:0 12px 32px rgba(22,33,43,.16);z-index:2000;padding:5px}
+.dropdown.open{display:block}.option{padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px}.option:hover,.option.selected{background:var(--green2);color:#0e6b51}.option.empty{cursor:default;color:var(--muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}.primary{width:100%;height:36px;border:0;border-radius:7px;background:var(--green);color:#fff;font-size:12px;font-weight:750;cursor:pointer}.primary:hover{filter:brightness(.96)}.primary:disabled{opacity:.5;cursor:not-allowed}
+.status{min-height:30px;padding:6px 12px;border-bottom:1px solid var(--line);font-size:11px;display:flex;align-items:center;gap:7px;color:var(--muted)}
+.dot{width:7px;height:7px;border-radius:50%;background:#9da7b1;flex:0 0 auto}.dot.ok{background:var(--green)}.dot.loading{background:#e2a100;animation:pulse .8s infinite}.dot.error{background:var(--red)}
+@keyframes pulse{50%{opacity:.25}}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1100;background:#fff;box-shadow:0 2px 5px rgba(22,33,43,.04)}
+.tab{height:38px;border:0;background:#fff;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;border-bottom:2px solid transparent}.tab.active{color:var(--green);border-bottom-color:var(--green);background:#fbfdfc}
+.content{padding:10px 12px 22px;overflow:visible;min-height:260px}.pane{display:none}.pane.active{display:block}
+.empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:11px;line-height:1.55}.empty .big{font-size:26px;margin-bottom:5px}
+.card{border:1px solid var(--line);border-radius:9px;background:#fff;margin-bottom:9px;overflow:hidden}.card-title{padding:8px 10px;border-bottom:1px solid var(--line);font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.card-body{padding:8px 10px}
+.info-row{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px dashed #e7ebef;font-size:11px}.info-row:last-child{border:0}.info-key{color:var(--muted)}.info-value{text-align:right;font-weight:650;word-break:break-word}
+.elevation-number{font-size:26px;font-weight:800}.elevation-meta{font-size:10px;color:var(--muted);line-height:1.5;margin-top:6px}.bar{height:6px;border-radius:99px;background:linear-gradient(90deg,#3abf8b,#e5b233,#dc6b47,#c63d3d);position:relative;margin-top:8px}.needle{position:absolute;top:-4px;width:2px;height:14px;background:#16202a;transform:translateX(-50%)}
+.terrain-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}.terrain-stat{border:1px solid var(--line);border-radius:7px;padding:7px;background:#fbfcfc}.terrain-stat span{display:block;font-size:8px;color:var(--muted);text-transform:uppercase;font-weight:800;letter-spacing:.03em}.terrain-stat strong{display:block;margin-top:2px;font-size:12px}.confidence-badge{display:inline-flex;align-items:center;border-radius:99px;padding:3px 7px;font-size:9px;font-weight:800;margin:6px 0 1px}.confidence-badge.high{background:#e8f6f1;color:#0e6b51}.confidence-badge.medium{background:#fff6df;color:#72500a}.confidence-badge.low{background:#fff0f0;color:#8d3030}.terrain-warning{margin-top:5px;padding-top:5px;border-top:1px dashed #dfe5eb}
+.link-grid{display:grid;gap:7px}.link-btn{display:flex;align-items:center;justify-content:space-between;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-size:11px;font-weight:700;background:#fff}.link-btn:hover{border-color:#aebbc6;background:#f9fbfc}.link-btn.disabled{pointer-events:none;opacity:.45}.link-btn.primary-link{border-color:#8bc9b2;background:var(--green2);color:#0e6b51}.link-btn.primary-link:hover{border-color:var(--green);background:#dff2eb}.endeksa-box{border:1px solid #b9ddcf;background:#f5fbf8;border-radius:9px;padding:8px;margin-bottom:8px}.endeksa-heading{font-size:11px;font-weight:800;color:#0e6b51;margin-bottom:4px}.endeksa-meta{font-size:9px;color:#53616e;line-height:1.45;margin-bottom:7px}.endeksa-links{display:grid;gap:6px}.link-note{font-size:9px;color:var(--muted);line-height:1.45;margin-top:6px}
+.poi-controls{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:7px;margin-bottom:7px}.poi-controls .primary{grid-column:1/-1}.hint{font-size:10px;color:var(--muted);line-height:1.45;margin:7px 0 10px}
+.poi-summary{font-size:10px;color:var(--muted);margin:0 0 7px;line-height:1.45}.poi-progress{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:0 0 8px}.category-chip{border:1px solid var(--line);border-radius:7px;padding:6px 7px;background:#fff;font-size:9px;display:flex;align-items:center;justify-content:space-between;gap:5px}.category-chip strong{font-size:9px}.category-chip.searching{border-color:#9eb7e8;background:#f4f7ff}.category-chip.found{border-color:#9fd3bf;background:#eff9f5}.category-chip.empty{background:#f7f8f9;color:var(--muted)}.category-chip.failed{border-color:#e5b4ad;background:#fff4f2;color:#8b2d22}.poi-section{border:1px solid var(--line);border-radius:9px;background:#fbfcfc;margin-bottom:8px;overflow:hidden}.poi-section-toggle{width:100%;min-height:40px;border:0;background:#fbfcfc;padding:8px 9px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;cursor:pointer;color:var(--text)}.poi-section-toggle:hover{background:#f2f7f5}.poi-section-toggle:focus-visible{outline:2px solid var(--green);outline-offset:-2px}.poi-section-heading{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800}.poi-section-meta{display:flex;align-items:center;gap:7px;flex:0 0 auto}.poi-section-count{font-size:9px;color:var(--muted);font-weight:700}.poi-section-arrow{font-size:12px;color:var(--muted);transition:transform .18s ease}.poi-section.open .poi-section-arrow{transform:rotate(180deg)}.poi-section-body{padding:0 7px 7px;border-top:1px solid var(--line)}.poi-section-body[hidden]{display:none}.poi-section .poi-list{margin-top:7px}.poi-list{display:grid;gap:6px}.poi-item{width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;padding:8px 9px;background:#fff;cursor:pointer}.poi-item:hover,.poi-item.selected{border-color:var(--green);background:var(--green2)}.poi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.poi-name{font-size:11px;font-weight:750}.poi-dist{font-size:10px;color:var(--green);font-weight:800;white-space:nowrap;text-align:right}.poi-sub{font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4}.quality{display:inline-block;margin-top:4px;border-radius:99px;padding:2px 6px;background:#eef2f5;color:#53616e;font-size:8px;font-weight:750}.quality.high{background:#e8f6f1;color:#0e6b51}.quality.check{background:#fff6df;color:#72500a}.poi-pin{position:relative;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#fff;border:2px solid #168a68;box-shadow:0 2px 7px rgba(0,0,0,.25);font-size:15px}.poi-pin .unnamed{position:absolute;right:-5px;top:-6px;width:15px;height:15px;border-radius:50%;background:#17212b;color:#fff;display:grid;place-items:center;font:800 9px/1 Arial;border:1px solid #fff}
+.selected-route{margin:6px 0;border:1px solid #b9ddcf;background:var(--green2);border-radius:8px;padding:9px}.selected-route strong{font-size:11px}.route-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}.route-link{display:block;text-align:center;text-decoration:none;background:var(--blue);color:#fff;border-radius:7px;padding:8px 6px;font-size:10px;font-weight:800}.route-link.secondary{background:#fff;color:#244f9e;border:1px solid #9eb7e8}.google-poi-link{margin:0 0 9px;border-color:#9eb7e8;background:#f4f7ff;color:#244f9e}.google-poi-link:hover{border-color:#4f76c7;background:#edf2ff}
+.notice{border-radius:8px;padding:8px 9px;font-size:10px;line-height:1.45;margin-bottom:8px}.notice.info{background:#eef4ff;color:#31527f}.notice.warn{background:#fff6df;color:#72500a}.notice.error{background:#fff0f0;color:#8d3030}
+.map-wrap{position:relative;min-width:0}.map{height:100%;width:100%}.map-badge{position:absolute;left:12px;bottom:12px;z-index:500;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:10px;color:var(--muted);box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.distance-label{background:#17212b;color:#fff;border:0;border-radius:14px;padding:4px 7px;font-size:11px;font-weight:800;box-shadow:0 2px 7px rgba(0,0,0,.25);white-space:nowrap}.distance-label:before{display:none}
+.loading-overlay{display:none;position:absolute;inset:0;background:rgba(255,255,255,.62);z-index:900;align-items:center;justify-content:center;backdrop-filter:blur(1px)}.loading-overlay.show{display:flex}.spinner{width:34px;height:34px;border:4px solid #d9e5e0;border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-height:720px) and (min-width:821px){
+  .subtitle{display:none}.brand{padding:7px 11px}.logo{width:27px;height:27px;font-size:15px}.search{padding:7px 10px 8px}.field{margin-bottom:4px}.field label{margin-bottom:2px}.combo input,.plain-input,.select{height:31px}.primary{height:33px}.status{min-height:27px;padding:5px 10px}.tab{height:35px}.content{padding:8px 10px 18px;min-height:230px}
+}
+@media(max-width:820px){
+  html,body{height:auto;min-height:100%;overflow:auto}.app{height:auto;min-height:100vh;display:block;overflow:visible}.sidebar{height:auto;min-height:0;overflow:visible;border-right:0;border-bottom:1px solid var(--line)}.tabs{top:0}.content{min-height:280px}.map-wrap{height:45vh;min-height:320px}.map-badge{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-row"><div class="logo">⌖</div><div><h1>Kadastro360</h1><div class="subtitle">Gerçek veriyle parsel, eğim ve yakın yer analizi</div></div></div>
+    </div>
+
+    <div class="search">
+      <div class="field"><label>İl</label><div class="combo" id="wrap-il"><input id="input-il" autocomplete="off" placeholder="İl ara…" disabled><div class="dropdown" id="drop-il"></div></div></div>
+      <div class="field"><label>İlçe</label><div class="combo" id="wrap-ilce"><input id="input-ilce" autocomplete="off" placeholder="İlçe ara…" disabled><div class="dropdown" id="drop-ilce"></div></div></div>
+      <div class="field"><label>Mahalle</label><div class="combo" id="wrap-mah"><input id="input-mah" autocomplete="off" placeholder="Mahalle ara…" disabled><div class="dropdown" id="drop-mah"></div></div></div>
+      <div class="row2">
+        <div class="field"><label>Ada</label><input class="plain-input" id="ada" inputmode="numeric" placeholder="Örn. 123"></div>
+        <div class="field"><label>Parsel</label><input class="plain-input" id="parsel" inputmode="numeric" placeholder="Örn. 4"></div>
+      </div>
+      <button class="primary" id="search-btn">Parseli Sorgula</button>
+    </div>
+
+    <div class="status"><span class="dot" id="status-dot"></span><span id="status-text">Hazırlanıyor…</span></div>
+    <div class="notice info" style="margin:8px 12px 0"><strong>Canlı veri ilkesi:</strong> Sistem örnek, sanal veya tahmini parsel/yakın yer sonucu üretmez. Servis yanıt vermezse hata açıkça gösterilir.</div>
+
+    <div class="tabs">
+      <button class="tab active" data-pane="parcel-pane">Parsel</button>
+      <button class="tab" data-pane="poi-pane">Yakın Yerler</button>
+      <button class="tab" data-pane="links-pane">Bağlantılar</button>
+    </div>
+
+    <div class="content">
+      <section class="pane active" id="parcel-pane">
+        <div class="empty" id="parcel-empty"><div class="big">🗺️</div>İl, ilçe ve mahalleyi seçin.<br>Ada ve parsel numarasını girip sorgulayın.</div>
+        <div id="parcel-result" hidden>
+          <div class="card"><div class="card-title">Taşınmaz Bilgileri</div><div class="card-body" id="parcel-info"></div></div>
+          <div class="card"><div class="card-title">Arazi Eğimi — Gelişmiş Analiz</div><div class="card-body" id="elevation-box"><div class="elevation-meta">Yükseklik verisi bekleniyor…</div></div></div>
+        </div>
+      </section>
+
+      <section class="pane" id="poi-pane">
+        <div class="notice info"><strong>“Tüm öncelikli yerler” her kategoriyi ayrı ayrı tarar.</strong> Okul, market, cami, banka, ATM, sahil/plaj, eczane, hastane/sağlık, otogar, tren garı/istasyonu ve havaalanı sonuçları birlikte listelenir. Bir kategori hata verirse diğerleri kaybolmaz. İsimsiz fakat uygun etiketi bulunan gerçek noktalar ikon ve <strong>?</strong> rozetiyle görünür.</div>
+        <div class="poi-controls">
+          <select class="select" id="poi-category">
+            <option value="all">Tüm öncelikli yerler</option>
+            <option value="school">Okul</option>
+            <option value="market">Market</option>
+            <option value="mosque">Cami</option>
+            <option value="bank">Banka</option>
+            <option value="atm">ATM</option>
+            <option value="beach">Sahil / Plaj</option>
+            <option value="pharmacy">Eczane</option>
+            <option value="hospital">Hastane / Sağlık</option>
+            <option value="bus_terminal">Otogar</option>
+            <option value="train_station">Tren Garı / İstasyonu</option>
+            <option value="airport">Havaalanı</option>
+          </select>
+          <select class="select" id="poi-radius">
+            <option value="auto" selected>Akıllı: 5 → 10 → 20 → 30 km</option>
+            <option value="500">500 m</option>
+            <option value="1000">1 km</option>
+            <option value="2000">2 km</option>
+            <option value="3000">3 km</option>
+            <option value="5000">5 km</option>
+            <option value="10000">10 km</option>
+            <option value="15000">15 km</option>
+            <option value="20000">20 km</option>
+            <option value="30000">30 km</option>
+          </select>
+          <button class="primary" id="poi-btn" disabled>Yakın Yerleri Bul</button>
+        </div>
+        <div class="hint">Sonuçlar kategori başlıkları altında kapalı tutulur. Kategoriye tıklayınca liste açılır; tekrar tıklayınca kapanır. Sonuçlar parsel sınırına olan gerçek kuş uçuşu mesafesine göre sıralanır. İkona veya liste satırına tıklayınca parsel merkezinden çizgi ve Google Maps yol tarifi açılır.</div>
+        <a class="link-btn google-poi-link disabled" id="google-poi-link" target="_blank" rel="noopener">Google Maps’te Seçili Türü Ara <span>↗</span></a>
+        <div class="poi-progress" id="poi-progress"></div>
+        <div id="poi-output"><div class="empty"><div class="big">📍</div>Önce bir parsel sorgulayın.</div></div>
+      </section>
+
+      <section class="pane" id="links-pane">
+        <div class="notice warn"><strong>Değer bilgisi:</strong> e-Devlet bağlantısı belediye arsa rayicini; Endeksa bağlantıları ise seçilen bölge ve taşınmaz türü için piyasa fiyat analizini açar. Uygulama dış siteden veri çekmez.</div>
+        <div class="endeksa-box" id="endeksa-box" hidden>
+          <div class="endeksa-heading">Endeksa doğrudan fiyat ekranı</div>
+          <div class="endeksa-meta" id="endeksa-meta">Parsel sorgusundan sonra hazırlanır.</div>
+          <div class="endeksa-links">
+            <a class="link-btn primary-link disabled" id="endeksa-link" href="#" target="_blank" rel="noopener noreferrer"><span class="link-label">Endeksa Mahalle Fiyat Analizi</span><span>↗</span></a>
+            <a class="link-btn disabled" id="endeksa-ilce-link" href="#" target="_blank" rel="noopener noreferrer"><span class="link-label">Endeksa İlçe Fiyat Analizi</span><span>↗</span></a>
+            <a class="link-btn disabled" id="endeksa-il-link" href="#" target="_blank" rel="noopener noreferrer"><span class="link-label">Endeksa İl Fiyat Analizi</span><span>↗</span></a>
+          </div>
+          <div class="link-note">Mahalle ekranında yeterli veri bulunmazsa ilçe veya il bağlantısını kullanın. Bu bağlantılar da kriterleri otomatik taşır.</div>
+        </div>
+        <div class="link-grid">
+          <a class="link-btn" href="https://parselsorgu.tkgm.gov.tr" target="_blank" rel="noopener noreferrer">TKGM Parsel Sorgu <span>↗</span></a>
+          <a class="link-btn" href="https://www.turkiye.gov.tr/belediye-arsa-metrekare-birim-degeri-sorgulama" target="_blank" rel="noopener noreferrer">e-Devlet Resmî Rayiç Sorgu <span>↗</span></a>
+          <a class="link-btn disabled" id="center-link" href="#" target="_blank" rel="noopener noreferrer">Parsel Merkezini Google Maps'te Aç <span>↗</span></a>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <main class="map-wrap">
+    <div id="map" class="map"></div>
+    <div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+    <div class="map-badge">Harita: OpenStreetMap · Veriler: canlı servisler · Sahte sonuç yok</div>
+  </main>
+</div>
+
+<script>
+'use strict';
+
+const API = '/api';
+const CATEGORY_ICONS = {school:'🏫',market:'🛒',mosque:'🕌',bank:'🏦',atm:'🏧',beach:'🏖️',pharmacy:'💊',hospital:'🏥',bus_terminal:'🚌',train_station:'🚆',airport:'✈️'};
+const PRIORITY_CATEGORIES = ['school','market','mosque','pharmacy','hospital','bank','atm','beach','bus_terminal','train_station','airport'];
+const CATEGORY_NAMES = {school:'Okul',market:'Market',mosque:'Cami',bank:'Banka',atm:'ATM',beach:'Sahil / Plaj',pharmacy:'Eczane',hospital:'Hastane / Sağlık',bus_terminal:'Otogar',train_station:'Tren Garı / İstasyonu',airport:'Havaalanı'};
+const CATEGORY_LABELS = {all:'yakındaki okul market cami eczane hastane banka ATM sahil otogar tren garı havaalanı',school:'okul',market:'market',mosque:'cami',bank:'banka',atm:'ATM',beach:'sahil plaj',pharmacy:'eczane',hospital:'hastane sağlık merkezi',bus_terminal:'otogar otobüs terminali',train_station:'tren garı tren istasyonu',airport:'havaalanı havalimanı'};
+const store = {
+  il:{items:[],selected:null}, ilce:{items:[],selected:null}, mah:{items:[],selected:null},
+  map:null, parcelLayer:null, parcelFeature:null, parcelCenter:null,
+  poiGroup:null, poiMarkers:new Map(), selectedLine:null, selectedLabel:null,
+  poiItems:[], poiSearchMeta:null, requestId:0, poiRequestId:0
+};
+
+const $ = id => document.getElementById(id);
+
+function normalizeTr(value){
+  return String(value || '')
+    .toLocaleLowerCase('tr-TR')
+    .replace(/ı/g,'i')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function setStatus(type, text){
+  $('status-dot').className = `dot ${type || ''}`;
+  $('status-text').textContent = text;
+}
+
+function setLoading(show){ $('loading').classList.toggle('show', Boolean(show)); }
+
+function showPane(id){
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.toggle('active', tab.dataset.pane === id));
+  document.querySelectorAll('.pane').forEach(pane => pane.classList.toggle('active', pane.id === id));
+  const tabs = document.querySelector('.tabs');
+  const sidebar = document.querySelector('.sidebar');
+  if(tabs && sidebar){
+    const targetTop = Math.max(0, tabs.offsetTop);
+    sidebar.scrollTo({top:targetTop, behavior:'smooth'});
+  }
+  setTimeout(() => store.map?.invalidateSize(), 0);
+}
+
+function humanError(error){
+  const text = String(error?.message || error || 'Bilinmeyen hata');
+  if (/Failed to fetch|fetch failed/i.test(text)) return 'Sunucuya bağlanılamadı.';
+  if (/abort|timeout|zaman aşımı/i.test(text)) return 'İstek zaman aşımına uğradı.';
+  return text;
+}
+
+async function api(path, options = {}, timeoutMs = 12000){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try{
+    const response = await fetch(API + path, {...options, signal:controller.signal});
+    const data = await response.json().catch(() => ({}));
+    if(!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    return data;
+  }catch(error){
+    if(error.name === 'AbortError') throw new Error('İstek zaman aşımına uğradı.');
+    throw error;
+  }finally{ clearTimeout(timer); }
+}
+
+function featureArray(payload){
+  if(Array.isArray(payload?.features)) return payload.features;
+  if(Array.isArray(payload?.data?.features)) return payload.data.features;
+  if(Array.isArray(payload?.data)) return payload.data;
+  if(Array.isArray(payload)) return payload;
+  return [];
+}
+
+function firstValue(obj, keys){
+  for(const key of keys){
+    const value = obj?.[key];
+    if(value !== undefined && value !== null && String(value).trim() !== '') return value;
+  }
+  return null;
+}
+
+function parseAdminItems(payload){
+  const rows = featureArray(payload);
+  const out = [];
+  for(const row of rows){
+    const p = row?.properties || row || {};
+    const id = firstValue(p,['id','ID','fid','FID','objectid','OBJECTID','ilId','ilceId','mahalleId']) ?? row?.id;
+    const name = firstValue(p,['text','TEXT','adi','ADI','ad','AD','name','NAME','ilAdi','ilAd','ilceAdi','ilceAd','mahalleAdi','mahalleAd']);
+    if(id !== null && name) out.push({id:String(id),name:String(name)});
+  }
+  const seen = new Set();
+  return out.filter(item => {
+    const key = `${item.id}|${item.name}`;
+    if(seen.has(key)) return false;
+    seen.add(key); return true;
+  }).sort((a,b) => a.name.localeCompare(b.name,'tr'));
+}
+
+function setupCombo(key){
+  const input = $(`input-${key}`);
+  const drop = $(`drop-${key}`);
+  input.addEventListener('focus', () => renderCombo(key, input.value, true));
+  input.addEventListener('input', () => {
+    if(store[key].selected && input.value !== store[key].selected.name){
+      store[key].selected = null;
+      if(key === 'il') clearDownstream('ilce');
+      if(key === 'ilce') clearDownstream('mah');
+      resetResult();
+    }
+    renderCombo(key, input.value, true);
+  });
+  input.addEventListener('keydown', event => {
+    if(event.key === 'Escape') drop.classList.remove('open');
+  });
+}
+
+function renderCombo(key, query = '', open = false){
+  const drop = $(`drop-${key}`);
+  const wanted = normalizeTr(query);
+  const items = wanted ? store[key].items.filter(item => normalizeTr(item.name).includes(wanted)) : store[key].items;
+  drop.innerHTML = '';
+  if(!items.length){
+    const empty = document.createElement('div');
+    empty.className = 'option empty'; empty.textContent = 'Kayıt bulunamadı'; drop.appendChild(empty);
+  }else{
+    for(const item of items){
+      const option = document.createElement('div');
+      option.className = `option${store[key].selected?.id === item.id ? ' selected' : ''}`;
+      option.textContent = item.name;
+      option.addEventListener('mousedown', event => {
+        event.preventDefault(); selectCombo(key, item);
+      });
+      drop.appendChild(option);
+    }
+  }
+  if(open) drop.classList.add('open');
+}
+
+function clearDownstream(key){
+  const order = ['il','ilce','mah'];
+  const start = order.indexOf(key);
+  for(let i=start;i<order.length;i++){
+    const k = order[i];
+    store[k].items = []; store[k].selected = null;
+    const input = $(`input-${k}`); input.value = ''; input.disabled = true;
+    $(`drop-${k}`).innerHTML = '';
+  }
+}
+
+async function selectCombo(key, item){
+  store[key].selected = item;
+  $(`input-${key}`).value = item.name;
+  $(`drop-${key}`).classList.remove('open');
+  resetResult();
+
+  if(key === 'il'){
+    clearDownstream('ilce');
+    setStatus('loading','İlçeler yükleniyor…');
+    try{
+      const data = await api(`/ilceler/${encodeURIComponent(item.id)}`);
+      store.ilce.items = parseAdminItems(data);
+      if(!store.ilce.items.length) throw new Error('İlçe listesi boş döndü.');
+      $('input-ilce').disabled = false;
+      setStatus('ok','İlçe seçin.');
+    }catch(error){ setStatus('error',humanError(error)); }
+  }else if(key === 'ilce'){
+    clearDownstream('mah');
+    setStatus('loading','Mahalleler yükleniyor…');
+    try{
+      const data = await api(`/mahalleler/${encodeURIComponent(item.id)}`);
+      store.mah.items = parseAdminItems(data);
+      if(!store.mah.items.length) throw new Error('Mahalle listesi boş döndü.');
+      $('input-mah').disabled = false;
+      setStatus('ok',`${store.mah.items.length} mahalle yüklendi.`);
+    }catch(error){ setStatus('error',humanError(error)); }
+  }else{
+    setStatus('ok','Ada ve parsel numarasını girin.');
+  }
+}
+
+function clearSelectionGraphics(){
+  if(store.selectedLine){ store.map.removeLayer(store.selectedLine); store.selectedLine = null; }
+  if(store.selectedLabel){ store.map.removeLayer(store.selectedLabel); store.selectedLabel = null; }
+  document.querySelectorAll('.poi-item').forEach(el => el.classList.remove('selected'));
+  const oldRoute = $('selected-route'); if(oldRoute) oldRoute.remove();
+}
+
+function clearPoi(){
+  clearSelectionGraphics();
+  store.poiItems = [];
+  store.poiSearchMeta = null;
+  store.poiMarkers.clear();
+  store.poiGroup?.clearLayers();
+  if($('poi-progress')) $('poi-progress').innerHTML = '';
+  $('poi-output').innerHTML = '<div class="empty"><div class="big">📍</div>Yakın yer araması yapılmadı.</div>';
+}
+
+function resetResult(){
+  store.requestId++;
+  store.poiRequestId++;
+  $('parcel-empty').innerHTML = '<div class="big">🗺️</div>İl, ilçe ve mahalleyi seçin.<br>Ada ve parsel numarasını girip sorgulayın.';
+  if(store.parcelLayer){ store.map.removeLayer(store.parcelLayer); store.parcelLayer = null; }
+  store.parcelFeature = null; store.parcelCenter = null;
+  $('parcel-result').hidden = true; $('parcel-empty').hidden = false;
+  $('parcel-info').innerHTML = '';
+  $('elevation-box').innerHTML = '<div class="elevation-meta">Yükseklik verisi bekleniyor…</div>';
+  $('poi-btn').disabled = true;
+  updateGooglePoiLink();
+  $('endeksa-box').hidden = true;
+  ['endeksa-link','endeksa-ilce-link','endeksa-il-link'].forEach(id => {
+    $(id).classList.add('disabled'); $(id).href = '#';
+  });
+  $('endeksa-meta').textContent = 'Parsel sorgusundan sonra hazırlanır.';
+  $('center-link').classList.add('disabled'); $('center-link').href = '#';
+  clearPoi();
+}
+
+function parcelFeature(payload){
+  if(payload?.type === 'Feature' && payload.geometry) return payload;
+  if(payload?.geometry) return {type:'Feature',geometry:payload.geometry,properties:payload.properties || {}};
+  const rows = featureArray(payload);
+  const found = rows.find(row => row?.geometry);
+  if(found) return found.type === 'Feature' ? found : {type:'Feature',geometry:found.geometry,properties:found.properties || {}};
+  if(payload?.data?.geometry) return {type:'Feature',geometry:payload.data.geometry,properties:payload.data.properties || {}};
+  return null;
+}
+
+function prop(feature, keys){ return firstValue(feature?.properties || {}, keys); }
+
+function formatArea(value){
+  if(value === null || value === undefined || String(value).trim() === '') return null;
+  const number = Number(String(value).replace(',','.'));
+  return Number.isFinite(number) ? `${number.toLocaleString('tr-TR',{maximumFractionDigits:2})} m²` : value;
+}
+
+function setExternalLink(id, href, label){
+  const link = $(id);
+  link.href = href;
+  link.classList.remove('disabled');
+  const labelNode = link.querySelector('.link-label');
+  if(labelNode) labelNode.textContent = label;
+}
+
+function configureEndeksaLinks(feature){
+  const nitelik = prop(feature,['nitelik','NITELIK','cins','CINS','tasinmazCinsi','TASINMAZ_CINSI','tapuCinsi','TAPU_CINSI','zeminTipi','ZEMIN_TIPI']) || '';
+  const links = EndeksaUtils.buildEndeksaLinks({
+    il: store.il.selected?.name,
+    ilce: store.ilce.selected?.name,
+    mahalle: store.mah.selected?.name,
+    nitelik
+  });
+  const il = store.il.selected?.name || '';
+  const ilce = store.ilce.selected?.name || '';
+  const mahalle = store.mah.selected?.name || '';
+  setExternalLink('endeksa-link', links.neighborhood, `Endeksa: ${mahalle} · ${links.label}`);
+  setExternalLink('endeksa-ilce-link', links.district, `Endeksa: ${ilce} · ${links.label}`);
+  setExternalLink('endeksa-il-link', links.province, `Endeksa: ${il} · ${links.label}`);
+  $('endeksa-meta').textContent = `${il} / ${ilce} / ${mahalle} · Tapu niteliği: ${nitelik || 'belirtilmedi'} · Açılacak kategori: ${links.label}. ${links.reason}`;
+  $('endeksa-box').hidden = false;
+  return links;
+}
+
+function renderParcelInfo(feature){
+  const fields = [
+    ['İl',prop(feature,['ilAd','ilAdi','IL_AD','il'])],
+    ['İlçe',prop(feature,['ilceAd','ilceAdi','ILCE_AD','ilce'])],
+    ['Mahalle',prop(feature,['mahalleAd','mahalleAdi','MAHALLE_AD','mahalle'])],
+    ['Ada',prop(feature,['adaNo','ada','ADA_NO'])],
+    ['Parsel',prop(feature,['parselNo','parsel','PARSEL_NO'])],
+    ['Alan',formatArea(prop(feature,['alan','yuzolcum','YUZOLCUM','tapuAlan']))],
+    ['Nitelik',prop(feature,['nitelik','NITELIK','cins','CINS','tasinmazCinsi','TASINMAZ_CINSI','tapuCinsi','TAPU_CINSI','zeminTipi','ZEMIN_TIPI'])],
+    ['Mevkii',prop(feature,['mevkii','MEVKII'])]
+  ].filter(([,value]) => value !== null && value !== undefined && String(value).trim() !== '');
+  $('parcel-info').innerHTML = '';
+  for(const [key,value] of fields){
+    const row = document.createElement('div'); row.className = 'info-row';
+    const a = document.createElement('span'); a.className = 'info-key'; a.textContent = key;
+    const b = document.createElement('span'); b.className = 'info-value'; b.textContent = value;
+    row.append(a,b); $('parcel-info').appendChild(row);
+  }
+}
+
+function coordinatePairs(geometry){
+  if(!geometry) return [];
+  if(geometry.type === 'Polygon') return geometry.coordinates?.[0] || [];
+  if(geometry.type === 'MultiPolygon') return geometry.coordinates?.[0]?.[0] || [];
+  return [];
+}
+
+function samplePoints(feature, center, limit = 12){
+  const ring = coordinatePairs(feature.geometry).filter(pair => Array.isArray(pair) && pair.length >= 2);
+  if(!ring.length) return [{latitude:center.lat,longitude:center.lng}];
+  const count = Math.min(limit - 1, ring.length);
+  const points = [];
+  for(let i=0;i<count;i++){
+    const index = Math.floor(i * ring.length / count);
+    const [lng,lat] = ring[index];
+    if(Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) points.push({latitude:Number(lat),longitude:Number(lng)});
+  }
+  points.push({latitude:center.lat,longitude:center.lng});
+  return points;
+}
+
+async function loadElevation(feature, requestId){
+  $('elevation-box').innerHTML = '<div class="elevation-meta">30 m sınıfı arazi modeliyle parsel içi ızgara hazırlanıyor…</div>';
+  try{
+    const data = await api('/terrain-analysis',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({geometry:feature.geometry,center:{lat:store.parcelCenter.lat,lng:store.parcelCenter.lng}})
+    },32000);
+    if(requestId !== store.requestId) return;
+    const slopes = data.slopes || {}, elevation = data.elevation || {}, parcel = data.parcel || {};
+    const mainSlope = Number(slopes.representative);
+    if(!Number.isFinite(mainSlope)) throw new Error('Gelişmiş eğim sonucu alınamadı.');
+    const confidence = data.confidence || {level:'Belirtilmedi',code:'low'};
+    const warningText = (data.warnings || []).map(text => escapeHtml(text)).join('<br>');
+    const aspect = data.aspect?.label || 'Belirgin yön yok';
+    $('elevation-box').innerHTML = `
+      <div><span class="elevation-number">${mainSlope.toFixed(1)}</span><strong> %</strong></div>
+      <div class="bar"><span class="needle" style="left:${Math.min(100,mainSlope*2.2)}%"></span></div>
+      <div class="confidence-badge ${escapeHtml(confidence.code || 'low')}">Güven: ${escapeHtml(confidence.level || 'Belirtilmedi')}</div>
+      <div class="elevation-meta"><strong>${escapeHtml(slopes.class || 'Arazi eğimi')}</strong> · Temsili parsel eğimi</div>
+      <div class="terrain-grid">
+        <div class="terrain-stat"><span>Ortalama yerel</span><strong>${Number(slopes.average || 0).toFixed(1)} %</strong></div>
+        <div class="terrain-stat"><span>Genel yönlü eğim</span><strong>${Number(slopes.general || 0).toFixed(1)} %</strong></div>
+        <div class="terrain-stat"><span>Dik kesim (P90)</span><strong>${Number(slopes.steep || 0).toFixed(1)} %</strong></div>
+        <div class="terrain-stat"><span>Aşağı yön / bakı</span><strong>${escapeHtml(aspect)}</strong></div>
+        <div class="terrain-stat"><span>Yükseklik aralığı</span><strong>${Number(elevation.min || 0).toFixed(0)}–${Number(elevation.max || 0).toFixed(0)} m</strong></div>
+        <div class="terrain-stat"><span>Kot farkı</span><strong>${Number(elevation.range || 0).toFixed(1)} m</strong></div>
+      </div>
+      <div class="elevation-meta">
+        ${Number(data.sampleCount || 0)} parsel içi/sınır örneği · Yaklaşık ${Number(data.resolutionMeters || 0).toFixed(0)} m veri çözünürlüğü<br>
+        Parsel modeli: ${Number(parcel.widthM || 0).toFixed(0)} × ${Number(parcel.heightM || 0).toFixed(0)} m · ${Number(parcel.areaM2 || 0).toLocaleString('tr-TR')} m²<br>
+        Kaynak: ${escapeHtml(data.source || 'yükseklik servisi')}<br>${escapeHtml(data.sourceDetail || '')}
+        ${warningText ? `<div class="terrain-warning">${warningText}</div>` : ''}
+      </div>`;
+  }catch(error){
+    if(requestId !== store.requestId) return;
+    $('elevation-box').innerHTML = `<div class="notice error">${humanError(error)} Uydurma eğim değeri gösterilmedi.</div>`;
+  }
+}
+
+async function searchParcel(){
+  const mahalle = store.mah.selected;
+  const ada = $('ada').value.trim();
+  const parsel = $('parsel').value.trim();
+  if(!store.il.selected || !store.ilce.selected || !mahalle){ setStatus('error','İl, ilçe ve mahalleyi listeden seçin.'); return; }
+  if(!ada || !parsel){ setStatus('error','Ada ve parsel numarasını girin.'); return; }
+
+  resetResult();
+  const requestId = store.requestId;
+  setLoading(true); setStatus('loading','Parsel TKGM’den sorgulanıyor…'); $('search-btn').disabled = true;
+  try{
+    const payload = await api(`/parsel/${encodeURIComponent(mahalle.id)}/${encodeURIComponent(ada)}/${encodeURIComponent(parsel)}`,{},15000);
+    if(requestId !== store.requestId) return;
+    const feature = parcelFeature(payload);
+    if(!feature?.geometry) throw new Error('Parsel bulunamadı veya geometri dönmedi.');
+
+    store.parcelFeature = feature;
+    store.parcelLayer = L.geoJSON(feature,{style:{color:'#168a68',weight:3,fillColor:'#30a983',fillOpacity:.18}}).addTo(store.map);
+    const bounds = store.parcelLayer.getBounds();
+    if(!bounds.isValid()) throw new Error('Parsel koordinatı geçersiz.');
+    store.parcelCenter = bounds.getCenter();
+    store.map.fitBounds(bounds,{padding:[45,45],maxZoom:18});
+
+    renderParcelInfo(feature);
+    $('parcel-empty').hidden = true; $('parcel-result').hidden = false;
+    $('poi-btn').disabled = false;
+
+    configureEndeksaLinks(feature);
+    $('center-link').href = `https://www.google.com/maps?q=${store.parcelCenter.lat},${store.parcelCenter.lng}`;
+    $('center-link').classList.remove('disabled');
+    updateGooglePoiLink();
+
+    setStatus('ok','Parsel bulundu. Yakın yer araması hazır.');
+    showPane('parcel-pane');
+    loadElevation(feature,requestId);
+  }catch(error){
+    if(requestId === store.requestId){
+      resetResult();
+      setStatus('error',humanError(error));
+      $('parcel-empty').innerHTML = `<div class="big">⚠️</div>${humanError(error)}<br>Önceki parsel sonucu temizlendi.`;
+    }
+  }finally{
+    setLoading(false); $('search-btn').disabled = false;
+  }
+}
+
+function formatDistance(meters){ return meters < 1000 ? `${Math.round(meters)} m` : `${(meters/1000).toFixed(meters < 10000 ? 2 : 1)} km`; }
+
+function updateGooglePoiLink(){
+  const link = $('google-poi-link');
+  if(!link) return;
+  if(!store.parcelCenter){
+    link.removeAttribute('href');
+    link.classList.add('disabled');
+    link.textContent = 'Google Maps’te Seçili Türü Ara ↗';
+    return;
+  }
+  const category = $('poi-category')?.value || 'all';
+  const label = CATEGORY_LABELS[category] || 'yakın yerler';
+  const query = `${label} near ${store.parcelCenter.lat},${store.parcelCenter.lng}`;
+  link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  link.classList.remove('disabled');
+  link.innerHTML = `Google Maps’te ${escapeHtml(label)} Ara <span>↗</span>`;
+}
+
+function markerIcon(item){
+  const badge = item.isUnnamed ? '<span class="unnamed">?</span>' : '';
+  return L.divIcon({className:'',html:`<div class="poi-pin">${CATEGORY_ICONS[item.type] || '📍'}${badge}</div>`,iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-15]});
+}
+
+function selectPoi(item, button){
+  clearSelectionGraphics();
+  const section = button?.closest('.poi-section');
+  if(section) setPoiSectionOpen(section,true);
+  if(button) button.classList.add('selected');
+  const origin = store.parcelCenter;
+  const destination = L.latLng(item.lat,item.lng);
+  const centerDistance = Number.isFinite(Number(item.centerDistance)) ? Number(item.centerDistance) : Number(item.distance);
+  store.selectedLine = L.polyline([origin,destination],{color:'#2463eb',weight:3,dashArray:'8 7'}).addTo(store.map);
+  const midpoint = L.latLng((origin.lat+destination.lat)/2,(origin.lng+destination.lng)/2);
+  store.selectedLabel = L.marker(midpoint,{interactive:false,icon:L.divIcon({className:'distance-label',html:`Kuş uçuşu ${formatDistance(centerDistance)}`,iconSize:null})}).addTo(store.map);
+  store.poiMarkers.get(item.id)?.openPopup();
+  store.map.fitBounds(L.latLngBounds([origin,destination]),{padding:[65,65],maxZoom:16});
+
+  const route = `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${item.lat},${item.lng}&travelmode=driving`;
+  const point = `https://www.google.com/maps/search/?api=1&query=${item.lat},${item.lng}`;
+  const box = document.createElement('div'); box.id = 'selected-route'; box.className = 'selected-route';
+  const title = document.createElement('strong');
+  title.textContent = `${CATEGORY_ICONS[item.type] || '📍'} ${item.name} · parsele ${formatDistance(item.distance)} · merkezden kuş uçuşu ${formatDistance(centerDistance)}`;
+  const actions = document.createElement('div'); actions.className = 'route-actions';
+  const routeLink = document.createElement('a'); routeLink.className = 'route-link'; routeLink.target = '_blank'; routeLink.rel = 'noopener'; routeLink.href = route; routeLink.textContent = 'Google Maps Yol Tarifi';
+  const pointLink = document.createElement('a'); pointLink.className = 'route-link secondary'; pointLink.target = '_blank'; pointLink.rel = 'noopener'; pointLink.href = point; pointLink.textContent = 'Noktayı Maps’te Aç';
+  actions.append(routeLink,pointLink); box.append(title,actions);
+  if(button?.parentNode) button.insertAdjacentElement('afterend',box); else $('poi-output').prepend(box);
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function progressText(state){
+  if(state.state === 'searching') return 'aranıyor…';
+  if(state.state === 'found') return `${state.count || 0} bulundu`;
+  if(state.state === 'empty') return 'kayıt yok';
+  if(state.state === 'failed') return 'yanıt yok';
+  return 'bekliyor';
+}
+
+function renderPoiProgress(states, visibleCategories = PRIORITY_CATEGORIES){
+  const progress = $('poi-progress');
+  if(!progress) return;
+  progress.innerHTML = '';
+  for(const category of visibleCategories){
+    const state = states[category] || {state:'waiting'};
+    const chip = document.createElement('div'); chip.className = `category-chip ${state.state || ''}`;
+    const name = document.createElement('strong'); name.textContent = `${CATEGORY_ICONS[category]} ${CATEGORY_NAMES[category]}`;
+    const detail = document.createElement('span'); detail.textContent = progressText(state);
+    chip.append(name,detail); progress.appendChild(chip);
+  }
+}
+
+async function mapLimitClient(values, limit, mapper){
+  let cursor = 0;
+  const workers = Array.from({length:Math.max(1,Math.min(limit,values.length))},async() => {
+    while(true){
+      const index = cursor++;
+      if(index >= values.length) return;
+      await mapper(values[index],index);
+    }
+  });
+  await Promise.all(workers);
+}
+
+async function fetchPoiCategory(category, radius){
+  return api('/poi',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    lat:store.parcelCenter.lat,
+    lng:store.parcelCenter.lng,
+    radius,
+    category,
+    geometry:store.parcelFeature?.geometry || null
+  })},105000);
+}
+
+function setPoiSectionOpen(section, open){
+  if(!section) return;
+  const toggle = section.querySelector('.poi-section-toggle');
+  const body = section.querySelector('.poi-section-body');
+  if(!toggle || !body) return;
+  section.classList.toggle('open',Boolean(open));
+  toggle.setAttribute('aria-expanded',String(Boolean(open)));
+  body.hidden = !open;
+}
+
+function createPoiSection(category, countText, defaultOpen = false){
+  const section = document.createElement('section');
+  section.className = 'poi-section';
+  section.dataset.category = category;
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'poi-section-toggle';
+  toggle.setAttribute('aria-expanded',String(Boolean(defaultOpen)));
+  const heading = document.createElement('span');
+  heading.className = 'poi-section-heading';
+  heading.textContent = `${CATEGORY_ICONS[category] || '📍'} ${CATEGORY_NAMES[category] || category}`;
+  const meta = document.createElement('span');
+  meta.className = 'poi-section-meta';
+  const count = document.createElement('span');
+  count.className = 'poi-section-count';
+  count.textContent = countText;
+  const arrow = document.createElement('span');
+  arrow.className = 'poi-section-arrow';
+  arrow.setAttribute('aria-hidden','true');
+  arrow.textContent = '⌄';
+  meta.append(count,arrow);
+  toggle.append(heading,meta);
+  const body = document.createElement('div');
+  body.className = 'poi-section-body';
+  body.hidden = !defaultOpen;
+  toggle.addEventListener('click',() => setPoiSectionOpen(section,!section.classList.contains('open')));
+  section.append(toggle,body);
+  if(defaultOpen) section.classList.add('open');
+  return {section,body};
+}
+
+function createPoiButton(item, mapBounds){
+  const centerDistance = Number.isFinite(Number(item.centerDistance)) ? Number(item.centerDistance) : Number(item.distance);
+  const popup = [
+    `<strong>${escapeHtml(item.name)}</strong>`,
+    escapeHtml(item.typeLabel || CATEGORY_NAMES[item.type] || ''),
+    `Parsele en yakın: ${formatDistance(item.distance)}`,
+    `Parsel merkezinden kuş uçuşu: ${formatDistance(centerDistance)}`,
+    item.detectionReason ? `Tespit: ${escapeHtml(item.detectionReason)} · ${escapeHtml(item.confidence || '')}` : '',
+    item.osmType && item.osmId ? `OSM: ${escapeHtml(item.osmType)} ${escapeHtml(item.osmId)}` : ''
+  ].filter(Boolean).join('<br>');
+  const marker = L.marker([item.lat,item.lng],{icon:markerIcon(item),title:item.name}).bindPopup(popup).bindTooltip(item.name,{direction:'top',offset:[0,-12]});
+  marker.addTo(store.poiGroup); store.poiMarkers.set(item.id,marker); mapBounds.extend([item.lat,item.lng]);
+
+  const button = document.createElement('button'); button.className = 'poi-item'; button.dataset.poiId = item.id;
+  const top = document.createElement('div'); top.className = 'poi-top';
+  const name = document.createElement('div'); name.className = 'poi-name'; name.textContent = `${CATEGORY_ICONS[item.type] || '📍'} ${item.name}`;
+  const dist = document.createElement('div'); dist.className = 'poi-dist'; dist.textContent = `Parsele ${formatDistance(item.distance)}`;
+  top.append(name,dist);
+  const sub = document.createElement('div'); sub.className = 'poi-sub';
+  const centerText = `Merkezden kuş uçuşu ${formatDistance(centerDistance)}`;
+  sub.textContent = [item.typeLabel || CATEGORY_NAMES[item.type],item.address,centerText,item.detectionReason].filter(Boolean).join(' · ');
+  const quality = document.createElement('span');
+  quality.className = `quality${item.confidence === 'Yüksek' ? ' high' : item.confidence === 'Kontrol önerilir' ? ' check' : ''}`;
+  quality.textContent = `${item.isUnnamed ? 'İsimsiz kayıt · ' : ''}Tespit güveni: ${item.confidence || 'Belirtilmedi'}`;
+  button.append(top,sub,quality);
+  button.addEventListener('click',() => selectPoi(item,button));
+  marker.on('click',() => selectPoi(item,button));
+  return button;
+}
+
+function renderPoiResults(items, context = {}){
+  clearSelectionGraphics();
+  store.poiMarkers.clear();
+  store.poiGroup?.clearLayers();
+  store.poiItems = items;
+  store.poiSearchMeta = context;
+  const output = $('poi-output'); output.innerHTML = '';
+  const states = context.states || {};
+  const failed = Object.entries(states).filter(([,value]) => value.state === 'failed').map(([key]) => CATEGORY_NAMES[key]);
+  const empty = Object.entries(states).filter(([,value]) => value.state === 'empty').map(([key]) => CATEGORY_NAMES[key]);
+
+  if(!items.length){
+    const details = failed.length ? ` Yanıt alınamayan türler: ${failed.join(', ')}.` : '';
+    output.innerHTML = `<div class="notice warn">Kayıtlı yakın yer bulunamadı.${details} Sahte sonuç eklenmedi. Yukarıdaki Google Maps bağlantısı seçili türü parsel koordinatında açar.</div>`;
+    setStatus(failed.length ? 'error' : 'ok','Yakın yer kaydı bulunamadı.');
+    return;
+  }
+
+  const counts = items.reduce((acc,item) => (acc[item.type]=(acc[item.type]||0)+1,acc),{});
+  const summary = document.createElement('div'); summary.className = 'poi-summary';
+  const countText = context.all
+    ? PRIORITY_CATEGORIES.map(key => `${CATEGORY_NAMES[key]} ${counts[key] || 0}`).join(' · ')
+    : `${items.length} ${CATEGORY_NAMES[context.category] || 'yakın yer'}`;
+  summary.textContent = `${items.length} gerçek nokta gösteriliyor · ${countText}`;
+  output.appendChild(summary);
+
+  if(failed.length){
+    const warning = document.createElement('div'); warning.className = 'notice warn';
+    warning.textContent = `Diğer kategoriler korunarak kısmi sonuç gösteriliyor. Yanıt alınamayan türler: ${failed.join(', ')}.`;
+    output.appendChild(warning);
+  }
+
+  const parcelBounds = store.parcelLayer?.getBounds();
+  const mapBounds = parcelBounds?.isValid() ? parcelBounds : L.latLngBounds([store.parcelCenter]);
+
+  if(context.all){
+    for(const category of PRIORITY_CATEGORIES){
+      const state = states[category] || {};
+      const categoryItems = items.filter(item => item.type === category).sort((a,b) => a.distance-b.distance || a.centerDistance-b.centerDistance);
+      const countText = state.state === 'failed' ? 'servis yanıt vermedi' : `${counts[category] || 0} sonuç`;
+      const {section,body} = createPoiSection(category,countText,false);
+      if(categoryItems.length){
+        const list = document.createElement('div'); list.className = 'poi-list';
+        for(const item of categoryItems) list.appendChild(createPoiButton(item,mapBounds));
+        body.appendChild(list);
+      }else{
+        const note = document.createElement('div'); note.className = `notice ${state.state === 'failed' ? 'error' : 'info'}`;
+        note.textContent = state.state === 'failed' ? 'Bu kategori için servis yanıt vermedi.' : 'Seçilen tarama içinde kayıt bulunamadı.';
+        body.appendChild(note);
+      }
+      output.appendChild(section);
+    }
+  }else{
+    const sortedItems = items.sort((a,b) => a.distance-b.distance || a.centerDistance-b.centerDistance);
+    const {section,body} = createPoiSection(context.category,`${sortedItems.length} sonuç`,true);
+    const list = document.createElement('div'); list.className = 'poi-list';
+    for(const item of sortedItems) list.appendChild(createPoiButton(item,mapBounds));
+    body.appendChild(list);
+    output.appendChild(section);
+  }
+
+  if(mapBounds.isValid()) store.map.fitBounds(mapBounds,{padding:[55,55],maxZoom:15});
+  setStatus('ok',`${items.length} yakın yer listelendi. Bir satıra tıklayarak kuş uçuşu çizgisini ve Google Maps bağlantısını açın.`);
+}
+
+async function searchPoi(){
+  if(!store.parcelCenter){ setStatus('error','Önce parsel sorgulayın.'); return; }
+  clearPoi();
+  const poiRequestId = ++store.poiRequestId;
+  const category = $('poi-category').value;
+  const radius = $('poi-radius').value;
+  $('poi-btn').disabled = true;
+
+  try{
+    if(category !== 'all'){
+      const states = {[category]:{state:'searching'}};
+      renderPoiProgress(states,[category]);
+      $('poi-output').innerHTML = `<div class="empty"><div class="big">⏳</div>${CATEGORY_NAMES[category]} aranıyor…</div>`;
+      setStatus('loading',`${CATEGORY_NAMES[category]} aranıyor…`);
+      try{
+        const data = await fetchPoiCategory(category,radius);
+        if(poiRequestId !== store.poiRequestId) return;
+        const items = Array.isArray(data.data) ? data.data : [];
+        const failedCategory = Array.isArray(data.failedCategories) && data.failedCategories.includes(category);
+        states[category] = {state:failedCategory ? 'failed' : items.length ? 'found' : 'empty',count:items.length};
+        renderPoiProgress(states,[category]);
+        renderPoiResults(items,{all:false,category,states,data});
+      }catch(error){
+        if(poiRequestId !== store.poiRequestId) return;
+        states[category] = {state:'failed',count:0,error:humanError(error)};
+        renderPoiProgress(states,[category]);
+        renderPoiResults([],{all:false,category,states});
+      }
+      return;
+    }
+
+    const states = Object.fromEntries(PRIORITY_CATEGORIES.map(key => [key,{state:'waiting',count:0}]));
+    const categoryResults = {};
+    renderPoiProgress(states);
+    $('poi-output').innerHTML = `<div class="empty"><div class="big">⏳</div>${PRIORITY_CATEGORIES.length} öncelikli kategori bağımsız olarak taranıyor. Sonuçlar tamamlanınca birlikte listelenecek…</div>`;
+    setStatus('loading','Okul, market, cami, eczane, sağlık, banka, ATM ve sahil ayrı ayrı aranıyor…');
+
+    await mapLimitClient(PRIORITY_CATEGORIES,2,async key => {
+      states[key] = {state:'searching',count:0}; renderPoiProgress(states);
+      try{
+        const data = await fetchPoiCategory(key,radius);
+        if(poiRequestId !== store.poiRequestId) return;
+        const items = Array.isArray(data.data) ? data.data : [];
+        const failedCategory = Array.isArray(data.failedCategories) && data.failedCategories.includes(key);
+        states[key] = {state:failedCategory ? 'failed' : items.length ? 'found' : 'empty',count:items.length};
+        categoryResults[key] = {data,items};
+      }catch(error){
+        if(poiRequestId !== store.poiRequestId) return;
+        states[key] = {state:'failed',count:0,error:humanError(error)};
+        categoryResults[key] = {data:null,items:[],error:humanError(error)};
+      }
+      renderPoiProgress(states);
+    });
+
+    if(poiRequestId !== store.poiRequestId) return;
+    const seen = new Set();
+    const allItems = PRIORITY_CATEGORIES.flatMap(key => categoryResults[key]?.items || []).filter(item => {
+      const dedupe = `${item.type}|${item.id}|${Number(item.lat).toFixed(6)}|${Number(item.lng).toFixed(6)}`;
+      if(seen.has(dedupe)) return false;
+      seen.add(dedupe); return true;
+    });
+    renderPoiResults(allItems,{all:true,states,categoryResults});
+  }finally{
+    if(poiRequestId !== store.poiRequestId) return;
+    $('poi-btn').disabled = !store.parcelCenter;
+    updateGooglePoiLink();
+  }
+}
+
+function escapeHtml(text){
+  return String(text || '').replace(/[&<>'"]/g,char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+}
+
+async function init(){
+  store.map = L.map('map',{zoomControl:true}).setView([39.0,35.0],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:20,attribution:'© OpenStreetMap contributors'}).addTo(store.map);
+  store.poiGroup = L.layerGroup().addTo(store.map);
+
+  ['il','ilce','mah'].forEach(setupCombo);
+  document.addEventListener('mousedown',event => {
+    ['il','ilce','mah'].forEach(key => {
+      if(!$(`wrap-${key}`).contains(event.target)) $(`drop-${key}`).classList.remove('open');
+    });
+  });
+  document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click',() => showPane(tab.dataset.pane)));
+  $('search-btn').addEventListener('click',searchParcel);
+  $('poi-category').addEventListener('change',updateGooglePoiLink);
+  $('poi-btn').addEventListener('click',searchPoi);
+  ['ada','parsel'].forEach(id => $(id).addEventListener('keydown',event => { if(event.key === 'Enter') searchParcel(); }));
+
+  setStatus('loading','İller TKGM’den yükleniyor…');
+  try{
+    const data = await api('/iller',{},15000);
+    store.il.items = parseAdminItems(data);
+    if(!store.il.items.length) throw new Error('İl listesi boş döndü.');
+    $('input-il').disabled = false;
+    setStatus('ok',`${store.il.items.length} il yüklendi. İl seçin.`);
+  }catch(error){ setStatus('error',humanError(error)); }
+}
+
+init();
+</script>
+</body>
+</html>

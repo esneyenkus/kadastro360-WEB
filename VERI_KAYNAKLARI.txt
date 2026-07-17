@@ -1,0 +1,17 @@
+PARSEL & EĞİM + YAKIN REHBER — VERİ KAYNAKLARI
+
+AWS Terrain Tiles
+https://registry.opendata.aws/terrain-tiles/
+Mapzen / Tilezen Joerd dokümantasyonu ve atıf koşulları:
+https://github.com/tilezen/joerd/tree/master/docs
+
+OpenStreetMap
+https://www.openstreetmap.org/copyright
+
+Open-Meteo Elevation
+https://open-meteo.com/en/docs/elevation-api
+
+TKGM Parsel Sorgu
+https://parselsorgu.tkgm.gov.tr/
+
+Endeksa verisi uygulamaya alınmaz veya kazınmaz; yalnızca kullanıcıyı halka açık analiz sayfasına yönlendiren bağlantı oluşturulur.

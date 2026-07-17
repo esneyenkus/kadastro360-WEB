@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: kadastro360-web-pilot
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: TEST_USERNAME
+        value: admin
+      - key: TEST_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
