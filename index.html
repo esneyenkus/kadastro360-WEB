@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kadastro360 — Web Pilot</title>
+<title>Kadastro360 — Web Pilot v1.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="endeksa-utils.js"></script>
@@ -35,7 +35,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 .status{min-height:30px;padding:6px 12px;border-bottom:1px solid var(--line);font-size:11px;display:flex;align-items:center;gap:7px;color:var(--muted)}
 .dot{width:7px;height:7px;border-radius:50%;background:#9da7b1;flex:0 0 auto}.dot.ok{background:var(--green)}.dot.loading{background:#e2a100;animation:pulse .8s infinite}.dot.error{background:var(--red)}
 @keyframes pulse{50%{opacity:.25}}
-.tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1100;background:#fff;box-shadow:0 2px 5px rgba(22,33,43,.04)}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1100;background:#fff;box-shadow:0 2px 5px rgba(22,33,43,.04)}
 .tab{height:38px;border:0;background:#fff;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;border-bottom:2px solid transparent}.tab.active{color:var(--green);border-bottom-color:var(--green);background:#fbfdfc}
 .content{padding:10px 12px 22px;overflow:visible;min-height:260px}.pane{display:none}.pane.active{display:block}
 .empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:11px;line-height:1.55}.empty .big{font-size:26px;margin-bottom:5px}
@@ -55,11 +55,14 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
   .subtitle{display:none}.brand{padding:7px 11px}.logo{width:27px;height:27px;font-size:15px}.search{padding:7px 10px 8px}.field{margin-bottom:4px}.field label{margin-bottom:2px}.combo input,.plain-input,.select{height:31px}.primary{height:33px}.status{min-height:27px;padding:5px 10px}.tab{height:35px}.content{padding:8px 10px 18px;min-height:230px}
 }
 
-.userbar{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:9px;color:var(--muted);flex-wrap:wrap}.userbar a{color:var(--green);text-decoration:none;font-weight:800}.user-pill{padding:3px 7px;border-radius:99px;background:#eef5f2;color:#0e6b51;font-weight:800}.service-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:6px 10px;border-bottom:1px solid var(--line);background:#fbfcfc}.service-chip{border:1px solid var(--line);border-radius:7px;padding:5px 4px;font-size:8px;text-align:center;color:var(--muted);background:#fff}.service-chip b{display:block;font-size:9px;color:var(--text);margin-bottom:2px}.service-chip.ok{border-color:#9fd3bf;background:#eff9f5}.service-chip.error{border-color:#e5b4ad;background:#fff4f2}.service-chip.external{border-color:#b9c9ea;background:#f4f7ff}.process{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:7px 10px;border-bottom:1px solid var(--line)}.process-step{font-size:8px;text-align:center;color:var(--muted);padding:5px 3px;border-radius:6px;background:#f4f6f8;border:1px solid transparent}.process-step.loading{background:#fff8e7;border-color:#e3c77d;color:#765400}.process-step.ok{background:#eaf7f2;border-color:#9fd3bf;color:#0e6b51}.process-step.error{background:#fff1ef;border-color:#e5b4ad;color:#8b2d22}.tucbs-box{border:1px solid #9fb7e8;background:#f5f7ff;border-radius:9px;padding:9px;margin:9px 0}.tucbs-heading{font-size:11px;font-weight:850;color:#254f9b;margin-bottom:4px}.tucbs-meta{font-size:9px;color:#53616e;line-height:1.5;margin-bottom:7px}.secondary-btn{width:100%;border:1px solid #8aa8e4;background:#315fae;color:#fff;border-radius:8px;padding:10px;font-size:11px;font-weight:800;cursor:pointer}.secondary-btn:disabled{opacity:.45;cursor:not-allowed}.history-list{display:grid;gap:7px}.history-item{border:1px solid var(--line);border-radius:8px;padding:9px;background:#fff}.history-title{font-size:11px;font-weight:800}.history-meta{font-size:9px;color:var(--muted);line-height:1.5;margin-top:3px}.history-actions{display:flex;gap:6px;margin-top:7px}.history-actions a{font-size:9px;text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:6px 8px;color:var(--text);font-weight:750}.modal{position:fixed;inset:0;background:rgba(15,28,37,.55);display:none;place-items:center;z-index:5000;padding:18px}.modal.open{display:grid}.modal-card{width:min(520px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;box-shadow:0 30px 90px rgba(0,0,0,.3)}.modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}.modal-head h2{font-size:15px;margin:0}.modal-close{border:0;background:#eef2f4;width:30px;height:30px;border-radius:8px;cursor:pointer}.modal-body{padding:15px;font-size:11px;line-height:1.6}.coord-box{display:flex;gap:7px;margin:9px 0}.coord-box input{flex:1;height:36px;border:1px solid #cfd8e1;border-radius:7px;padding:0 8px}.coord-box button{border:1px solid var(--line);border-radius:7px;background:#fff;padding:0 10px;cursor:pointer;font-weight:750}.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.modal-actions a,.modal-actions button{text-decoration:none;text-align:center;border-radius:8px;padding:10px;border:1px solid var(--line);font-weight:800;font-size:11px}.modal-actions .go{background:#315fae;color:#fff;border-color:#315fae}.map-toggle{display:none;position:absolute;right:10px;top:10px;z-index:1200;border:0;border-radius:8px;background:#fff;padding:8px 10px;box-shadow:0 3px 12px rgba(0,0,0,.18);font-weight:800;font-size:10px}
+.userbar{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:9px;color:var(--muted);flex-wrap:wrap}.userbar a{color:var(--green);text-decoration:none;font-weight:800}.user-pill{padding:3px 7px;border-radius:99px;background:#eef5f2;color:#0e6b51;font-weight:800}.service-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:6px 10px;border-bottom:1px solid var(--line);background:#fbfcfc}.service-chip{border:1px solid var(--line);border-radius:7px;padding:5px 4px;font-size:8px;text-align:center;color:var(--muted);background:#fff}.service-chip b{display:block;font-size:9px;color:var(--text);margin-bottom:2px}.service-chip.ok{border-color:#9fd3bf;background:#eff9f5}.service-chip.error{border-color:#e5b4ad;background:#fff4f2}.service-chip.external{border-color:#b9c9ea;background:#f4f7ff}.process{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:7px 10px;border-bottom:1px solid var(--line)}.process-step{font-size:8px;text-align:center;color:var(--muted);padding:5px 3px;border-radius:6px;background:#f4f6f8;border:1px solid transparent}.process-step.loading{background:#fff8e7;border-color:#e3c77d;color:#765400}.process-step.ok{background:#eaf7f2;border-color:#9fd3bf;color:#0e6b51}.process-step.error{background:#fff1ef;border-color:#e5b4ad;color:#8b2d22}.tucbs-box{border:1px solid #9fb7e8;background:#f5f7ff;border-radius:9px;padding:9px;margin:9px 0}.tucbs-heading{font-size:11px;font-weight:850;color:#254f9b;margin-bottom:4px}.tucbs-meta{font-size:9px;color:#53616e;line-height:1.5;margin-bottom:7px}.secondary-btn{width:100%;border:1px solid #8aa8e4;background:#315fae;color:#fff;border-radius:8px;padding:10px;font-size:11px;font-weight:800;cursor:pointer}.secondary-btn:disabled{opacity:.45;cursor:not-allowed}.history-list{display:grid;gap:7px}.history-item{border:1px solid var(--line);border-radius:8px;padding:9px;background:#fff}.history-title{font-size:11px;font-weight:800}.history-meta{font-size:9px;color:var(--muted);line-height:1.5;margin-top:3px}.history-actions{display:flex;gap:6px;margin-top:7px}.history-actions a{font-size:9px;text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:6px 8px;color:var(--text);font-weight:750}.modal{position:fixed;inset:0;background:rgba(15,28,37,.55);display:none;place-items:center;z-index:5000;padding:18px}.modal.open{display:grid}.modal-card{width:min(520px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;box-shadow:0 30px 90px rgba(0,0,0,.3)}.modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}.modal-head h2{font-size:15px;margin:0}.modal-close{border:0;background:#eef2f4;width:30px;height:30px;border-radius:8px;cursor:pointer}.modal-body{padding:15px;font-size:11px;line-height:1.6}.coord-box{display:flex;gap:7px;margin:9px 0}.coord-box input{flex:1;height:36px;border:1px solid #cfd8e1;border-radius:7px;padding:0 8px}.coord-box button{border:1px solid var(--line);border-radius:7px;background:#fff;padding:0 10px;cursor:pointer;font-weight:750}.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.modal-actions a,.modal-actions button{text-decoration:none;text-align:center;border-radius:8px;padding:10px;border:1px solid var(--line);font-weight:800;font-size:11px}.modal-actions .go{background:#315fae;color:#fff;border-color:#315fae}.map-toggle{display:none;position:absolute;right:10px;top:10px;z-index:1200;border:0;border-radius:8px;background:#fff;padding:8px 10px;box-shadow:0 3px 12px rgba(0,0,0,.18);font-weight:800;font-size:10px}
 
 @media(max-width:820px){
   html,body{height:auto;min-height:100%;overflow:auto}.app{height:auto;min-height:100vh;display:block;overflow:visible}.sidebar{height:auto;min-height:0;overflow:visible;border-right:0;border-bottom:1px solid var(--line)}.tabs{top:0}.content{min-height:280px}.map-wrap{height:45vh;min-height:320px}.map-badge{display:none}.map-toggle{display:block}.map-wrap.collapsed{height:52px;min-height:52px}.map-wrap.collapsed #map{visibility:hidden}
 }
+
+.open-data-toolbar{display:grid;grid-template-columns:1fr auto;gap:7px;margin:8px 0}.open-data-toolbar .primary{height:38px}.open-data-clear{border:1px solid var(--line);background:#fff;border-radius:7px;padding:0 10px;font-size:10px;font-weight:800;cursor:pointer}.open-data-clear:disabled{opacity:.45;cursor:not-allowed}.open-data-list{display:grid;gap:8px}.open-data-card{border:1px solid var(--line);border-radius:9px;background:#fff;padding:9px}.open-data-card.active{border-color:#7f62c9;background:#faf8ff}.open-data-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.open-data-title{font-size:11px;font-weight:850;line-height:1.35}.open-data-kind{font-size:8px;font-weight:850;border-radius:99px;padding:3px 6px;background:#edf1f5;color:#4d5d69;white-space:nowrap}.open-data-kind.plan{background:#eee8ff;color:#5932a5}.open-data-kind.ortho{background:#e8f4ff;color:#235e96}.open-data-kind.boundary{background:#fff2dc;color:#795113}.open-data-kind.rayic{background:#e8f6f1;color:#0e6b51}.open-data-desc{font-size:9px;color:var(--muted);line-height:1.5;margin-top:5px}.open-data-fresh{font-size:9px;line-height:1.45;margin-top:7px;padding:7px;border-radius:7px;background:#fff8e7;color:#70520f}.open-data-summary{margin-top:7px;padding:8px;border-radius:7px;background:#eff9f5;border:1px solid #b9ddcf;font-size:10px;line-height:1.5}.open-data-summary strong{font-size:13px;color:#0e6b51}.open-data-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.open-data-actions button,.open-data-actions a{display:block;text-align:center;text-decoration:none;border-radius:7px;padding:8px 6px;font-size:9px;font-weight:850;border:1px solid var(--line);background:#fff;color:var(--text);cursor:pointer}.open-data-actions .overlay{background:#6747b8;color:#fff;border-color:#6747b8}.open-data-actions .overlay.remove{background:#fff;color:#5932a5}.open-data-resources{display:grid;gap:4px;margin-top:7px}.open-data-resources a{font-size:9px;color:#315fae;text-decoration:none;word-break:break-word}.open-data-legend{margin-top:8px;padding:7px;border:1px dashed #c9bdeb;border-radius:7px;background:#fff}.open-data-legend img{display:block;max-width:100%;max-height:220px;margin:auto}.open-data-popup{font-size:11px;line-height:1.45}.open-data-popup table{border-collapse:collapse;width:100%;margin-top:5px}.open-data-popup td{border-bottom:1px solid #e7ebef;padding:3px 4px;vertical-align:top}.open-data-popup td:first-child{color:#687583;width:42%}.pilot-note{font-size:9px;color:var(--muted);line-height:1.5;margin-top:7px}.map-badge.open-data-active{background:#6747b8;color:#fff}.open-data-loading{padding:18px;text-align:center;font-size:10px;color:var(--muted)}
+
 </style>
 </head>
 <body>
@@ -87,6 +90,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
       <div class="service-chip" data-service="terrain"><b>Eğim</b><span>bekleniyor</span></div>
       <div class="service-chip" data-service="overpass"><b>Yakın yer</b><span>bekleniyor</span></div>
       <div class="service-chip external" data-service="tucbs"><b>TUCBS</b><span>dış platform</span></div>
+      <div class="service-chip" data-service="openData"><b>Açık veri</b><span>isteğe bağlı</span></div>
     </div>
     <div class="process" id="process">
       <div class="process-step" data-step="tkgm">1. TKGM</div><div class="process-step" data-step="parcel">2. Parsel</div><div class="process-step" data-step="terrain">3. Eğim</div><div class="process-step" data-step="tucbs">4. TUCBS</div>
@@ -97,6 +101,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
       <button class="tab active" data-pane="parcel-pane">Parsel</button>
       <button class="tab" data-pane="poi-pane">Yakın Yerler</button>
       <button class="tab" data-pane="links-pane">Bağlantılar</button>
+      <button class="tab" data-pane="open-data-pane">Açık Veri</button>
       <button class="tab" data-pane="history-pane">Geçmiş</button>
     </div>
 
@@ -170,6 +175,17 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
         </div>
       </section>
 
+
+      <section class="pane" id="open-data-pane">
+        <div class="notice info"><strong>Katmanlar otomatik yüklenmez.</strong> Önce parseli sorgulayın, sonra aşağıdaki düğmeyle seçilen il ve ilçe için kamuya açık verileri kontrol edin. Haritaya yalnızca sizin seçtiğiniz katman eklenir.</div>
+        <div class="open-data-toolbar">
+          <button class="primary" id="open-data-check" disabled>Açık Katmanları Kontrol Et</button>
+          <button class="open-data-clear" id="open-data-clear" disabled>Katmanları Temizle</button>
+        </div>
+        <div class="pilot-note" id="open-data-region">Pilot bölgeler: Kayseri; Tekirdağ/Çorlu; Kırıkkale/Yahşihan; Giresun/Görele.</div>
+        <div id="open-data-output"><div class="empty"><div class="big">🧭</div>Önce bir parsel sorgulayın.</div></div>
+      </section>
+
       <section class="pane" id="history-pane">
         <div class="notice info">Başarılı TKGM parsel sorguları kullanıcı hesabına kaydedilir. Sahte veya başarısız sorgu geçmişe eklenmez.</div>
         <div id="history-output"><div class="empty"><div class="big">🕘</div>Geçmiş yükleniyor…</div></div>
@@ -206,7 +222,8 @@ const store = {
   il:{items:[],selected:null}, ilce:{items:[],selected:null}, mah:{items:[],selected:null},
   map:null, parcelLayer:null, parcelFeature:null, parcelCenter:null,
   poiGroup:null, poiMarkers:new Map(), selectedLine:null, selectedLabel:null,
-  poiItems:[], poiSearchMeta:null, requestId:0, poiRequestId:0, account:null, services:null
+  poiItems:[], poiSearchMeta:null, requestId:0, poiRequestId:0, account:null, services:null,
+  openDataCatalog:null, openDataLayers:new Map(), openDataRequestId:0, openDataInfoBusy:false
 };
 
 const $ = id => document.getElementById(id);
@@ -291,6 +308,177 @@ function openTucbsModal(){
   $('tucbs-modal').classList.add('open');
 }
 function closeTucbsModal(){ $('tucbs-modal').classList.remove('open'); }
+
+
+function formatSourceDate(value){
+  if(!value) return null;
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?null:date.toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+function openDataKind(item){
+  if(item.type==='rayic'||item.category==='rayic') return ['rayic','Rayiç'];
+  if(item.category==='plan') return ['plan','Plan'];
+  if(item.category==='ortho') return ['ortho','Ortofoto'];
+  if(item.category==='boundary') return ['boundary','Sınır'];
+  return ['dataset','Açık veri'];
+}
+
+function openDataFreshness(item){
+  const updated=formatSourceDate(item.updatedAt);
+  const verified=formatSourceDate(item.verifiedAt);
+  if(updated) return `Kaynak kaydı en son ${updated} tarihinde güncellenmiştir. Daha sonraki olası değişiklikler için TUCBS/ULASAV veya veri sağlayıcısının güncel kaydını kontrol edin.`;
+  if(verified) return `Katman servisine ${verified} tarihinde erişilebildiği doğrulanmıştır; veri üretim/güncelleme tarihi sağlayıcı kaydında belirtilmemiş olabilir. Güncel durum için kaynak bağlantısını kontrol edin.`;
+  return 'Verinin güncelleme tarihi sağlayıcı tarafından belirtilmemiş olabilir. Güncel durum ve olası değişiklikler için TUCBS/ULASAV veya veri sağlayıcısını kontrol edin.';
+}
+
+function updateOpenDataMapBadge(){
+  const badge=document.querySelector('.map-badge');
+  const count=store.openDataLayers.size;
+  badge?.classList.toggle('open-data-active',count>0);
+  if(badge) badge.textContent=count?`Açık kamu katmanı aktif: ${count} · Parsel çizgisi üstte tutulur`:'Harita: OpenStreetMap · Veriler: canlı servisler · Sahte sonuç yok';
+  $('open-data-clear').disabled=count===0;
+}
+
+function clearOpenDataLayers(){
+  for(const {layer} of store.openDataLayers.values()){
+    try{ store.map?.removeLayer(layer); }catch{}
+  }
+  store.openDataLayers.clear();
+  document.querySelectorAll('.open-data-card').forEach(card=>card.classList.remove('active'));
+  document.querySelectorAll('.open-data-actions .overlay').forEach(button=>{button.textContent='Haritaya Ekle';button.classList.remove('remove');});
+  updateOpenDataMapBadge();
+}
+
+function resetOpenData(){
+  store.openDataRequestId++;
+  store.openDataCatalog=null;
+  clearOpenDataLayers();
+  const button=$('open-data-check');
+  if(!button) return;
+  button.disabled=!store.parcelCenter;
+  button.textContent=store.parcelCenter?'Açık Katmanları Kontrol Et':'Açık Katmanları Kontrol Et';
+  $('open-data-region').textContent=store.parcelCenter?`${store.il.selected?.name||''} / ${store.ilce.selected?.name||''} için katmanlar yalnızca isteğinizle kontrol edilir.`:'Pilot bölgeler: Kayseri; Tekirdağ/Çorlu; Kırıkkale/Yahşihan; Giresun/Görele.';
+  $('open-data-output').innerHTML=store.parcelCenter?'<div class="empty"><div class="big">🧭</div>Katmanlar henüz kontrol edilmedi.</div>':'<div class="empty"><div class="big">🧭</div>Önce bir parsel sorgulayın.</div>';
+}
+
+function configureOpenData(){
+  resetOpenData();
+  $('open-data-check').disabled=!store.parcelCenter;
+}
+
+function rayicSummaryHtml(item){
+  if(!item.summary) return item.summaryError?`<div class="notice warn">Otomatik fiyat özeti oluşturulamadı. Değer uydurulmadı; kaynak dosyalarını doğrudan inceleyin.</div>`:'';
+  const year=item.summary.dataYear||item.dataYear;
+  const unit=/m2|metrekare/i.test(normalizeTr(item.summary.column))?' TL/m²':' TL';
+  return `<div class="open-data-summary">${year?`<strong>${escapeHtml(year)}</strong> dönemi · `:''}<strong>En düşük ${Number(item.summary.min).toLocaleString('tr-TR',{maximumFractionDigits:2})}${unit}</strong><br>En yüksek ${Number(item.summary.max).toLocaleString('tr-TR',{maximumFractionDigits:2})}${unit} · ${Number(item.summary.count).toLocaleString('tr-TR')} kayıt<br><span>Kaynak sütun: ${escapeHtml(item.summary.column)}. Bu, belediye/kamu rayiç kaydıdır; piyasa satış değeri değildir.</span></div>`;
+}
+
+function openDataResourcesHtml(item){
+  const resources=Array.isArray(item.resources)?item.resources:[];
+  if(!resources.length) return '';
+  return `<div class="open-data-resources">${resources.slice(0,12).map(resource=>`<a href="${escapeHtml(resource.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(resource.name||resource.format||'Kaynağı aç')} ${resource.format?`(${escapeHtml(resource.format)})`:''} ↗</a>`).join('')}</div>`;
+}
+
+function renderOpenDataCatalog(data){
+  store.openDataCatalog=data;
+  const output=$('open-data-output');
+  const items=Array.isArray(data.items)?data.items:[];
+  $('open-data-region').textContent=`${data.province||''}${data.district?` / ${data.district}`:''} · ${items.length} açık kaynak bulundu/kontrol edildi. Katmanlar otomatik eklenmedi.`;
+  if(!items.length){
+    output.innerHTML='<div class="notice warn">Bu pilot bölgede kullanılabilir açık katman veya rayiç kaydı bulunamadı. Herhangi bir tahmini veri gösterilmedi.</div>';
+    return;
+  }
+  const list=document.createElement('div');list.className='open-data-list';
+  for(const item of items){
+    const [kindClass,kindLabel]=openDataKind(item);
+    const overlayAvailable=(item.type==='wms'&&item.wms?.layerName)||(item.type==='geojson'&&item.resourceToken);
+    const card=document.createElement('article');card.className='open-data-card';card.dataset.itemId=item.id;
+    const overlayButton=overlayAvailable?`<button class="overlay" data-open-action="overlay" data-item-id="${escapeHtml(item.id)}">Haritaya Ekle</button>`:'';
+    const legend=item.wms?.legendUrl?`<a href="${escapeHtml(item.wms.legendUrl)}" target="_blank" rel="noopener noreferrer">Renk Lejantı ↗</a>`:'';
+    const direct=item.directUrl?`<a href="${escapeHtml(item.directUrl)}" target="_blank" rel="noopener noreferrer">Servisi Aç ↗</a>`:'';
+    const source=item.sourceUrl?`<a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Kaynak Sayfası ↗</a>`:'';
+    card.innerHTML=`<div class="open-data-head"><div class="open-data-title">${escapeHtml(item.title)}</div><span class="open-data-kind ${kindClass}">${kindLabel}</span></div><div class="open-data-desc">${escapeHtml(item.description||'Kamuya açık veri kaynağı.')}<br><strong>Sağlayıcı:</strong> ${escapeHtml(item.provider||'Belirtilmedi')}</div>${rayicSummaryHtml(item)}<div class="open-data-fresh">${escapeHtml(openDataFreshness(item))}</div><div class="open-data-actions">${overlayButton}${legend}${source}${direct}</div>${openDataResourcesHtml(item)}${item.serviceError?`<div class="notice error" style="margin-top:7px">Servis şu anda cevap vermedi: ${escapeHtml(item.serviceError)}</div>`:''}`;
+    list.appendChild(card);
+  }
+  output.innerHTML='';output.appendChild(list);
+  if(Array.isArray(data.warnings)&&data.warnings.length){
+    const warn=document.createElement('div');warn.className='notice warn';warn.style.marginTop='8px';warn.textContent=`Bazı kaynaklar kontrol edilemedi: ${data.warnings.slice(0,4).join(' · ')}`;output.appendChild(warn);
+  }
+  output.insertAdjacentHTML('beforeend',`<div class="pilot-note">Lisans ve kaynak: <a href="${escapeHtml(data.licenseUrl||'https://ulasav.csb.gov.tr/license')}" target="_blank" rel="noopener noreferrer">ULASAV Açık Veri Lisansı ↗</a>. Katman renkleri kesin imar durumu veya değerleme raporu yerine geçmez.</div>`);
+  output.querySelectorAll('[data-open-action="overlay"]').forEach(button=>button.addEventListener('click',()=>toggleOpenDataLayer(button.dataset.itemId,button)));
+}
+
+async function loadOpenDataCatalog(){
+  if(!store.parcelCenter||!store.il.selected) return;
+  const requestId=++store.openDataRequestId;
+  const button=$('open-data-check');
+  button.disabled=true;button.textContent='Açık veriler kontrol ediliyor…';
+  $('open-data-output').innerHTML='<div class="open-data-loading">ULASAV ve kamuya açık WMS servisleri kontrol ediliyor. Haritaya hiçbir katman otomatik eklenmeyecek…</div>';
+  try{
+    const query=`?province=${encodeURIComponent(store.il.selected.name)}&district=${encodeURIComponent(store.ilce.selected?.name||'')}`;
+    const data=await api(`/open-data/catalog${query}`,{},35000);
+    if(requestId!==store.openDataRequestId) return;
+    renderOpenDataCatalog(data);loadServices();
+  }catch(error){
+    if(requestId!==store.openDataRequestId) return;
+    $('open-data-output').innerHTML=`<div class="notice error">${escapeHtml(humanError(error))} Tahmini katman veya değer gösterilmedi.</div>`;loadServices();
+  }finally{
+    if(requestId===store.openDataRequestId){button.disabled=false;button.textContent='Açık Katmanları Yeniden Kontrol Et';}
+  }
+}
+
+async function toggleOpenDataLayer(itemId,button){
+  const item=store.openDataCatalog?.items?.find(row=>row.id===itemId);
+  if(!item) return;
+  const existing=store.openDataLayers.get(itemId);
+  const card=button.closest('.open-data-card');
+  if(existing){
+    store.map.removeLayer(existing.layer);store.openDataLayers.delete(itemId);card?.classList.remove('active');button.textContent='Haritaya Ekle';button.classList.remove('remove');updateOpenDataMapBadge();return;
+  }
+  button.disabled=true;const old=button.textContent;button.textContent='Yükleniyor…';
+  try{
+    let layer;
+    if(item.type==='wms'){
+      layer=L.tileLayer.wms(item.wms.baseUrl,{layers:item.wms.layerName,format:'image/png',transparent:true,version:'1.1.1',opacity:item.category==='ortho'?0.82:0.62,attribution:'ULASAV / TUCBS Açık Veri',zIndex:240});
+      layer.addTo(store.map);
+    }else if(item.type==='geojson'){
+      const geojson=await api(`/open-data/geojson?token=${encodeURIComponent(item.resourceToken)}`,{},30000);
+      layer=L.geoJSON(geojson,{style:item.style||{color:'#7a3ff2',weight:2,fillOpacity:.04},onEachFeature:(feature,featureLayer)=>{const props=feature.properties||{};const rows=Object.entries(props).filter(([,value])=>value!==null&&value!==undefined&&String(value).trim()!=='').slice(0,10);if(rows.length)featureLayer.bindPopup(`<div class="open-data-popup"><strong>${escapeHtml(item.title)}</strong><table>${rows.map(([key,value])=>`<tr><td>${escapeHtml(key)}</td><td>${escapeHtml(String(value))}</td></tr>`).join('')}</table></div>`);}}).addTo(store.map);
+    }else return;
+    store.openDataLayers.set(itemId,{layer,item});card?.classList.add('active');button.textContent='Haritadan Kaldır';button.classList.add('remove');updateOpenDataMapBadge();
+    if(store.parcelLayer) store.parcelLayer.bringToFront();
+  }catch(error){button.textContent=old;alert(`Katman yüklenemedi: ${humanError(error)}`);}
+  finally{button.disabled=false;}
+}
+
+function openDataInfoHtml(result){
+  const features=Array.isArray(result.features)?result.features:[];
+  if(features.length){
+    const blocks=features.slice(0,3).map(feature=>{const rows=Object.entries(feature.properties||{}).filter(([,value])=>value!==null&&value!==undefined&&String(value).trim()!=='').slice(0,14);return rows.length?`<table>${rows.map(([key,value])=>`<tr><td>${escapeHtml(key)}</td><td>${escapeHtml(String(value))}</td></tr>`).join('')}</table>`:'';}).join('');
+    if(blocks) return `<div class="open-data-popup"><strong>${escapeHtml(result.title||'Plan katmanı')}</strong>${blocks}<div class="pilot-note">Plan bilgisi için resmî kaynak ve güncel plan paftası ayrıca kontrol edilmelidir.</div></div>`;
+  }
+  if(result.text) return `<div class="open-data-popup"><strong>${escapeHtml(result.title||'Plan katmanı')}</strong><br>${escapeHtml(result.text).slice(0,2500)}</div>`;
+  return '<div class="open-data-popup">Bu noktada katman özniteliği dönmedi. Renk açıklaması için katman kartındaki lejantı açın.</div>';
+}
+
+async function queryOpenDataFeatureInfo(event){
+  if(store.openDataInfoBusy) return;
+  const active=[...store.openDataLayers.values()].find(row=>row.item?.type==='wms'&&row.item?.category==='plan'&&row.item?.wms?.supportsFeatureInfo);
+  if(!active) return;
+  const bounds=store.map.getBounds();
+  const sw=store.map.options.crs.project(bounds.getSouthWest());
+  const ne=store.map.options.crs.project(bounds.getNorthEast());
+  const size=store.map.getSize();
+  const point=store.map.latLngToContainerPoint(event.latlng);
+  store.openDataInfoBusy=true;
+  const popup=L.popup().setLatLng(event.latlng).setContent('<div class="open-data-popup">Plan bilgisi sorgulanıyor…</div>').openOn(store.map);
+  try{
+    const result=await api('/open-data/wms-info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:active.item.wms.key,bbox:[sw.x,sw.y,ne.x,ne.y].join(','),width:size.x,height:size.y,x:Math.round(point.x),y:Math.round(point.y)})},18000);
+    popup.setContent(openDataInfoHtml(result));
+  }catch(error){popup.setContent(`<div class="open-data-popup">Katman bilgisi alınamadı: ${escapeHtml(humanError(error))}</div>`);}
+  finally{store.openDataInfoBusy=false;}
+}
 
 async function loadHistory(){
   const output=$('history-output');
@@ -513,6 +701,7 @@ function resetResult(){
   $('endeksa-meta').textContent = 'Parsel sorgusundan sonra hazırlanır.';
   $('center-link').classList.add('disabled'); $('center-link').href = '#';
   configureTucbs();
+  resetOpenData();
   resetProcess();
   clearPoi();
 }
@@ -679,6 +868,7 @@ async function searchParcel(){
 
     configureEndeksaLinks(feature);
     configureTucbs();
+    configureOpenData();
     $('center-link').href = `https://www.google.com/maps?q=${store.parcelCenter.lat},${store.parcelCenter.lng}`;
     $('center-link').classList.remove('disabled');
     updateGooglePoiLink();
@@ -1009,6 +1199,7 @@ async function init(){
   store.map = L.map('map',{zoomControl:true}).setView([39.0,35.0],6);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:20,attribution:'© OpenStreetMap contributors'}).addTo(store.map);
   store.poiGroup = L.layerGroup().addTo(store.map);
+  store.map.on('click',queryOpenDataFeatureInfo);
 
   ['il','ilce','mah'].forEach(setupCombo);
   document.addEventListener('mousedown',event => {
@@ -1018,6 +1209,8 @@ async function init(){
   });
   document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click',() => showPane(tab.dataset.pane)));
   $('tucbs-btn').addEventListener('click',openTucbsModal);
+  $('open-data-check').addEventListener('click',loadOpenDataCatalog);
+  $('open-data-clear').addEventListener('click',clearOpenDataLayers);
   $('tucbs-close').addEventListener('click',closeTucbsModal);
   $('tucbs-modal').addEventListener('click',event=>{if(event.target===$('tucbs-modal'))closeTucbsModal();});
   $('copy-coords').addEventListener('click',()=>copyText($('tucbs-coords').value,$('copy-coords')));

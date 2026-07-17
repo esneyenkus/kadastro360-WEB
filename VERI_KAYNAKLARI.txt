@@ -1,22 +1,37 @@
-KADASTRO360 WEB PILOT v1.1 — VERİ KAYNAKLARI
+KADASTRO360 WEB PILOT v1.2 — VERİ KAYNAKLARI
 
 1. Parsel ve idari birimler
    Kaynak: TKGM MEGSİS web servisleri
    İl, ilçe, mahalle, ada/parsel ve geometri canlı kaynaktan alınır.
 
 2. Arazi eğimi
-   Kaynaklar: uygulamadaki terrain.js canlı yükseklik zinciri (Open-Meteo Elevation ve yedek servis)
+   Kaynaklar: terrain.js canlı yükseklik zinciri
    Sonuç yaklaşık arazi analizidir; uydurma değer üretilmez.
 
 3. Yakın yerler
    Kaynak: OpenStreetMap / Overpass
    Sonuç yok ile servis hatası ayrı gösterilir. Sahte nokta eklenmez.
 
-4. Piyasa analizi
+4. Açık plan ve harita katmanları
+   Kaynaklar: ULASAV katalog metadatası ve tucbs-public-api.csb.gov.tr üzerindeki kamuya açık WMS servisleri
+   Katmanlar yalnızca kullanıcı düğmeye bastığında aranır ve ayrı ayrı haritaya eklenir.
+   Pilot WMS katmanları: Kayseri/Sivas/Yozgat, Trakya, Kırıkkale, Doğu Karadeniz çevre düzeni planları ve Görele ortofoto.
+
+5. İdari sınırlar
+   Kaynak: ULASAV Kayseri İlçe Sınırı ve Kayseri Mahalle Sınırı açık veri setleri
+   GeoJSON kaynağı bulunursa sunucu üzerinden alınır; bulunamazsa veri seti bağlantısı gösterilir.
+
+6. Rayiç kayıtları
+   Kaynak: ULASAV'da yayımlanan belediye/kamu dosyaları
+   Çorlu ve Yahşihan pilot olarak aranır. Makine okunabilir CSV'de uygun rayiç sütunu bulunursa minimum/maksimum kayıt gösterilir.
+   Veri tarihi, kaynak dosyası ve uyarı metni birlikte sunulur. Uygun veri yoksa değer hesaplanmaz.
+
+7. Piyasa analizi
    Endeksa bölge bağlantıları hazırlanır; dış siteden fiyat kazınmaz.
 
-5. TUCBS / UCBP
-   Resmî harita görüntüleyici: https://ucbp.tucbs.gov.tr/harita-goruntuleyici
-   Kadastro360 seçilen parselin konum özetini hazırlar ve platformu açar.
-   e-Devlet girişi, katman yetkisi, katman bulunabilirliği ve katman seçimi TUCBS tarafındadır.
-   Uygulama bulunmayan katmanı varmış gibi göstermez ve renk kodundan otomatik değer üretmez.
+8. TUCBS / UCBP
+   Resmî harita görüntüleyici bağlantısı korunur.
+   e-Devlet girişi, yetkili katmanlar ve kapalı kaynaklar TUCBS tarafındadır.
+
+9. Lisans ve atıf
+   ULASAV kaynak sayfası ve açık veri lisansı kullanıcıya gösterilir. Veri sağlayıcı bağlantıları sabit tutulur.

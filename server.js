@@ -6,6 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { analyzeTerrain } = require('./terrain');
 const { AccountStore } = require('./account-store');
+const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo } = require('./open-data');
 
 const HOST = process.env.HOST || '0.0.0.0';
 const START_PORT = Number(process.env.PORT) || 10000;
@@ -29,7 +30,8 @@ const serviceHealth = {
   tkgm: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz kontrol edilmedi.' },
   terrain: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz kontrol edilmedi.' },
   overpass: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz kontrol edilmedi.' },
-  tucbs: { status: 'external', lastSuccessAt: null, lastErrorAt: null, message: 'e-Devlet oturumu gerektiren dış platform.' }
+  tucbs: { status: 'external', lastSuccessAt: null, lastErrorAt: null, message: 'e-Devlet oturumu gerektiren dış platform.' },
+  openData: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Kullanıcı isteğiyle kontrol edilir.' }
 };
 
 function markService(name, ok, message = '') {
@@ -125,7 +127,7 @@ function sendHtml(res, status, html, extraHeaders = {}) {
 
 function loginPage(message = '') {
   return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kadastro360 Giriş</title>
-  <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#eef3f6;font-family:Arial,sans-serif;color:#17242c}.box{width:min(390px,calc(100% - 32px));background:white;padding:30px;border-radius:18px;box-shadow:0 18px 60px #1b394322}.brand{font-size:30px;font-weight:800;margin-bottom:4px}.sub{color:#60727d;margin-bottom:24px}label{display:block;font-weight:700;margin:14px 0 6px}input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #bccbd2;border-radius:10px;font-size:16px}button{width:100%;margin-top:20px;padding:14px;border:0;border-radius:10px;background:#126b62;color:white;font-size:16px;font-weight:800;cursor:pointer}.msg{background:#fff0f0;color:#a12626;padding:10px;border-radius:9px;margin-bottom:12px}.note{font-size:12px;color:#71818a;margin-top:18px;text-align:center}</style></head><body><main class="box"><div class="brand">Kadastro360</div><div class="sub">Gerçek veri web pilotu · TUCBS deneme entegrasyonu</div>${message ? `<div class="msg">${escapeHtml(message)}</div>` : ''}<form method="post" action="/login"><label>Kullanıcı adı</label><input name="username" autocomplete="username" required><label>Parola</label><input name="password" type="password" autocomplete="current-password" required><button type="submit">Giriş yap</button></form><div class="note">Bu pilot yalnızca canlı veri kaynaklarını kullanır; örnek veya sanal sonuç üretmez.</div></main></body></html>`;
+  <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#eef3f6;font-family:Arial,sans-serif;color:#17242c}.box{width:min(390px,calc(100% - 32px));background:white;padding:30px;border-radius:18px;box-shadow:0 18px 60px #1b394322}.brand{font-size:30px;font-weight:800;margin-bottom:4px}.sub{color:#60727d;margin-bottom:24px}label{display:block;font-weight:700;margin:14px 0 6px}input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #bccbd2;border-radius:10px;font-size:16px}button{width:100%;margin-top:20px;padding:14px;border:0;border-radius:10px;background:#126b62;color:white;font-size:16px;font-weight:800;cursor:pointer}.msg{background:#fff0f0;color:#a12626;padding:10px;border-radius:9px;margin-bottom:12px}.note{font-size:12px;color:#71818a;margin-top:18px;text-align:center}</style></head><body><main class="box"><div class="brand">Kadastro360</div><div class="sub">Gerçek veri web pilotu · İsteğe bağlı ULASAV/TUCBS açık katmanları</div>${message ? `<div class="msg">${escapeHtml(message)}</div>` : ''}<form method="post" action="/login"><label>Kullanıcı adı</label><input name="username" autocomplete="username" required><label>Parola</label><input name="password" type="password" autocomplete="current-password" required><button type="submit">Giriş yap</button></form><div class="note">Bu pilot yalnızca canlı veri kaynaklarını kullanır; örnek veya sanal sonuç üretmez.</div></main></body></html>`;
 }
 
 function readFormBody(req, limit = 50_000) {
@@ -1115,7 +1117,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.1.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.2.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
@@ -1186,6 +1188,32 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && pathname === '/api/services') {
       return sendJson(res, 200, { updatedAt: new Date().toISOString(), services: serviceHealth });
+    }
+    if (req.method === 'GET' && pathname === '/api/open-data/catalog') {
+      const province = String(requestUrl.searchParams.get('province') || '').trim();
+      const district = String(requestUrl.searchParams.get('district') || '').trim();
+      if (!province) return sendJson(res, 400, { error: 'Açık veri kontrolü için il gereklidir.' });
+      const result = await buildPilotCatalog({ province, district });
+      markService('openData', true, `${province}${district ? ` / ${district}` : ''} için açık veri kontrolü tamamlandı.`);
+      return sendJson(res, 200, result);
+    }
+    if (req.method === 'GET' && pathname === '/api/open-data/geojson') {
+      const token = String(requestUrl.searchParams.get('token') || '');
+      const data = await fetchGeoJson(token);
+      markService('openData', true, 'GeoJSON katmanı yüklendi.');
+      return sendJson(res, 200, data);
+    }
+    if (req.method === 'POST' && pathname === '/api/open-data/wms-info') {
+      const body = await readJsonBody(req, 100_000);
+      const width = Math.max(1, Math.min(5000, Number(body.width) || 0));
+      const height = Math.max(1, Math.min(5000, Number(body.height) || 0));
+      const x = Math.max(0, Math.min(width, Number(body.x) || 0));
+      const y = Math.max(0, Math.min(height, Number(body.y) || 0));
+      const bbox = String(body.bbox || '');
+      if (!/^[-0-9.,]+$/.test(bbox) || bbox.split(',').length !== 4) return sendJson(res, 400, { error: 'Geçersiz harita sorgusu.' });
+      const result = await wmsFeatureInfo({ key: String(body.key || ''), bbox, width, height, x, y });
+      markService('openData', true, 'Plan katmanı bilgi sorgusu tamamlandı.');
+      return sendJson(res, 200, result);
     }
     if (req.method === 'GET' && pathname === '/api/admin/users') {
       if (sessionUser.role !== 'admin') return sendJson(res, 403, { error: 'Yönetici yetkisi gerekli.' });
@@ -1297,6 +1325,7 @@ const server = http.createServer(async (req, res) => {
     if (/\/api\/(iller|ilceler|mahalleler|parsel)/.test(pathname)) markService('tkgm', false, message);
     if (/\/api\/(elevation|terrain-analysis)/.test(pathname)) markService('terrain', false, message);
     if (pathname === '/api/poi') markService('overpass', false, message);
+    if (pathname.startsWith('/api/open-data/')) markService('openData', false, message);
     const upstream = /TKGM|yakın yer|eğim|HTTP|zaman aşımı/i.test(message);
     return sendJson(res, upstream ? 502 : 500, { error: message });
   }

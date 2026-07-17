@@ -1,15 +1,19 @@
-KADASTRO360 WEB PILOT v1.1
+KADASTRO360 WEB PILOT v1.2
 
-- TUCBS geçiş köprüsü eklendi.
-- Parselin il/ilçe/mahalle/ada/parsel ve koordinat özeti hazırlanıyor.
-- Koordinat ve TUCBS arama özeti tek tıkla kopyalanıyor.
-- TUCBS katmanı bulunmuş gibi sahte durum gösterilmiyor.
-- TKGM, eğim, yakın yer ve TUCBS servis durum göstergeleri eklendi.
-- TKGM > parsel > eğim > TUCBS aşamalı ilerleme göstergesi eklendi.
-- Kullanıcı bazlı SQLite hesap sistemi eklendi.
-- Günlük kota ve başarılı sorgu geçmişi eklendi.
-- Yönetici paneli eklendi.
-- Kullanıcı oluşturma, pasifleştirme ve kota değiştirme eklendi.
-- Başarısız giriş denemelerine 15 dakikalık kilit eklendi.
-- Mobil haritayı küçültme/açma düğmesi eklendi.
+- Açık Veri sekmesi eklendi.
+- Açık katman kontrolü otomatik değil, kullanıcı isteğine bağlandı.
+- Her açık katman ayrı ayrı haritaya eklenip kaldırılabiliyor.
+- Kayseri/Sivas/Yozgat Çevre Düzeni Planı WMS pilotu eklendi.
+- Tekirdağ/Kırklareli/Edirne Çevre Düzeni Planı WMS pilotu eklendi.
+- Kırıkkale Çevre Düzeni Planı WMS pilotu eklendi.
+- Doğu Karadeniz Çevre Düzeni Planı WMS pilotu eklendi.
+- Giresun/Görele ortofoto WMS pilotu eklendi.
+- Aktif plan katmanında harita tıklamasıyla GetFeatureInfo sorgusu eklendi.
+- Renk lejantı, kaynak sayfası ve doğrudan servis bağlantıları kalıcı tutuldu.
+- Kayseri ilçe/mahalle sınırı GeoJSON dinamik keşfi eklendi.
+- Çorlu ve Yahşihan rayiç veri seti araması eklendi.
+- Güvenli CSV rayiç sütunu bulunursa tarihli minimum/maksimum özet gösterimi eklendi.
+- Güncelleme tarihi yoksa bunu açıkça belirten güncellik uyarısı eklendi.
+- PDF veya uygun olmayan dosyadan tahmini değer üretme engellendi.
+- Açık veri servis durumu göstergesi eklendi.
 - Canlı veri ve sahte sonuç üretmeme ilkesi korundu.

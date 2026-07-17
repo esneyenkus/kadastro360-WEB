@@ -1,20 +1,27 @@
-KADASTRO360 WEB PILOT v1.1
+KADASTRO360 WEB PILOT v1.2
 
 1. Node.js 22 kurun.
 2. Klasörde terminal açın.
 3. npm install
 4. TEST_USERNAME, TEST_PASSWORD ve SESSION_SECRET değişkenlerini ayarlayın.
-5. npm start
+5. npm run check
+6. npm start
 
 Render:
-- ZIP içeriğini GitHub deposuna yükleyin.
-- Render Blueprint veya Web Service ile yayınlayın.
-- TEST_PASSWORD için güçlü yeni parola belirleyin.
-- SESSION_SECRET otomatik üretilebilir.
-- Kullanıcı/geçmiş kalıcı olsun isteniyorsa Persistent Disk ekleyip DATA_DIR değerini o dizine yazın.
+- ZIP içeriğini GitHub deposunun ana dizinine yükleyin.
+- Render Blueprint veya mevcut Web Service üzerinden yeniden dağıtın.
+- TEST_PASSWORD için güçlü ve yeni bir parola belirleyin.
+- SESSION_SECRET uzun ve rastgele olmalıdır.
+- Kullanıcı/geçmiş kalıcı olacaksa Persistent Disk ekleyip DATA_DIR değerini kalıcı dizine yazın.
+
+Açık Veri pilotu:
+- Kadastro360'dan gerçek parsel sorgulayın.
+- Açık Veri sekmesine girin.
+- Açık Katmanları Kontrol Et düğmesine basın.
+- İstediğiniz katmanı Haritaya Ekle düğmesiyle açın.
+- Plan katmanı açıkken haritaya tıklayarak öznitelik sorgusunu deneyin.
+- Verinin güncelliğini Kaynak Sayfası bağlantısından doğrulayın.
 
 TUCBS:
-- Kadastro360'dan parsel sorgulayın.
-- Bağlantılar > TUCBS'de Bu Konumu Aç.
-- Koordinatı kopyalayın.
-- TUCBS'de e-Devlet ile giriş yaptıktan sonra katmanı ekleyin ve koordinata gidin.
+- Bağlantılar > TUCBS'de Bu Konumu Aç seçeneği korunmuştur.
+- Yetkili veya giriş gerektiren katmanlar için e-Devlet girişi kullanıcı tarafından yapılır.

@@ -1,0 +1,23 @@
+KADASTRO360 v1.2 AÇIK VERİ PİLOT TESTLERİ
+
+KAYSERİ
+- Herhangi bir gerçek parsel sorgulayın.
+- Açık Veri > Açık Katmanları Kontrol Et.
+- Çevre Düzeni Planını ekleyin ve parsel çevresine tıklayın.
+- Kayseri ilçe/mahalle sınırı GeoJSON kaynağı listelenirse ayrı ayrı deneyin.
+
+TEKİRDAĞ / ÇORLU
+- Gerçek Çorlu parseli sorgulayın.
+- Trakya Çevre Düzeni Planını ekleyin.
+- Rayiç veri kartında yıl, kaynak ve CSV özeti varsa minimum/maksimum kayıtları kontrol edin.
+- Kaynak Sayfası bağlantısıyla orijinal veri setini karşılaştırın.
+
+KIRIKKALE / YAHŞİHAN
+- Gerçek Yahşihan parseli sorgulayın.
+- Kırıkkale Çevre Düzeni Planını ekleyin.
+- Rayiç kaydı makine okunabilir değilse sistemin fiyat üretmediğini ve kaynak bağlantısı verdiğini kontrol edin.
+
+GİRESUN / GÖRELE
+- Gerçek Görele parseli sorgulayın.
+- Doğu Karadeniz Çevre Düzeni Planını ve Görele Ortofotoyu ayrı ayrı ekleyin.
+- Katmanları Temizle düğmesiyle ikisini birlikte kaldırın.
