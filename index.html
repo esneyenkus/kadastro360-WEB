@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kadastro360 — Web Pilot v1.3</title>
+<title>Kadastro360 — Web Pilot v1.4</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="endeksa-utils.js"></script>
@@ -62,6 +62,9 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 }
 
 .open-data-toolbar{display:grid;grid-template-columns:1fr auto;gap:7px;margin:8px 0}.open-data-toolbar .primary{height:38px}.open-data-clear{border:1px solid var(--line);background:#fff;border-radius:7px;padding:0 10px;font-size:10px;font-weight:800;cursor:pointer}.open-data-clear:disabled{opacity:.45;cursor:not-allowed}.open-data-list{display:grid;gap:8px}.open-data-card{border:1px solid var(--line);border-radius:9px;background:#fff;padding:9px}.open-data-card.active{border-color:#7f62c9;background:#faf8ff}.open-data-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.open-data-title{font-size:11px;font-weight:850;line-height:1.35}.open-data-kind{font-size:8px;font-weight:850;border-radius:99px;padding:3px 6px;background:#edf1f5;color:#4d5d69;white-space:nowrap}.open-data-kind.plan{background:#eee8ff;color:#5932a5}.open-data-kind.ortho{background:#e8f4ff;color:#235e96}.open-data-kind.boundary{background:#fff2dc;color:#795113}.open-data-kind.rayic{background:#e8f6f1;color:#0e6b51}.open-data-desc{font-size:9px;color:var(--muted);line-height:1.5;margin-top:5px}.open-data-fresh{font-size:9px;line-height:1.45;margin-top:7px;padding:7px;border-radius:7px;background:#fff8e7;color:#70520f}.open-data-summary{margin-top:7px;padding:8px;border-radius:7px;background:#eff9f5;border:1px solid #b9ddcf;font-size:10px;line-height:1.5}.open-data-summary strong{font-size:13px;color:#0e6b51}.open-data-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.open-data-actions button,.open-data-actions a{display:block;text-align:center;text-decoration:none;border-radius:7px;padding:8px 6px;font-size:9px;font-weight:850;border:1px solid var(--line);background:#fff;color:var(--text);cursor:pointer}.open-data-actions .overlay{background:#6747b8;color:#fff;border-color:#6747b8}.open-data-actions .overlay.remove{background:#fff;color:#5932a5}.open-data-resources{display:grid;gap:4px;margin-top:7px}.open-data-resources a{font-size:9px;color:#315fae;text-decoration:none;word-break:break-word}.open-data-legend{margin-top:8px;padding:7px;border:1px dashed #c9bdeb;border-radius:7px;background:#fff}.open-data-legend img{display:block;max-width:100%;max-height:220px;margin:auto}.open-data-popup{font-size:11px;line-height:1.45}.open-data-popup table{border-collapse:collapse;width:100%;margin-top:5px}.open-data-popup td{border-bottom:1px solid #e7ebef;padding:3px 4px;vertical-align:top}.open-data-popup td:first-child{color:#687583;width:42%}.pilot-note{font-size:9px;color:var(--muted);line-height:1.5;margin-top:7px}.map-badge.open-data-active{background:#6747b8;color:#fff}.open-data-loading{padding:18px;text-align:center;font-size:10px;color:var(--muted)}
+.plan-guide-btn,.plan-focus-btn{border-color:#b8a8df!important;color:#5932a5!important;background:#faf8ff!important}.plan-focus-btn{border-color:#9eb7e8!important;color:#244f9e!important;background:#f4f7ff!important}
+.legend-intro{font-size:10px;color:var(--muted);line-height:1.55;margin-bottom:10px}.legend-grid{display:grid;gap:6px}.legend-row{display:grid;grid-template-columns:38px minmax(0,1fr);gap:9px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:7px;background:#fff}.legend-sample{width:36px;height:25px;border:1px solid rgba(0,0,0,.22);border-radius:4px;background:#fff;position:relative;overflow:hidden}.legend-row strong{display:block;font-size:10px}.legend-row small{display:block;color:var(--muted);font-size:8px;line-height:1.35;margin-top:2px}.legend-sample.horizontal{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.7) 0 1px,transparent 1px 5px)}.legend-sample.vertical{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.7) 0 1px,transparent 1px 5px)}.legend-sample.cross{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.52) 0 1px,transparent 1px 6px),repeating-linear-gradient(-45deg,rgba(0,0,0,.52) 0 1px,transparent 1px 6px)}.legend-sample.dots{background-image:radial-gradient(rgba(0,0,0,.55) 1px,transparent 1.4px);background-size:7px 7px}.legend-sample.diagonal{background-image:repeating-linear-gradient(125deg,rgba(0,0,0,.65) 0 2px,transparent 2px 8px)}.legend-sample.red-dots{border:0;background:radial-gradient(circle,#f11 0 4px,transparent 4.5px) left center/12px 12px repeat-x}.legend-sample.road{border:0;background:linear-gradient(180deg,transparent 0 8px,#000 8px 17px,transparent 17px),linear-gradient(180deg,transparent 0 10px,#ffff73 10px 15px,transparent 15px)}.legend-source{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}.legend-source a{color:#315fae;text-decoration:none;font-weight:800}.scale-note{margin-top:7px;padding:7px;border-radius:7px;background:#f4f7ff;color:#244f9e;font-size:9px;line-height:1.45}
+
 
 </style>
 </head>
@@ -208,12 +211,38 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
     <div class="modal-actions"><button id="copy-summary">Parsel özetini kopyala</button><a class="go" id="tucbs-open" href="https://ucbp.tucbs.gov.tr/harita-goruntuleyici" target="_blank" rel="noopener noreferrer">TUCBS’yi Aç ↗</a></div>
   </div></div>
 </div>
+<div class="modal" id="legend-modal" role="dialog" aria-modal="true" aria-labelledby="legend-title">
+  <div class="modal-card"><div class="modal-head"><h2 id="legend-title">Çevre Düzeni Planı Renk Rehberi</h2><button class="modal-close" id="legend-close">×</button></div><div class="modal-body">
+    <div class="legend-intro" id="legend-context">Genel çevre düzeni planı gösterimleri.</div>
+    <div class="notice warn"><strong>Önemli:</strong> Bu, 22.01.2026 tarihli resmî EK-1c gösterimlerinden hazırlanmış genel bir rehberdir. Aktif plan daha eski veya değişiklik görmüşse renk ve taramalar farklı olabilir. Kesin yorumda ilgili planın güncel paftası ve resmî lejantı esas alınır.</div>
+    <div class="legend-grid">
+      <div class="legend-row"><span class="legend-sample vertical" style="background-color:rgb(140,84,26)"></span><div><strong>Kentsel yerleşik alan</strong><small>Kahverengi · dikey tarama · RGB 140/84/26</small></div></div>
+      <div class="legend-row"><span class="legend-sample horizontal" style="background-color:rgb(255,250,38)"></span><div><strong>Kentsel gelişme alanı</strong><small>Sarı · yatay tarama · RGB 255/250/38</small></div></div>
+      <div class="legend-row"><span class="legend-sample horizontal" style="background-color:rgb(199,235,0)"></span><div><strong>Bağlık-bahçelik alan</strong><small>Açık yeşil/sarı · RGB 199/235/0</small></div></div>
+      <div class="legend-row"><span class="legend-sample cross" style="background-color:rgb(170,102,205)"></span><div><strong>Sanayi ve depolama bölgesi</strong><small>Mor · çapraz tarama · RGB 170/102/205</small></div></div>
+      <div class="legend-row"><span class="legend-sample cross" style="background-color:rgb(194,158,215)"></span><div><strong>Lojistik / depolama alanı</strong><small>Açık mor · RGB 194/158/215</small></div></div>
+      <div class="legend-row"><span class="legend-sample dots" style="background-color:rgb(255,115,0)"></span><div><strong>Turizm bölgesi</strong><small>Turuncu · noktalı tarama · RGB 255/115/0</small></div></div>
+      <div class="legend-row"><span class="legend-sample cross" style="background-color:rgb(200,100,150)"></span><div><strong>Kentsel servis alanı</strong><small>Pembe · RGB 200/100/150</small></div></div>
+      <div class="legend-row"><span class="legend-sample dots" style="background-color:rgb(102,153,205)"></span><div><strong>Kamu hizmet alanı</strong><small>Mavi · noktalı tarama · RGB 102/153/205</small></div></div>
+      <div class="legend-row"><span class="legend-sample dots" style="background-color:rgb(233,250,190)"></span><div><strong>Tarım alanı</strong><small>Açık sarı-yeşil · dairesel tarama · RGB 233/250/190</small></div></div>
+      <div class="legend-row"><span class="legend-sample" style="background-color:rgb(99,186,82)"></span><div><strong>Ağaçlandırılacak alan</strong><small>Yeşil · RGB 99/186/82</small></div></div>
+      <div class="legend-row"><span class="legend-sample dots" style="background-color:rgb(36,156,34)"></span><div><strong>Kentsel/bölgesel yeşil ve spor alanı</strong><small>Koyu yeşil · RGB 36/156/34</small></div></div>
+      <div class="legend-row"><span class="legend-sample dots" style="background-color:rgb(115,212,255)"></span><div><strong>Kentsel ve bölgesel sosyal altyapı</strong><small>Açık mavi · RGB 115/212/255</small></div></div>
+      <div class="legend-row"><span class="legend-sample dots" style="background-color:rgb(122,142,245)"></span><div><strong>Üniversite alanı</strong><small>Mavi-mor · RGB 122/142/245</small></div></div>
+      <div class="legend-row"><span class="legend-sample diagonal"></span><div><strong>Afetler açısından riskli alan</strong><small>Şeffaf zemin üzerinde eğik/kesik tarama</small></div></div>
+      <div class="legend-row"><span class="legend-sample red-dots"></span><div><strong>Planlama alt bölgesi sınırı</strong><small>Kırmızı noktalı sınır çizgisi</small></div></div>
+      <div class="legend-row"><span class="legend-sample road"></span><div><strong>Karayolu gösterimi</strong><small>Siyah dış çizgi ve sarı iç çizgi</small></div></div>
+    </div>
+    <div class="legend-source"><span>Kaynak: Mekânsal Planlama Genel Müdürlüğü</span><a href="https://mpgm.csb.gov.tr/plan-gosterimleri-4926" target="_blank" rel="noopener noreferrer">Resmî gösterimler ↗</a></div>
+  </div></div>
+</div>
 
 <script>
 'use strict';
 
 const API = '/api';
 const TUCBS_URL = 'https://ucbp.tucbs.gov.tr/harita-goruntuleyici';
+const PLAN_GUIDE_URL = 'https://mpgm.csb.gov.tr/plan-gosterimleri-4926';
 const CATEGORY_ICONS = {school:'🏫',market:'🛒',mosque:'🕌',bank:'🏦',atm:'🏧',beach:'🏖️',pharmacy:'💊',hospital:'🏥',bus_terminal:'🚌',train_station:'🚆',airport:'✈️'};
 const PRIORITY_CATEGORIES = ['school','market','mosque','pharmacy','hospital','bank','atm','beach','bus_terminal','train_station','airport'];
 const CATEGORY_NAMES = {school:'Okul',market:'Market',mosque:'Cami',bank:'Banka',atm:'ATM',beach:'Sahil / Plaj',pharmacy:'Eczane',hospital:'Hastane / Sağlık',bus_terminal:'Otogar',train_station:'Tren Garı / İstasyonu',airport:'Havaalanı'};
@@ -386,7 +415,7 @@ function updateOpenDataMapBadge(){
   badge?.classList.toggle('open-data-active',visible);
   if(badge){
     if(!count) badge.textContent='Harita: OpenStreetMap · Veriler: canlı servisler · Sahte sonuç yok';
-    else if(visible) badge.textContent=`Açık kamu katmanı görünür: ${count} · Parsel çizgisi üstte tutulur`;
+    else if(visible) badge.textContent=`${count} kamu katmanı açık · Parsel sınırı görünür`;
     else badge.textContent=`${count} açık kamu katmanı seçili · şu anda gizli`;
   }
   $('open-data-clear').disabled=count===0;
@@ -449,10 +478,11 @@ function renderOpenDataCatalog(data){
     const overlayAvailable=(item.type==='wms'&&item.wms?.baseUrl&&(item.wms?.layerName||item.wms?.layerCandidates?.length))||(item.type==='geojson'&&item.resourceToken);
     const card=document.createElement('article');card.className='open-data-card';card.dataset.itemId=item.id;
     const overlayButton=overlayAvailable?`<button class="overlay" data-open-action="overlay" data-item-id="${escapeHtml(item.id)}">Haritaya Ekle</button>`:'';
-    const legend=item.wms?.legendUrl?`<a href="${escapeHtml(item.wms.legendUrl)}" target="_blank" rel="noopener noreferrer">Renk Lejantı ↗</a>`:'';
+    const guide=item.category==='plan'?`<button type="button" class="plan-guide-btn" data-open-action="guide" data-item-id="${escapeHtml(item.id)}">Renk Rehberi</button>`:'';
+    const focus=item.category==='plan'?`<button type="button" class="plan-focus-btn" data-open-action="focus" data-item-id="${escapeHtml(item.id)}">Plan Ölçeğine Git</button>`:'';
     const source=item.sourceUrl?`<a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Kaynak Sayfası ↗</a>`:'';
-    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Bu katman, Render sunucusuna bağlı olmadan tarayıcınızdan doğrudan WMS olarak yüklenecektir.</div>':'';
-    card.innerHTML=`<div class="open-data-head"><div class="open-data-title">${escapeHtml(item.title)}</div><span class="open-data-kind ${kindClass}">${kindLabel}</span></div><div class="open-data-desc">${escapeHtml(item.description||'Kamuya açık veri kaynağı.')}<br><strong>Sağlayıcı:</strong> ${escapeHtml(item.provider||'Belirtilmedi')}</div>${rayicSummaryHtml(item)}<div class="open-data-fresh">${escapeHtml(openDataFreshness(item))}</div><div class="open-data-actions">${overlayButton}${legend}${source}</div>${directNote}<div class="open-data-load-status" aria-live="polite"></div>${openDataResourcesHtml(item)}`;
+    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Bu katman tarayıcınızdan doğrudan yüklenir. Çevre düzeni planları parsel seviyesinde fazla yakınken boş görünebilir; sistem katman açılırken uygun plan ölçeğine geçer.</div>':'';
+    card.innerHTML=`<div class="open-data-head"><div class="open-data-title">${escapeHtml(item.title)}</div><span class="open-data-kind ${kindClass}">${kindLabel}</span></div><div class="open-data-desc">${escapeHtml(item.description||'Kamuya açık veri kaynağı.')}<br><strong>Sağlayıcı:</strong> ${escapeHtml(item.provider||'Belirtilmedi')}</div>${rayicSummaryHtml(item)}<div class="open-data-fresh">${escapeHtml(openDataFreshness(item))}</div><div class="open-data-actions">${overlayButton}${focus}${guide}${source}</div>${directNote}<div class="open-data-load-status" aria-live="polite"></div>${openDataResourcesHtml(item)}`;
     list.appendChild(card);
   }
   output.innerHTML='';output.appendChild(list);
@@ -461,6 +491,8 @@ function renderOpenDataCatalog(data){
   }
   output.insertAdjacentHTML('beforeend',`<div class="pilot-note">Lisans ve kaynak: <a href="${escapeHtml(data.licenseUrl||'https://ulasav.csb.gov.tr/license')}" target="_blank" rel="noopener noreferrer">ULASAV Açık Veri Lisansı ↗</a>. Katman renkleri kesin imar durumu veya değerleme raporu yerine geçmez.</div>`);
   output.querySelectorAll('[data-open-action="overlay"]').forEach(button=>button.addEventListener('click',()=>toggleOpenDataLayer(button.dataset.itemId,button)));
+  output.querySelectorAll('[data-open-action="guide"]').forEach(button=>button.addEventListener('click',()=>openLegendGuide(button.dataset.itemId)));
+  output.querySelectorAll('[data-open-action="focus"]').forEach(button=>button.addEventListener('click',()=>focusOpenDataPlan(button.dataset.itemId,true)));
 }
 
 async function loadOpenDataCatalog(){
@@ -480,6 +512,32 @@ async function loadOpenDataCatalog(){
   }finally{
     if(requestId===store.openDataRequestId){button.disabled=false;button.textContent='Açık Katmanları Yeniden Kontrol Et';}
   }
+}
+
+function openLegendGuide(itemId){
+  const item=store.openDataCatalog?.items?.find(row=>row.id===itemId);
+  $('legend-context').innerHTML=item?`<strong>${escapeHtml(item.title)}</strong> için genel çevre düzeni planı renk ve tarama rehberi.`:'Genel çevre düzeni planı renk ve tarama rehberi.';
+  $('legend-modal').classList.add('open');
+}
+function closeLegendGuide(){ $('legend-modal').classList.remove('open'); }
+
+function focusOpenDataPlan(itemIdOrItem,announce=false){
+  const item=typeof itemIdOrItem==='string'?store.openDataCatalog?.items?.find(row=>row.id===itemIdOrItem):itemIdOrItem;
+  if(!item||item.category!=='plan'||!store.parcelCenter||!store.map) return Promise.resolve(false);
+  const current=store.map.getZoom();
+  const target=current>12?12:(current<9?10:current);
+  if(target===current){
+    if(announce) setStatus('Plan katmanı için uygun görünüm açık. Parsel sınırı haritada üstte tutuluyor.','ok');
+    return Promise.resolve(false);
+  }
+  return new Promise(resolve=>{
+    let done=false;
+    const finish=()=>{if(done)return;done=true;store.map.off('moveend',finish);resolve(true);};
+    store.map.once('moveend',finish);
+    store.map.setView(store.parcelCenter,target,{animate:true});
+    setTimeout(finish,1100);
+    if(announce) setStatus('Harita çevre düzeni planının görülebileceği ölçeğe getirildi.','ok');
+  });
 }
 
 function wmsAttempts(item){
@@ -523,7 +581,7 @@ function waitForWmsLayer(item,attempt){
     let errors=0;
     const options={
       layers:attempt.layerName,format:'image/png',transparent:true,styles:'',version:attempt.version,
-      uppercase:true,opacity:item.category==='ortho'?0.82:0.62,attribution:'ULASAV / TUCBS Açık Veri',zIndex:240
+      uppercase:true,opacity:item.category==='ortho'?0.82:0.78,attribution:'ULASAV / TUCBS Açık Veri',zIndex:240
     };
     if(Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4){
       const [south,west,north,east]=item.wms.bounds;
@@ -594,7 +652,13 @@ async function toggleOpenDataLayer(itemId,button){
   button.disabled=true;const old=button.textContent;button.textContent='Yükleniyor…';
   try{
     let layer;
-    if(item.type==='wms') layer=await createDirectWmsLayer(item,statusNode);
+    if(item.type==='wms'){
+      if(item.category==='plan'){
+        if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Plan katmanı için uygun ölçeğe geçiliyor…';}
+        await focusOpenDataPlan(item,false);
+      }
+      layer=await createDirectWmsLayer(item,statusNode);
+    }
     else if(item.type==='geojson'){
       const geojson=await api(`/open-data/geojson?token=${encodeURIComponent(item.resourceToken)}`,{},30000);
       layer=L.geoJSON(geojson,{style:item.style||{color:'#7a3ff2',weight:2,fillOpacity:.04},onEachFeature:(feature,featureLayer)=>{const props=feature.properties||{};const rows=Object.entries(props).filter(([,value])=>value!==null&&value!==undefined&&String(value).trim()!=='').slice(0,10);if(rows.length)featureLayer.bindPopup(`<div class="open-data-popup"><strong>${escapeHtml(item.title)}</strong><table>${rows.map(([key,value])=>`<tr><td>${escapeHtml(key)}</td><td>${escapeHtml(String(value))}</td></tr>`).join('')}</table></div>`);}});
@@ -603,7 +667,7 @@ async function toggleOpenDataLayer(itemId,button){
     setLayerVisibility('openData',true);
     putLayer(layer,true);
     card?.classList.add('active');button.textContent='Haritadan Kaldır';button.classList.add('remove');
-    if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent=item.type==='wms'?`Katman doğrudan yüklendi · WMS ${item.wms.activeVersion} · katman ${item.wms.activeLayerName}`:'Katman yüklendi.';}
+    if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.innerHTML=item.type==='wms'?(item.category==='plan'?`Plan katmanı açıldı. Harita uygun plan ölçeğine getirildi; parsel sınırı yeşil çizgiyle üstte görünür.<div class="scale-note">Renk görünmüyorsa “Plan Ölçeğine Git” düğmesine basın. Kaynak servisi o anda boş görüntü döndürürse sahte renk üretilmez.</div>`:`Katman doğrudan yüklendi · WMS ${escapeHtml(item.wms.activeVersion)} · katman ${escapeHtml(item.wms.activeLayerName)}`):'Katman yüklendi.';}
     updateOpenDataMapBadge();
     if(store.parcelLayer&&store.visibility.parcel&&layerOnMap(store.parcelLayer)) store.parcelLayer.bringToFront();
   }catch(error){
@@ -619,7 +683,7 @@ function openDataInfoHtml(result){
     if(blocks) return `<div class="open-data-popup"><strong>${escapeHtml(result.title||'Plan katmanı')}</strong>${blocks}<div class="pilot-note">Plan bilgisi için resmî kaynak ve güncel plan paftası ayrıca kontrol edilmelidir.</div></div>`;
   }
   if(result.text) return `<div class="open-data-popup"><strong>${escapeHtml(result.title||'Plan katmanı')}</strong><br>${escapeHtml(result.text).slice(0,2500)}</div>`;
-  return '<div class="open-data-popup">Bu noktada katman özniteliği dönmedi. Renk açıklaması için katman kartındaki lejantı açın.</div>';
+  return '<div class="open-data-popup">Bu noktada katman özniteliği dönmedi. Renk açıklaması için katman kartındaki Renk Rehberi’ni açın.</div>';
 }
 
 async function queryOpenDataFeatureInfo(event){
@@ -1380,6 +1444,8 @@ async function init(){
   $('open-data-clear').addEventListener('click',clearOpenDataLayers);
   $('tucbs-close').addEventListener('click',closeTucbsModal);
   $('tucbs-modal').addEventListener('click',event=>{if(event.target===$('tucbs-modal'))closeTucbsModal();});
+  $('legend-close').addEventListener('click',closeLegendGuide);
+  $('legend-modal').addEventListener('click',event=>{if(event.target===$('legend-modal'))closeLegendGuide();});
   $('copy-coords').addEventListener('click',()=>copyText($('tucbs-coords').value,$('copy-coords')));
   $('copy-summary').addEventListener('click',()=>copyText(tucbsSummary(),$('copy-summary')));
   $('map-toggle').addEventListener('click',()=>{const wrap=$('map-wrap');wrap.classList.toggle('collapsed');$('map-toggle').textContent=wrap.classList.contains('collapsed')?'Haritayı Aç':'Haritayı Küçült';setTimeout(()=>store.map?.invalidateSize(),100);});

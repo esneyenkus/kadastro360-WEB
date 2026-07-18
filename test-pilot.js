@@ -32,7 +32,7 @@ const {
   assert(!/Math\.random\s*\(/.test(server + html + account + openDataCode), 'Rastgele veri üretimi bulunmamalı.');
   assert(!/mockData\s*:\s*true/.test(server + html), 'Mock veri açık olmamalı.');
   assert(server.includes("dataMode: 'live-only'"), 'Canlı veri modu belirtilmemiş.');
-  assert(server.includes("version: '1.3.0'"), 'Sunucu sürümü 1.3.0 değil.');
+  assert(server.includes("version: '1.4.0'"), 'Sunucu sürümü 1.4.0 değil.');
   assert(server.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM 404 kullanıcı mesajı eksik.');
 
   assert(html.includes('TUCBS’de Bu Konumu Aç'), 'TUCBS geçişi eksik.');
@@ -42,7 +42,12 @@ const {
   assert(html.includes("setLayerVisibility('poi',true)"), 'Yakın yer aramasında işaretçileri açma eksik.');
   assert(html.includes('createDirectWmsLayer') && html.includes('discoverBrowserWmsLayers'), 'Tarayıcıdan doğrudan WMS yükleme/yedek keşif eksik.');
   assert(!html.includes('Servisi Aç ↗'), 'Teknik WMS XML bağlantısı kullanıcı ekranında görünmemeli.');
-  assert(html.includes('Render sunucusuna bağlı olmadan tarayıcınızdan doğrudan WMS'), 'Doğrudan WMS açıklaması eksik.');
+  assert(html.includes('Bu katman tarayıcınızdan doğrudan yüklenir'), 'Doğrudan WMS açıklaması eksik.');
+
+  assert(html.includes('id="legend-modal"') && html.includes('Renk Rehberi'), 'Gömülü renk rehberi eksik.');
+  assert(html.includes('focusOpenDataPlan') && html.includes('Plan Ölçeğine Git'), 'Plan ölçeği görünüm düzeltmesi eksik.');
+  assert(html.includes('22.01.2026') && html.includes('RGB 255/250/38'), 'Resmî 2026 ÇDP renk rehberi eksik.');
+  assert(!html.includes('Renk Lejantı ↗'), 'Teknik GetLegendGraphic bağlantısı kullanıcı ekranında görünmemeli.');
 
   assert(admin.includes('Yeni kullanıcı') && account.includes('CREATE TABLE IF NOT EXISTS users'), 'Kullanıcı yönetimi eksik.');
   assert(html.includes('örnek, sanal veya tahmini parsel/yakın yer sonucu üretmez'), 'Canlı veri ilkesi görünmüyor.');
@@ -64,7 +69,7 @@ const {
   assert(ysk?.wms?.layerCandidates?.includes('0'), 'WMS güvenli katman adayı eksik.');
   assert(catalog.wmsLoadMode === 'browser-direct', 'Katalog WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.3 doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.4 doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

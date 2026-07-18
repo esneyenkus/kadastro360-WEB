@@ -1,4 +1,4 @@
-KADASTRO360 v1.3 AÇIK VERİ PİLOT TESTLERİ
+KADASTRO360 v1.4 AÇIK VERİ PİLOT TESTLERİ
 
 YOZGAT / KAYSERİ / SİVAS
 - Gerçek bir parsel sorgulayın.

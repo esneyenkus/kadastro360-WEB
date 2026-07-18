@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.3 — VERİ KAYNAKLARI
+KADASTRO360 WEB PILOT v1.4 — VERİ KAYNAKLARI
 
 1. Parsel ve idari birimler
    Kaynak: TKGM MEGSİS web servisleri

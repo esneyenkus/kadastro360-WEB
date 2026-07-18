@@ -1127,7 +1127,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.3.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.4.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {

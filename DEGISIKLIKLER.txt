@@ -1,21 +1,12 @@
-KADASTRO360 WEB PILOT v1.3
+KADASTRO360 WEB PILOT v1.4
 
-- Açık WMS katmanları Render sunucusundan değil kullanıcının tarayıcısından doğrudan yüklenir.
-- Sunucu GetCapabilities kontrolü başarısız olsa bile pilot WMS kartı ve Haritaya Ekle düğmesi gösterilir.
-- WMS 1.3.0 ve 1.1.1 sürümleri sırayla denenir.
-- Bilinen katman adı başarısız olursa tarayıcıdan GetCapabilities katman keşfi denenir.
-- Teknik “Servisi Aç” XML bağlantısı kullanıcı arayüzünden kaldırıldı.
-- Resmî Kaynak Sayfası ve Renk Lejantı bağlantıları korundu.
-- Kayseri/Sivas/Yozgat, Trakya, Kırıkkale ve Doğu Karadeniz plan WMS tanımları düzeltildi.
-- Giresun/Görele ortofoto doğrudan WMS yükleme akışına geçirildi.
-- ULASAV katalog/CSV sorgusu gecikirse WMS kaynak listesinin açılması engellenmiyor.
-- Çorlu, Yahşihan ve Kayseri için resmî kaynak bağlantısı yedekleri eklendi.
-- Üst servis kutuları görünürlük kontrolüne dönüştürüldü.
-- TKGM parsel sınırı açılıp kapatılabilir.
-- Eğim sonuç paneli açılıp kapatılabilir.
-- Yakın yer işaretçileri, seçili çizgi ve mesafe etiketi açılıp kapatılabilir.
-- TUCBS bağlantı paneli açılıp kapatılabilir.
-- Seçili açık veri katmanları temizlenmeden gizlenip yeniden gösterilebilir.
-- TKGM HTTP 404 yanıtı kullanıcıya anlaşılır parsel bulunamadı mesajıyla gösterilir.
-- Açık Veri bölümündeki çift bilgilendirme metni kaldırıldı.
-- Sahte parsel, sahte yakın yer, sahte renk ve tahmini rayiç üretmeme ilkesi korundu.
+- Plan WMS katmanı eklenmeden önce harita otomatik olarak uygun çevre düzeni planı ölçeğine alınır.
+- Yakın parsel görünümünde boş görünen plan katmanları için Plan Ölçeğine Git düğmesi eklendi.
+- WMS plan katmanı opaklığı artırıldı; parsel sınırı üstte tutulmaya devam eder.
+- Harita rozeti daha anlaşılır hale getirildi.
+- Teknik Renk Lejantı / GetLegendGraphic bağlantısı kaldırıldı.
+- Uygulama içine resmî 22.01.2026 EK-1c gösterimlerinden hazırlanan renk ve tarama rehberi eklendi.
+- Sarı, kahverengi, mor, mavi, yeşil alanlar ile risk, plan sınırı ve yol gösterimleri açıklanır.
+- Resmî Plan Gösterimleri kaynak bağlantısı korunur.
+- Kaynak sayfası bağlantıları sabit kalır.
+- Sahte katman, sahte renk veya tahmini değer üretmeme ilkesi korunur.
