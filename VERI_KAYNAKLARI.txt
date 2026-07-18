@@ -1,8 +1,9 @@
-KADASTRO360 WEB PILOT v1.2 — VERİ KAYNAKLARI
+KADASTRO360 WEB PILOT v1.3 — VERİ KAYNAKLARI
 
 1. Parsel ve idari birimler
    Kaynak: TKGM MEGSİS web servisleri
    İl, ilçe, mahalle, ada/parsel ve geometri canlı kaynaktan alınır.
+   TKGM 404 döndürürse kayıt bulunamadığı açıkça belirtilir; başka parsel üretilmez.
 
 2. Arazi eğimi
    Kaynaklar: terrain.js canlı yükseklik zinciri
@@ -11,15 +12,17 @@ KADASTRO360 WEB PILOT v1.2 — VERİ KAYNAKLARI
 3. Yakın yerler
    Kaynak: OpenStreetMap / Overpass
    Sonuç yok ile servis hatası ayrı gösterilir. Sahte nokta eklenmez.
+   Harita işaretçileri kullanıcı tarafından topluca gizlenip yeniden gösterilebilir.
 
 4. Açık plan ve harita katmanları
    Kaynaklar: ULASAV katalog metadatası ve tucbs-public-api.csb.gov.tr üzerindeki kamuya açık WMS servisleri
-   Katmanlar yalnızca kullanıcı düğmeye bastığında aranır ve ayrı ayrı haritaya eklenir.
+   WMS görüntüleri Render sunucusu üzerinden taşınmaz; kullanıcının tarayıcısı doğrudan kamu servisinden alır.
    Pilot WMS katmanları: Kayseri/Sivas/Yozgat, Trakya, Kırıkkale, Doğu Karadeniz çevre düzeni planları ve Görele ortofoto.
+   Katman yüklenemezse sahte renk gösterilmez; resmî kaynak bağlantısı korunur.
 
 5. İdari sınırlar
-   Kaynak: ULASAV Kayseri İlçe Sınırı ve Kayseri Mahalle Sınırı açık veri setleri
-   GeoJSON kaynağı bulunursa sunucu üzerinden alınır; bulunamazsa veri seti bağlantısı gösterilir.
+   Kaynak: ULASAV Kayseri ilçe ve mahalle sınırı açık veri setleri
+   GeoJSON kaynağı bulunursa yüklenir; bulunamazsa veri seti bağlantısı gösterilir.
 
 6. Rayiç kayıtları
    Kaynak: ULASAV'da yayımlanan belediye/kamu dosyaları

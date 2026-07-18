@@ -1,8 +1,8 @@
 {
   "name": "kadastro360-web-pilot",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
-  "description": "Kadastro360 canlı veri web pilotu; kullanıcı yönetimi, TUCBS köprüsü ve isteğe bağlı ULASAV açık katmanları",
+  "description": "Kadastro360 canlı veri web pilotu; kullanıcı yönetimi, TUCBS köprüsü ve tarayıcıdan doğrudan ULASAV/TUCBS açık katmanları",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

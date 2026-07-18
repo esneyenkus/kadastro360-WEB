@@ -13,6 +13,9 @@ const WMS_CONFIGS = [
     title: 'Yozgat–Sivas–Kayseri Çevre Düzeni Planı',
     category: 'plan',
     baseUrl: 'https://tucbs-public-api.csb.gov.tr/csb_cdp_ysk_wms',
+    layerCandidates: ['0'],
+    versionCandidates: ['1.3.0', '1.1.1'],
+    bounds: [37.335310, 32.378300, 40.687798, 38.957376],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Yozgat Sivas Kayseri Çevre Düzeni Planı')}`,
     description: 'Üst ölçekli arazi kullanım kararlarını renkli plan katmanı olarak gösterir.'
@@ -23,6 +26,9 @@ const WMS_CONFIGS = [
     title: 'Tekirdağ–Kırklareli–Edirne Çevre Düzeni Planı',
     category: 'plan',
     baseUrl: 'https://tucbs-public-api.csb.gov.tr/csb_cdp_ergene_wms',
+    layerCandidates: ['0'],
+    versionCandidates: ['1.3.0', '1.1.1'],
+    bounds: [39.845453, 25.412765, 42.261958, 30.364822],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Tekirdağ Kırklareli Edirne Çevre Düzeni Planı')}`,
     description: 'Trakya planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.'
@@ -33,6 +39,9 @@ const WMS_CONFIGS = [
     title: 'Kırıkkale Çevre Düzeni Planı',
     category: 'plan',
     baseUrl: 'https://tucbs-public-api.csb.gov.tr/csb_cdp_kirikkale_wms',
+    layerCandidates: ['0'],
+    versionCandidates: ['1.3.0', '1.1.1'],
+    bounds: [39.354056, 32.854130, 40.386116, 34.649764],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Kırıkkale Çevre Düzeni Planı')}`,
     description: 'Kırıkkale için renkli üst ölçek plan kararlarını gösterir.'
@@ -43,6 +52,9 @@ const WMS_CONFIGS = [
     title: 'Ordu–Trabzon–Rize–Gümüşhane–Giresun–Artvin Çevre Düzeni Planı',
     category: 'plan',
     baseUrl: 'https://tucbs-public-api.csb.gov.tr/csb_cdp_otrgga_wms',
+    layerCandidates: ['0'],
+    versionCandidates: ['1.3.0', '1.1.1'],
+    bounds: [38.618676, 36.176773, 42.897070, 43.324884],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Ordu Trabzon Rize Gümüşhane Giresun Artvin Çevre Düzeni Planı')}`,
     description: 'Doğu Karadeniz planlama bölgesindeki renkli arazi kullanım kararlarını gösterir.'
@@ -54,9 +66,35 @@ const WMS_CONFIGS = [
     title: 'Giresun Görele Ortofoto',
     category: 'ortho',
     baseUrl: 'https://tucbs-public-api.csb.gov.tr/trk_cbs_ortofoto_giresun_gorele_test',
+    layerCandidates: ['0'],
+    versionCandidates: ['1.3.0', '1.1.1'],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
-    sourceUrl: 'https://cbs.csb.gov.tr/ortofoto-web-servisleri-i-86198',
+    sourceUrl: 'https://cbs.csb.gov.tr/ortofoto-web-servisleri-86198',
     description: 'Görele için kamuya açık örnek ortofoto görüntüsünü haritaya ekler.'
+  }
+];
+
+const STATIC_REGION_LINKS = [
+  {
+    provinces: ['Kayseri'],
+    title: 'Kayseri İlçe ve Mahalle Sınırları',
+    description: 'ULASAV üzerindeki Kayseri idari sınır veri setlerini açar. Harita katmanı yalnızca erişilebilir GeoJSON kaynağı bulunursa yüklenir.',
+    category: 'boundary',
+    sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Kayseri ilçe mahalle sınırı')}`
+  },
+  {
+    provinces: ['Tekirdağ'], districts: ['Çorlu'],
+    title: 'Çorlu Belediyesi Arsa Rayiç Kayıtları',
+    description: 'Yayımlanan dönemsel arsa rayiç kaynaklarını açar. Okunabilir veri bulunmadıkça fiyat üretilmez.',
+    category: 'rayic',
+    sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Çorlu arsa rayiç değerleri')}`
+  },
+  {
+    provinces: ['Kırıkkale'], districts: ['Yahşihan'],
+    title: 'Yahşihan Arsa Rayiç Kayıtları',
+    description: 'Yayımlanan dönemsel rayiç kaynaklarını açar. Okunabilir veri bulunmadıkça fiyat üretilmez.',
+    category: 'rayic',
+    sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Yahşihan arsa rayiç')}`
   }
 ];
 
@@ -218,6 +256,27 @@ async function resolveWms(config) {
       verifiedAt: new Date().toISOString()
     };
   });
+}
+
+function directWmsDefinition(config, resolved = null) {
+  const resolvedName = resolved?.layerName ? [resolved.layerName] : [];
+  const layerCandidates = [...new Set([...resolvedName, ...(config.layerCandidates || ['0'])])];
+  const versions = [...new Set([resolved?.version, ...(config.versionCandidates || ['1.3.0', '1.1.1'])].filter(Boolean))];
+  return {
+    key: config.key,
+    baseUrl: config.baseUrl,
+    layerName: resolved?.layerName || layerCandidates[0] || '0',
+    layerTitle: resolved?.layerTitle || config.title,
+    layerCandidates,
+    version: versions[0] || '1.3.0',
+    versionCandidates: versions,
+    bounds: config.bounds || null,
+    supportsFeatureInfo: Boolean(resolved?.supportsFeatureInfo),
+    infoFormats: resolved?.infoFormats || [],
+    legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
+    verifiedAt: resolved?.verifiedAt || null,
+    loadMode: 'browser-direct'
+  };
 }
 
 async function ckanPackageShow(id) {
@@ -444,43 +503,50 @@ async function discoverRegionDatasets(province, district) {
 
 async function buildPilotCatalog({ province, district }) {
   const selectedWms = WMS_CONFIGS.filter(config => matchesLocation(config, province, district));
-  const items = [];
+  const items = selectedWms.map(config => ({
+    id: config.key,
+    type: 'wms',
+    category: config.category,
+    title: config.title,
+    description: config.description,
+    provider: config.provider,
+    sourceUrl: config.sourceUrl,
+    updatedAt: null,
+    verifiedAt: null,
+    browserDirect: true,
+    wms: directWmsDefinition(config)
+  }));
   const warnings = [];
-  for (const config of selectedWms) {
-    try {
-      const wms = await resolveWms(config);
-      items.push({
-        id: config.key,
-        type: 'wms',
-        category: config.category,
-        title: config.title,
-        description: config.description,
-        provider: config.provider,
-        sourceUrl: config.sourceUrl,
-        directUrl: capabilitiesUrl(config.baseUrl),
-        updatedAt: null,
-        verifiedAt: wms.verifiedAt,
-        wms
-      });
-    } catch (error) {
-      items.push({
-        id: config.key,
-        type: 'link',
-        category: config.category,
-        title: config.title,
-        description: `${config.description} Katman servisine şu anda bağlanılamadı.`,
-        provider: config.provider,
-        sourceUrl: config.sourceUrl,
-        directUrl: capabilitiesUrl(config.baseUrl),
-        serviceError: error.message,
-        updatedAt: null
-      });
-      warnings.push(`${config.title}: ${error.message}`);
-    }
-  }
-  const discovered = await discoverRegionDatasets(province, district);
+
+  // WMS katmanları Render sunucusuna bağımlı olmadan kullanıcının tarayıcısından
+  // doğrudan yüklenir. ULASAV katalog/CSV keşfi ise sunucudan denenir.
+  const discovered = await Promise.race([
+    discoverRegionDatasets(province, district),
+    new Promise(resolve => setTimeout(() => resolve({
+      items: [],
+      warnings: ['ULASAV katalog/CSV kontrolü bu istekte zaman aşımına uğradı; kaynak bağlantıları gösterilmeye devam ediyor.']
+    }), 6500))
+  ]);
   items.push(...discovered.items);
   warnings.push(...discovered.warnings);
+
+  for (const fallback of STATIC_REGION_LINKS.filter(config => matchesLocation(config, province, district))) {
+    const id = `source-${normalizeTr(fallback.title).replace(/\s+/g, '-')}`;
+    if (!items.some(item => item.id === id || normalizeTr(item.title) === normalizeTr(fallback.title))) {
+      items.push({
+        id,
+        type: 'link',
+        category: fallback.category,
+        title: fallback.title,
+        description: fallback.description,
+        provider: 'ULASAV / ilgili veri sağlayıcısı',
+        sourceUrl: fallback.sourceUrl,
+        updatedAt: null,
+        fallbackSource: true
+      });
+    }
+  }
+
   return {
     pilot: true,
     province,
@@ -490,6 +556,7 @@ async function buildPilotCatalog({ province, district }) {
     warnings: [...new Set(warnings)],
     licenseUrl: ULASAV_LICENSE,
     providerUrl: ULASAV_ROOT,
+    wmsLoadMode: 'browser-direct',
     supportedRegions: [
       'Kayseri: çevre düzeni planı ve idari sınırlar',
       'Tekirdağ / Çorlu: çevre düzeni planı ve belediye rayiç kayıtları',
@@ -498,6 +565,7 @@ async function buildPilotCatalog({ province, district }) {
     ]
   };
 }
+
 
 function safeResource(token) {
   const row = resourceTokens.get(String(token || ''));

@@ -205,7 +205,12 @@ async function fetchJson(url, options = {}, timeoutMs = 8000) {
   try {
     const response = await fetch(url, { ...options, signal: controller.signal });
     const text = await response.text();
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      const upstreamError = new Error(`HTTP ${response.status}`);
+      upstreamError.statusCode = response.status;
+      upstreamError.upstreamUrl = url;
+      throw upstreamError;
+    }
     try {
       return JSON.parse(text);
     } catch {
@@ -223,8 +228,13 @@ async function firstSuccessful(tasks, fallbackMessage) {
   try {
     return await Promise.any(tasks);
   } catch (error) {
-    const messages = error?.errors?.map(item => item?.message).filter(Boolean) || [];
-    throw new Error(messages[0] || fallbackMessage);
+    const errors = error?.errors || [];
+    const messages = errors.map(item => item?.message).filter(Boolean);
+    const result = new Error(messages[0] || fallbackMessage);
+    const statuses = errors.map(item => Number(item?.statusCode)).filter(Number.isFinite);
+    if (statuses.length && statuses.every(status => status === 404)) result.statusCode = 404;
+    else if (statuses.length && statuses.every(status => status >= 400 && status < 500)) result.statusCode = statuses[0];
+    throw result;
   }
 }
 
@@ -249,7 +259,7 @@ async function tkgmGet(apiPath) {
         'Accept-Language': 'tr-TR,tr;q=0.9',
         Origin: 'https://parselsorgu.tkgm.gov.tr',
         Referer: 'https://parselsorgu.tkgm.gov.tr/',
-        'User-Agent': 'Kadastro360-Web-Pilot/1.0'
+        'User-Agent': 'Kadastro360-Web-Pilot/1.3'
       }
     }, 9000)),
     'TKGM servisine ulaşılamadı.'
@@ -1117,7 +1127,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.2.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.3.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
@@ -1194,7 +1204,7 @@ const server = http.createServer(async (req, res) => {
       const district = String(requestUrl.searchParams.get('district') || '').trim();
       if (!province) return sendJson(res, 400, { error: 'Açık veri kontrolü için il gereklidir.' });
       const result = await buildPilotCatalog({ province, district });
-      markService('openData', true, `${province}${district ? ` / ${district}` : ''} için açık veri kontrolü tamamlandı.`);
+      markService('openData', true, `${province}${district ? ` / ${district}` : ''} için kaynak listesi hazırlandı. WMS katmanları kullanıcının tarayıcısından doğrudan yüklenir.`);
       return sendJson(res, 200, result);
     }
     if (req.method === 'GET' && pathname === '/api/open-data/geojson') {
@@ -1257,7 +1267,17 @@ const server = http.createServer(async (req, res) => {
       const parcelNo = decodeURIComponent(parselRaw);
       const ada = encodeURIComponent(blockNo);
       const parsel = encodeURIComponent(parcelNo);
-      const payload = await tkgmGet(`/parsel/${mahalleId}/${ada}/${parsel}`);
+      let payload;
+      try {
+        payload = await tkgmGet(`/parsel/${mahalleId}/${ada}/${parsel}`);
+      } catch (error) {
+        if (error?.statusCode === 404 || /HTTP 404/i.test(error?.message || '')) {
+          const notFound = new Error('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı. Mahalle, ada ve parsel bilgilerini kontrol edin.');
+          notFound.httpStatus = 404;
+          throw notFound;
+        }
+        throw error;
+      }
       markService('tkgm', true, 'TKGM parsel servisi çalışıyor.');
       const feature = payloadFeature(payload);
       if (feature?.geometry) {
@@ -1327,7 +1347,8 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/poi') markService('overpass', false, message);
     if (pathname.startsWith('/api/open-data/')) markService('openData', false, message);
     const upstream = /TKGM|yakın yer|eğim|HTTP|zaman aşımı/i.test(message);
-    return sendJson(res, upstream ? 502 : 500, { error: message });
+    const status = Number(error?.httpStatus) || (upstream ? 502 : 500);
+    return sendJson(res, status, { error: message });
   }
 });
 

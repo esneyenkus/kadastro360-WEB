@@ -1,23 +1,31 @@
-KADASTRO360 v1.2 AÇIK VERİ PİLOT TESTLERİ
+KADASTRO360 v1.3 AÇIK VERİ PİLOT TESTLERİ
 
-KAYSERİ
-- Herhangi bir gerçek parsel sorgulayın.
+YOZGAT / KAYSERİ / SİVAS
+- Gerçek bir parsel sorgulayın.
 - Açık Veri > Açık Katmanları Kontrol Et.
-- Çevre Düzeni Planını ekleyin ve parsel çevresine tıklayın.
-- Kayseri ilçe/mahalle sınırı GeoJSON kaynağı listelenirse ayrı ayrı deneyin.
+- Yozgat–Sivas–Kayseri Çevre Düzeni Planı kartı sunucu kontrolü olmasa da görünmelidir.
+- Haritaya Ekle düğmesi renkli WMS katmanını doğrudan tarayıcıdan yüklemelidir.
+- Üstteki Açık Veri kutusuyla katmanı gizleyip yeniden gösterin.
 
 TEKİRDAĞ / ÇORLU
 - Gerçek Çorlu parseli sorgulayın.
 - Trakya Çevre Düzeni Planını ekleyin.
-- Rayiç veri kartında yıl, kaynak ve CSV özeti varsa minimum/maksimum kayıtları kontrol edin.
-- Kaynak Sayfası bağlantısıyla orijinal veri setini karşılaştırın.
+- Rayiç kaynağı okunabiliyorsa yıl, minimum ve maksimum kayıt gösterilmelidir.
+- Okunamıyorsa fiyat üretilmemeli, Kaynak Sayfası bağlantısı görünmelidir.
 
 KIRIKKALE / YAHŞİHAN
-- Gerçek Yahşihan parseli sorgulayın.
-- Kırıkkale Çevre Düzeni Planını ekleyin.
-- Rayiç kaydı makine okunabilir değilse sistemin fiyat üretmediğini ve kaynak bağlantısı verdiğini kontrol edin.
+- Gerçek ve TKGM'de kayıtlı bir Yahşihan parseli sorgulayın.
+- TKGM kaydı bulunmazsa HTTP 404 yerine anlaşılır kontrol mesajı görünmelidir.
+- Kırıkkale Çevre Düzeni Planı kartı görünmelidir.
+- Haritaya Ekle düğmesi WMS 1.3.0/1.1.1 seçeneklerini doğrudan denemelidir.
+- Yahşihan rayiç verisi okunamıyorsa değer üretilmemelidir.
 
 GİRESUN / GÖRELE
 - Gerçek Görele parseli sorgulayın.
 - Doğu Karadeniz Çevre Düzeni Planını ve Görele Ortofotoyu ayrı ayrı ekleyin.
 - Katmanları Temizle düğmesiyle ikisini birlikte kaldırın.
+
+YAKIN YER GÖRÜNÜRLÜĞÜ
+- Yakın yer araması yapın.
+- Üstteki Yakın Yer kutusuna basınca işaretçiler ve kuş uçuşu çizgisi kaybolmalıdır.
+- Tekrar basınca aynı işaretçiler yeniden görünmelidir.

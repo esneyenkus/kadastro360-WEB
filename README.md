@@ -1,48 +1,53 @@
-# Kadastro360 Web Pilot v1.2
+# Kadastro360 Web Pilot v1.3
 
 Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, sahte katman veya tahmini rayiç üretmez.
 
-## Bu sürümde yeni
+## Bu sürümde düzeltilenler
 
-- Kullanıcının isteğiyle çalışan **Açık Veri** sekmesi
-- Parsel sorgusundan sonra seçilen il/ilçeye uygun ULASAV/TUCBS açık kaynak kontrolü
-- Katmanların otomatik yüklenmemesi; her katmanın ayrı ayrı eklenip kaldırılması
-- Kamuya açık Çevre Düzeni Planı WMS katmanları
-- Plan katmanı aktifken haritada tıklanan noktaya ait GetFeatureInfo sorgusu
-- Renk lejantı, resmî kaynak sayfası ve doğrudan servis bağlantıları
-- Kayseri ilçe/mahalle sınırı GeoJSON kaynaklarının dinamik keşfi
-- Görele ortofoto pilotu
-- Çorlu ve Yahşihan açık rayiç kayıtlarının dinamik aranması
-- Makine okunabilir CSV bulunursa en düşük/en yüksek rayiç kaydı özeti
-- Her veri kartında güncelleme/erişim tarihi ve güncellik uyarısı
-- Kaynak tarihi veya veri yapısı uygun değilse değer üretmeme
+- ULASAV/TUCBS WMS katmanları artık Render sunucusunun `GetCapabilities` isteğine bağlı değildir.
+- Renkli plan ve ortofoto katmanları kullanıcının tarayıcısından doğrudan yüklenir.
+- Bilinen WMS katman adları denenir; gerekirse tarayıcıdan katman listesi keşfedilir.
+- Sunucu katalog servisine ulaşamasa bile pilot WMS kaynağı ve resmî kaynak bağlantısı listelenir.
+- Kullanıcı ekranındaki teknik **Servisi Aç** XML bağlantısı kaldırıldı.
+- Üstteki TKGM, Eğim, Yakın Yer, TUCBS ve Açık Veri kutuları görünürlük düğmesine dönüştürüldü.
+- Yakın yer işaretçileri tek tıkla haritadan gizlenip yeniden gösterilebilir.
+- Açık veri katmanları seçili kalırken tek tıkla gizlenip yeniden gösterilebilir.
+- TKGM HTTP 404 yanıtı artık anlaşılır parsel bulunamadı mesajına çevrilir.
+- Açık veri katalog/CSV kontrolü uzun sürerse WMS listesi bekletilmez; resmî kaynak bağlantıları gösterilir.
+- Açık Veri bölümündeki tekrar eden bilgilendirme metni kaldırıldı.
 
 ## Pilot bölgeler
 
-1. Kayseri
+1. **Kayseri / Sivas / Yozgat**
    - Yozgat–Sivas–Kayseri Çevre Düzeni Planı
-   - ULASAV Kayseri ilçe ve mahalle sınırları
+   - Kayseri idari sınır kaynakları
 
-2. Tekirdağ / Çorlu
+2. **Tekirdağ / Çorlu**
    - Tekirdağ–Kırklareli–Edirne Çevre Düzeni Planı
-   - ULASAV/Çorlu Belediyesi arsa rayiç kayıtları
+   - Çorlu Belediyesi arsa rayiç kaynakları
 
-3. Kırıkkale / Yahşihan
+3. **Kırıkkale / Yahşihan**
    - Kırıkkale Çevre Düzeni Planı
-   - ULASAV'da yayımlanmış Yahşihan rayiç kayıtları
+   - Yahşihan rayiç kaynakları
 
-4. Giresun / Görele
+4. **Giresun / Görele**
    - Doğu Karadeniz Çevre Düzeni Planı
    - Kamuya açık Görele ortofoto WMS örneği
 
-## Kullanım
+## Açık veri kullanımı
 
 1. Gerçek TKGM parsel sorgusunu tamamlayın.
 2. **Açık Veri** sekmesini açın.
 3. **Açık Katmanları Kontrol Et** düğmesine basın.
 4. İstediğiniz katmanda **Haritaya Ekle** düğmesine basın.
-5. Plan katmanı aktifken haritada bir noktaya tıklayarak servis öznitelik bilgisini sorgulayın.
+5. Katmanı geçici olarak gizlemek için üstteki **Açık Veri** kutusuna tıklayın.
 6. Renklerin açıklaması için **Renk Lejantı**, güncel kayıt için **Kaynak Sayfası** bağlantısını kullanın.
+
+WMS katmanı yüklenemezse sistem sahte renk üretmez. Katman kartında hata gösterilir ve resmî kaynak bağlantısı kullanılabilir.
+
+## Yakın yer görünürlüğü
+
+Yakın yer araması tamamlandığında işaretçiler haritada gösterilir. Üstteki **Yakın Yer** kutusuna tıklayınca işaretçiler, kuş uçuşu çizgisi ve mesafe etiketi gizlenir. Tekrar tıklanınca aynı sonuçlar yeniden görünür.
 
 ## Rayiç verisi ilkesi
 
