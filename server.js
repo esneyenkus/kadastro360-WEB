@@ -6,7 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { analyzeTerrain } = require('./terrain');
 const { AccountStore } = require('./account-store');
-const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo } = require('./open-data');
+const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo, wmsProbe } = require('./open-data');
 
 const HOST = process.env.HOST || '0.0.0.0';
 const START_PORT = Number(process.env.PORT) || 10000;
@@ -1127,7 +1127,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.4.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.5.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
@@ -1212,6 +1212,19 @@ const server = http.createServer(async (req, res) => {
       const data = await fetchGeoJson(token);
       markService('openData', true, 'GeoJSON katmanı yüklendi.');
       return sendJson(res, 200, data);
+    }
+    if (req.method === 'POST' && pathname === '/api/open-data/wms-probe') {
+      const body = await readJsonBody(req, 30_000);
+      const result = await wmsProbe({
+        key: String(body.key || ''),
+        layerName: String(body.layerName || ''),
+        version: String(body.version || '1.1.1'),
+        latitude: Number(body.latitude),
+        longitude: Number(body.longitude),
+        radiusKm: Number(body.radiusKm) || 24
+      });
+      markService('openData', result.visible, result.visible ? 'WMS görsel içeriği doğrulandı.' : 'WMS şeffaf veya boş görüntü döndürdü.');
+      return sendJson(res, 200, result);
     }
     if (req.method === 'POST' && pathname === '/api/open-data/wms-info') {
       const body = await readJsonBody(req, 100_000);
@@ -1338,6 +1351,9 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { success: true, data: result.items, ...result });
     }
 
+    if (req.method === 'GET' && !pathname.startsWith('/api/') && (req.headers.accept || '').includes('text/html')) {
+      return sendFile(res, path.join(ROOT, 'index.html'), 'text/html; charset=utf-8');
+    }
     return sendJson(res, 404, { error: 'Uç nokta bulunamadı.' });
   } catch (error) {
     console.error('[HATA]', req.method, pathname, error);

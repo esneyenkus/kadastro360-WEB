@@ -1,18 +1,26 @@
-# Kadastro360 Web Pilot v1.4
+# Kadastro360 Web Pilot v1.5
 
-Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, sahte katman veya tahmini rayiç üretmez.
+Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, sahte açık katman veya tahmini rayiç üretmez.
 
-## Bu sürümde düzeltilenler
+## v1.5 açık veri düzeltmesi
 
-- Çevre düzeni planı katmanı açılırken harita otomatik olarak planın görülebileceği uygun ölçeğe alınır.
-- Parsel sınırı, renkli kamu katmanının üzerinde görünür kalır.
-- Harita mesajı sadeleştirildi: `1 kamu katmanı açık · Parsel sınırı görünür`.
-- Teknik `GetLegendGraphic` bağlantısı ve kod/XML sayfası kullanıcı ekranından kaldırıldı.
-- Her plan kartına **Renk Rehberi** ve **Plan Ölçeğine Git** düğmeleri eklendi.
-- Renk rehberi, 22.01.2026 tarihli resmî EK-1c Çevre Düzeni Planı Gösterimleri temel alınarak uygulama içinde gösterilir.
-- Rehberde sarı, mavi, mor, yeşil alanlar ile tarama ve sınır çizgilerinin başlıca anlamları yer alır.
-- Plan katmanı görünmezse sahte renk üretilmez; kullanıcıya servis veya ölçek uyarısı gösterilir.
-- Kaynak sayfası bağlantıları korunur.
+Önceki sürümde WMS sunucusundan boş/şeffaf bir PNG gelmesi, Leaflet `tileload` olayı nedeniyle katman yüklenmiş gibi algılanabiliyordu. v1.5 bunu değiştirdi:
+
+- Resmî WMS `GetCapabilities` belgesi okunur.
+- Tek bir `0` katmanı yerine görünür alt katmanlar ve birleşik plan katmanı denenir.
+- Parsel çevresinden ayrı bir `GetMap` görüntüsü alınır.
+- PNG görüntüsü piksel düzeyinde kontrol edilir.
+- Tamamen şeffaf veya boş görüntü başarılı sayılmaz ve haritaya eklenmez.
+- Tarayıcı doğrulaması yapılamazsa sunucu üzerinden güvenli doğrulama denenir.
+- Katman yalnızca görünür plan içeriği doğrulanırsa aktif sayılır.
+
+## Plan Ölçeğine Git
+
+Düğme her basışta:
+
+- haritayı parsel merkezinde yakınlaştırma 10 düzeyine getirir,
+- aktif plan katmanını yeniden çizer,
+- parsel sınırını planın üzerinde tutar.
 
 ## Pilot bölgeler
 
@@ -21,17 +29,18 @@ Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın
 3. Kırıkkale — Kırıkkale Çevre Düzeni Planı
 4. Giresun / Görele — Doğu Karadeniz Çevre Düzeni Planı ve Görele ortofoto
 
-## Açık veri kullanımı
+## Kullanım
 
 1. Gerçek TKGM parsel sorgusunu tamamlayın.
 2. **Açık Veri** sekmesini açın.
 3. **Açık Katmanları Kontrol Et** düğmesine basın.
 4. İlgili plan kartında **Haritaya Ekle** düğmesine basın.
-5. Sistem haritayı plan ölçeğine getirir; gerekirse **Plan Ölçeğine Git** düğmesini kullanın.
-6. Renk ve taramaları uygulama içindeki **Renk Rehberi** ile karşılaştırın.
-7. Güncel resmî kayıt için **Kaynak Sayfası** bağlantısını kullanın.
+5. Sistem görünür içeriği doğrular. Boş görüntü varsa katmanı eklemez ve açık hata verir.
+6. **Plan Ölçeğine Git** ile görünümü yeniden hazırlayabilirsiniz.
+7. Renkleri uygulama içindeki **Renk Rehberi** ile karşılaştırın.
+8. Güncel resmî kayıt için **Kaynak Sayfası** bağlantısını kullanın.
 
-Çevre düzeni planları üst ölçekli planlardır. Parselin kesin imar durumu, yapılaşma hakkı veya piyasa değeri anlamına gelmez. Aktif plan daha eski veya değişiklik görmüşse uygulamadaki genel renk rehberinden farklı olabilir; güncel resmî plan paftası ve lejant esas alınır.
+Çevre düzeni planları üst ölçekli planlardır. Parselin kesin imar durumu, yapılaşma hakkı veya piyasa değeri anlamına gelmez. Güncel resmî pafta ve sağlayıcı kaydı esas alınmalıdır.
 
 ## Kurulum
 
@@ -43,4 +52,4 @@ npm run check
 npm start
 ```
 
-Gerekli değişkenler `.env.example` dosyasındadır. Render'da `TEST_PASSWORD` ve `SESSION_SECRET` mutlaka ayarlanmalıdır.
+Gerekli değişkenler `.env.example` dosyasındadır. `TEST_PASSWORD` ve `SESSION_SECRET` mutlaka ayarlanmalıdır.

@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.4
+KADASTRO360 WEB PILOT v1.5
 
 YEREL KURULUM
 1. Node.js 22 kurun.
@@ -12,7 +12,7 @@ RENDER GÜNCELLEME
 - ZIP içeriğini GitHub deposunun ana dizinine yükleyin.
 - Eski dosyaların üzerine yazılmasına izin verin.
 - Render üzerinde Manual Deploy > Deploy latest commit işlemini başlatın.
-- /api/health sonucunda version değerinin 1.4.0 olduğunu kontrol edin.
+- /api/health sonucunda version değerinin 1.5.0 olduğunu kontrol edin.
 - TEST_PASSWORD için güçlü ve yeni bir parola belirleyin.
 - SESSION_SECRET uzun ve rastgele olmalıdır.
 - Kullanıcı/geçmiş kalıcı olacaksa Persistent Disk ekleyip DATA_DIR değerini kalıcı dizine yazın.

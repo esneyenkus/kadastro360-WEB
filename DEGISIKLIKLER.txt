@@ -1,12 +1,12 @@
-KADASTRO360 WEB PILOT v1.4
+KADASTRO360 WEB PILOT v1.5
 
-- Plan WMS katmanı eklenmeden önce harita otomatik olarak uygun çevre düzeni planı ölçeğine alınır.
-- Yakın parsel görünümünde boş görünen plan katmanları için Plan Ölçeğine Git düğmesi eklendi.
-- WMS plan katmanı opaklığı artırıldı; parsel sınırı üstte tutulmaya devam eder.
-- Harita rozeti daha anlaşılır hale getirildi.
-- Teknik Renk Lejantı / GetLegendGraphic bağlantısı kaldırıldı.
-- Uygulama içine resmî 22.01.2026 EK-1c gösterimlerinden hazırlanan renk ve tarama rehberi eklendi.
-- Sarı, kahverengi, mor, mavi, yeşil alanlar ile risk, plan sınırı ve yol gösterimleri açıklanır.
-- Resmî Plan Gösterimleri kaynak bağlantısı korunur.
-- Kaynak sayfası bağlantıları sabit kalır.
-- Sahte katman, sahte renk veya tahmini değer üretmeme ilkesi korunur.
+- WMS katmanı artık yalnızca tileload olayıyla başarılı sayılmaz.
+- GetCapabilities katman listesi okunur; görünür alt katmanlar birlikte denenir.
+- Parsel çevresindeki GetMap PNG görüntüsü piksel düzeyinde kontrol edilir.
+- Tamamen şeffaf veya boş görüntü haritaya eklenmez.
+- Tarayıcı doğrulaması yapılamazsa güvenli sunucu doğrulaması yedek olarak denenir.
+- Plan Ölçeğine Git her basışta haritayı zoom 10 düzeyine getirir, katmanı yeniden çizer ve parsel sınırını üste taşır.
+- Katman başarı mesajında kullanılan WMS sürümü ve alt katman sayısı gösterilir.
+- Kullanıcı arayüzünde yalnızca görsel içeriği doğrulanmış katmanlar aktif sayılır.
+- Bilinmeyen HTML yolları girişten sonra ana uygulamaya yönlendirilir; eski bağlantılardaki uygulama içi 404 azaltılır.
+- Canlı TKGM, eğim ve yakın yer ilkesi korunur; örnek/tahmini veri eklenmez.

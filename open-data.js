@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const { PNG } = require('pngjs');
 
 const ULASAV_ROOT = 'https://ulasav.csb.gov.tr';
 const ULASAV_API = `${ULASAV_ROOT}/api/3/action`;
@@ -14,7 +15,7 @@ const WMS_CONFIGS = [
     category: 'plan',
     baseUrl: 'https://tucbs-public-api.csb.gov.tr/csb_cdp_ysk_wms',
     layerCandidates: ['0'],
-    versionCandidates: ['1.3.0', '1.1.1'],
+    versionCandidates: ['1.1.1', '1.3.0'],
     bounds: [37.335310, 32.378300, 40.687798, 38.957376],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Yozgat Sivas Kayseri Çevre Düzeni Planı')}`,
@@ -27,7 +28,7 @@ const WMS_CONFIGS = [
     category: 'plan',
     baseUrl: 'https://tucbs-public-api.csb.gov.tr/csb_cdp_ergene_wms',
     layerCandidates: ['0'],
-    versionCandidates: ['1.3.0', '1.1.1'],
+    versionCandidates: ['1.1.1', '1.3.0'],
     bounds: [39.845453, 25.412765, 42.261958, 30.364822],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Tekirdağ Kırklareli Edirne Çevre Düzeni Planı')}`,
@@ -40,7 +41,7 @@ const WMS_CONFIGS = [
     category: 'plan',
     baseUrl: 'https://tucbs-public-api.csb.gov.tr/csb_cdp_kirikkale_wms',
     layerCandidates: ['0'],
-    versionCandidates: ['1.3.0', '1.1.1'],
+    versionCandidates: ['1.1.1', '1.3.0'],
     bounds: [39.354056, 32.854130, 40.386116, 34.649764],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Kırıkkale Çevre Düzeni Planı')}`,
@@ -53,7 +54,7 @@ const WMS_CONFIGS = [
     category: 'plan',
     baseUrl: 'https://tucbs-public-api.csb.gov.tr/csb_cdp_otrgga_wms',
     layerCandidates: ['0'],
-    versionCandidates: ['1.3.0', '1.1.1'],
+    versionCandidates: ['1.1.1', '1.3.0'],
     bounds: [38.618676, 36.176773, 42.897070, 43.324884],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Ordu Trabzon Rize Gümüşhane Giresun Artvin Çevre Düzeni Planı')}`,
@@ -67,7 +68,7 @@ const WMS_CONFIGS = [
     category: 'ortho',
     baseUrl: 'https://tucbs-public-api.csb.gov.tr/trk_cbs_ortofoto_giresun_gorele_test',
     layerCandidates: ['0'],
-    versionCandidates: ['1.3.0', '1.1.1'],
+    versionCandidates: ['1.1.1', '1.3.0'],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: 'https://cbs.csb.gov.tr/ortofoto-web-servisleri-86198',
     description: 'Görele için kamuya açık örnek ortofoto görüntüsünü haritaya ekler.'
@@ -152,7 +153,7 @@ async function fetchBuffer(url, options = {}, timeoutMs = 10000, maxBytes = 8_00
       ...options,
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Kadastro360-Web-Pilot/1.2 (+open-data-integration)',
+        'User-Agent': 'Kadastro360-Web-Pilot/1.5 (+verified-open-data-integration)',
         Accept: '*/*',
         ...(options.headers || {})
       }
@@ -271,7 +272,9 @@ function directWmsDefinition(config, resolved = null) {
     version: versions[0] || '1.3.0',
     versionCandidates: versions,
     bounds: config.bounds || null,
-    supportsFeatureInfo: Boolean(resolved?.supportsFeatureInfo),
+    supportsFeatureInfo: config.category === 'plan',
+    recommendedZoom: config.category === 'plan' ? 10 : null,
+    probeRadiusKm: config.category === 'plan' ? 24 : 8,
     infoFormats: resolved?.infoFormats || [],
     legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
     verifiedAt: resolved?.verifiedAt || null,
@@ -567,6 +570,81 @@ async function buildPilotCatalog({ province, district }) {
 }
 
 
+function lonLatToMercator(lon, lat) {
+  const boundedLat = Math.max(-85.05112878, Math.min(85.05112878, Number(lat)));
+  const x = Number(lon) * 20037508.34 / 180;
+  const y = Math.log(Math.tan((90 + boundedLat) * Math.PI / 360)) / (Math.PI / 180) * 20037508.34 / 180;
+  return { x, y };
+}
+
+function analyzePngVisibility(buffer) {
+  const png = PNG.sync.read(buffer, { skipRescale: true });
+  const total = png.width * png.height;
+  if (!total) return { visible: false, reason: 'empty-image', width: png.width, height: png.height };
+  const stride = Math.max(1, Math.floor(Math.sqrt(total / 70000)));
+  let sampled = 0;
+  let visiblePixels = 0;
+  let opaquePixels = 0;
+  let variedPixels = 0;
+  let first = null;
+  for (let y = 0; y < png.height; y += stride) {
+    for (let x = 0; x < png.width; x += stride) {
+      const index = (png.width * y + x) << 2;
+      const r = png.data[index];
+      const g = png.data[index + 1];
+      const b = png.data[index + 2];
+      const a = png.data[index + 3];
+      sampled++;
+      if (a > 16) opaquePixels++;
+      const nearWhite = r > 246 && g > 246 && b > 246;
+      const nearTransparent = a <= 16;
+      if (!nearTransparent && !nearWhite) visiblePixels++;
+      if (!nearTransparent) {
+        const packed = (r << 16) | (g << 8) | b;
+        if (first === null) first = packed;
+        else if (Math.abs((packed & 255) - (first & 255)) > 5 || Math.abs(((packed >> 8) & 255) - ((first >> 8) & 255)) > 5 || Math.abs(((packed >> 16) & 255) - ((first >> 16) & 255)) > 5) variedPixels++;
+      }
+    }
+  }
+  const visibleRatio = sampled ? visiblePixels / sampled : 0;
+  const opaqueRatio = sampled ? opaquePixels / sampled : 0;
+  const variedRatio = sampled ? variedPixels / sampled : 0;
+  const visible = visiblePixels >= 24 && (visibleRatio >= 0.0008 || variedRatio >= 0.0008);
+  return { visible, width: png.width, height: png.height, sampled, visiblePixels, visibleRatio, opaqueRatio, variedRatio, reason: visible ? 'visual-content' : 'transparent-or-empty' };
+}
+
+function wmsMapUrl(config, { layerName, version = '1.1.1', latitude, longitude, radiusKm = 24, width = 512, height = 512 }) {
+  const center = lonLatToMercator(longitude, latitude);
+  const radius = Math.max(3000, Math.min(100000, Number(radiusKm) * 1000));
+  const url = new URL(config.baseUrl);
+  const params = {
+    SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: version,
+    LAYERS: layerName, STYLES: String(layerName).split(',').map(() => '').join(','),
+    FORMAT: 'image/png', TRANSPARENT: 'TRUE', WIDTH: String(width), HEIGHT: String(height),
+    BBOX: [center.x - radius, center.y - radius, center.x + radius, center.y + radius].join(',')
+  };
+  if (version === '1.3.0') params.CRS = 'EPSG:3857';
+  else params.SRS = 'EPSG:3857';
+  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+  return url.toString();
+}
+
+async function wmsProbe({ key, layerName, version, latitude, longitude, radiusKm }) {
+  const config = WMS_CONFIGS.find(row => row.key === key);
+  if (!config) throw new Error('Açık veri WMS kaynağı bulunamadı.');
+  if (!layerName || String(layerName).length > 5000) throw new Error('Geçersiz WMS katman adı.');
+  if (!Number.isFinite(Number(latitude)) || !Number.isFinite(Number(longitude))) throw new Error('Geçersiz parsel koordinatı.');
+  const url = wmsMapUrl(config, { layerName: String(layerName), version: version === '1.3.0' ? '1.3.0' : '1.1.1', latitude: Number(latitude), longitude: Number(longitude), radiusKm: Number(radiusKm) || config.probeRadiusKm || 24 });
+  const { buffer, contentType } = await fetchBuffer(url, {}, 16000, 5_000_000);
+  if (!/image\/png/i.test(contentType) && buffer.slice(1, 4).toString() !== 'PNG') {
+    const text = decodeBuffer(buffer).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 700);
+    throw new Error(text || 'WMS görüntü yerine geçersiz cevap döndürdü.');
+  }
+  const analysis = analyzePngVisibility(buffer);
+  return { ...analysis, layerName: String(layerName), version: version === '1.3.0' ? '1.3.0' : '1.1.1', checkedAt: new Date().toISOString() };
+}
+
+
 function safeResource(token) {
   const row = resourceTokens.get(String(token || ''));
   if (!row || row.expiresAt <= Date.now()) return null;
@@ -629,6 +707,8 @@ module.exports = {
   parseTurkishNumber,
   summarizeRayicCsv,
   buildPilotCatalog,
+  analyzePngVisibility,
+  wmsProbe,
   fetchGeoJson,
   wmsFeatureInfo,
   configForKey
