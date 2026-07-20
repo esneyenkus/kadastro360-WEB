@@ -1,4 +1,4 @@
-# Kadastro360 Web Pilot v1.5
+# Kadastro360 Web Pilot v1.5.1
 
 Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, sahte açık katman veya tahmini rayiç üretmez.
 
@@ -53,3 +53,11 @@ npm start
 ```
 
 Gerekli değişkenler `.env.example` dosyasındadır. `TEST_PASSWORD` ve `SESSION_SECRET` mutlaka ayarlanmalıdır.
+
+
+## v1.5.1 Render düzeltmesi
+
+- package-lock.json içindeki özel/erişilemez paket adresi kaldırıldı.
+- pngjs paketi resmî npm kayıt adresinden yüklenir.
+- Render derlemesi `npm ci --omit=dev && npm run check` ile doğrulanır.
+- Node.js sürümü 22.16.0 olarak sabitlendi.

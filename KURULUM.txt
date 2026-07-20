@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.5
+KADASTRO360 WEB PILOT v1.5.1
 
 YEREL KURULUM
 1. Node.js 22 kurun.
@@ -36,3 +36,8 @@ GÖRÜNÜRLÜK KUTULARI
 TUCBS
 - Bağlantılar > TUCBS'de Bu Konumu Aç seçeneği korunmuştur.
 - Yetkili veya giriş gerektiren katmanlar için e-Devlet girişi kullanıcı tarafından yapılır.
+
+RENDER v1.5.1 NOTU
+- Eski package-lock.json dosyasını mutlaka yenisiyle değiştirin.
+- GitHub ana dizinine ZIP içindeki DOSYALARI yükleyin; üst klasörü yüklemeyin.
+- Blueprint > Manual sync çalıştırın.

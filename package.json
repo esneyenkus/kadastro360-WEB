@@ -1,6 +1,6 @@
 {
   "name": "kadastro360-web-pilot",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "private": true,
   "description": "Kadastro360 canlı veri web pilotu; görsel içeriği doğrulanan ULASAV/TUCBS WMS katmanları ve güvenilir plan ölçeği denetimi",
   "main": "server.js",
@@ -9,7 +9,7 @@
     "check": "node --check server.js && node --check account-store.js && node --check terrain.js && node --check endeksa-utils.js && node --check open-data.js && node test-pilot.js"
   },
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "dependencies": {
     "pngjs": "^7.0.0"

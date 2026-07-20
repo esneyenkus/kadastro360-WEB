@@ -35,7 +35,7 @@ const { PNG } = require('pngjs');
   assert(!/Math\.random\s*\(/.test(server + html + account + openDataCode), 'Rastgele veri üretimi bulunmamalı.');
   assert(!/mockData\s*:\s*true/.test(server + html), 'Mock veri açık olmamalı.');
   assert(server.includes("dataMode: 'live-only'"), 'Canlı veri modu belirtilmemiş.');
-  assert(server.includes("version: '1.5.0'"), 'Sunucu sürümü 1.5.0 değil.');
+  assert(server.includes("version: '1.5.1'"), 'Sunucu sürümü 1.5.1 değil.');
   assert(server.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM 404 kullanıcı mesajı eksik.');
 
   assert(html.includes('TUCBS’de Bu Konumu Aç'), 'TUCBS geçişi eksik.');
@@ -81,7 +81,7 @@ const { PNG } = require('pngjs');
   assert(ysk?.wms?.layerCandidates?.includes('0'), 'WMS güvenli katman adayı eksik.');
   assert(catalog.wmsLoadMode === 'browser-direct', 'Katalog WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.5 doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.5.1 doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

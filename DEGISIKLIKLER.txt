@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.5
+KADASTRO360 WEB PILOT v1.5.1
 
 - WMS katmanı artık yalnızca tileload olayıyla başarılı sayılmaz.
 - GetCapabilities katman listesi okunur; görünür alt katmanlar birlikte denenir.
@@ -10,3 +10,8 @@ KADASTRO360 WEB PILOT v1.5
 - Kullanıcı arayüzünde yalnızca görsel içeriği doğrulanmış katmanlar aktif sayılır.
 - Bilinmeyen HTML yolları girişten sonra ana uygulamaya yönlendirilir; eski bağlantılardaki uygulama içi 404 azaltılır.
 - Canlı TKGM, eğim ve yakın yer ilkesi korunur; örnek/tahmini veri eklenmez.
+
+
+v1.5.1
+- Render deploy hatasına neden olan özel npm paket adresi düzeltildi.
+- Node sürümü sabitlendi ve dağıtım öncesi otomatik kontrol eklendi.
