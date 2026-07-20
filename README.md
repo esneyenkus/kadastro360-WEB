@@ -1,6 +1,24 @@
-# Kadastro360 Web Pilot v1.5.1
+# Kadastro360 Web Pilot v1.5.2
 
 Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, sahte açık katman veya tahmini rayiç üretmez.
+
+
+## v1.5.2 TKGM il → ilçe düzeltmesi
+
+İl seçildikten sonra görülen `HTTP 404` hatası iki ayrı nedenle oluşabiliyordu:
+
+- TKGM yanıtında gerçek `ilId / ilceId / mahalleId` yerine `fid` veya `objectid` alanı seçilebiliyordu.
+- v3.1 ve eski TKGM servisleri eşzamanlı kullanıldığı için bir kaynaktan alınan kimlik başka kaynağa gönderilebiliyordu.
+
+v1.5.2 ile:
+
+- seviyeye özgü gerçek TKGM kimliği öncelikli seçilir,
+- il, ilçe, mahalle ve parsel aynı TKGM kaynak zincirinde tutulur,
+- eski servislerde görülen çift eğik çizgili idari uçlar yalnızca yedek olarak denenir,
+- arayüz ham `HTTP 404` yerine açıklayıcı servis mesajı gösterir,
+- il → ilçe → mahalle → parsel akışı yerel sahte TKGM sunucusuyla uçtan uca regresyon testinden geçirilir.
+
+Paket içinde boş `data` klasörü yoktur. Veritabanı klasörü uygulama çalışırken otomatik oluşturulur; Render test ortamında `/tmp/kadastro360-data` kullanılır.
 
 ## v1.5 açık veri düzeltmesi
 

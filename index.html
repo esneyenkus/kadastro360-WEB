@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kadastro360 — Web Pilot v1.5</title>
+<title>Kadastro360 — Web Pilot v1.5.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="endeksa-utils.js"></script>
@@ -882,6 +882,7 @@ async function api(path, options = {}, timeoutMs = 12000){
 }
 
 function featureArray(payload){
+  if(Array.isArray(payload?.items)) return payload.items;
   if(Array.isArray(payload?.features)) return payload.features;
   if(Array.isArray(payload?.data?.features)) return payload.data.features;
   if(Array.isArray(payload?.data)) return payload.data;
@@ -902,9 +903,10 @@ function parseAdminItems(payload){
   const out = [];
   for(const row of rows){
     const p = row?.properties || row || {};
-    const id = firstValue(p,['id','ID','fid','FID','objectid','OBJECTID','ilId','ilceId','mahalleId']) ?? row?.id;
+    const id = firstValue(p,['ilId','ilceId','mahalleId','id','ID']) ?? row?.id;
     const name = firstValue(p,['text','TEXT','adi','ADI','ad','AD','name','NAME','ilAdi','ilAd','ilceAdi','ilceAd','mahalleAdi','mahalleAd']);
-    if(id !== null && name) out.push({id:String(id),name:String(name)});
+    const source = firstValue(p,['source','SOURCE']) ?? payload?.source ?? '';
+    if(id !== null && /^\d+$/.test(String(id).trim()) && name) out.push({id:String(id).trim(),name:String(name),source:String(source||'')});
   }
   const seen = new Set();
   return out.filter(item => {
@@ -975,7 +977,10 @@ async function selectCombo(key, item){
     clearDownstream('ilce');
     setStatus('loading','İlçeler yükleniyor…');
     try{
-      const data = await api(`/ilceler/${encodeURIComponent(item.id)}`);
+      const data = await api('/idari/ilceler',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({parentId:item.id,source:item.source||''})
+      },15000);
       store.ilce.items = parseAdminItems(data);
       if(!store.ilce.items.length) throw new Error('İlçe listesi boş döndü.');
       $('input-ilce').disabled = false;
@@ -985,7 +990,10 @@ async function selectCombo(key, item){
     clearDownstream('mah');
     setStatus('loading','Mahalleler yükleniyor…');
     try{
-      const data = await api(`/mahalleler/${encodeURIComponent(item.id)}`);
+      const data = await api('/idari/mahalleler',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({parentId:item.id,source:item.source||''})
+      },18000);
       store.mah.items = parseAdminItems(data);
       if(!store.mah.items.length) throw new Error('Mahalle listesi boş döndü.');
       $('input-mah').disabled = false;
@@ -1178,7 +1186,10 @@ async function searchParcel(){
   setProcess('tkgm','loading');
   setLoading(true); setStatus('loading','Parsel TKGM’den sorgulanıyor…'); $('search-btn').disabled = true;
   try{
-    const payload = await api(`/parsel/${encodeURIComponent(mahalle.id)}/${encodeURIComponent(ada)}/${encodeURIComponent(parsel)}`,{},15000);
+    const payload = await api('/parsel-sorgu',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mahalleId:mahalle.id,ada,parsel,source:mahalle.source||''})
+    },18000);
     if(requestId !== store.requestId) return;
     setProcess('tkgm','ok');
     const feature = parcelFeature(payload);

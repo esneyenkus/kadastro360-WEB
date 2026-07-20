@@ -1,0 +1,31 @@
+KADASTRO360 WEB PILOT v1.5.2 DOĞRULAMA RAPORU
+
+1. JavaScript sözdizimi kontrolleri:
+   - server.js
+   - tkgm-client.js
+   - account-store.js
+   - terrain.js
+   - endeksa-utils.js
+   - open-data.js
+   - test-pilot.js
+   - test-tkgm-regression.js
+
+2. Statik doğrulamalar:
+   - Canlı veri modu açık
+   - Mock/sahte sonuç üretimi kapalı
+   - Açık veri WMS doğrulaması mevcut
+   - Teknik XML/lejanta kullanıcı bağlantısı yok
+   - TUCBS, kullanıcı yönetimi ve yakın yer görünürlük kontrolleri mevcut
+
+3. TKGM regresyon testi:
+   - İl listesinde yanlış fid alanı özellikle verildi
+   - Gerçek ilId seçildi
+   - Standart ilçe yolu özellikle 404 döndürdü
+   - Çift-slash yedek yolu ile ilçe listesi başarıyla alındı
+   - Mahalle listesi başarıyla alındı
+   - Önerler 323/2 örnek parsel akışı başarıyla tamamlandı
+
+4. Paket temizliği:
+   - ZIP içinde data klasörü yok
+   - ZIP içinde node_modules yok
+   - package-lock yalnızca resmî npm registry adresini kullanır

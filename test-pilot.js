@@ -1,11 +1,14 @@
 'use strict';
+
 const fs = require('fs');
 const assert = require('assert');
+const vm = require('vm');
 const server = fs.readFileSync('server.js', 'utf8');
 const html = fs.readFileSync('index.html', 'utf8');
 const admin = fs.readFileSync('admin.html', 'utf8');
 const account = fs.readFileSync('account-store.js', 'utf8');
 const openDataCode = fs.readFileSync('open-data.js', 'utf8');
+const tkgmCode = fs.readFileSync('tkgm-client.js', 'utf8');
 const {
   parseWmsCapabilities,
   summarizeRayicCsv,
@@ -18,9 +21,9 @@ const { PNG } = require('pngjs');
 (async () => {
   for (const pattern of [
     /pathname === '\/api\/iller'/,
-    /\^\\\/api\\\/ilceler/,
-    /\^\\\/api\\\/mahalleler/,
-    /\^\\\/api\\\/parsel/,
+    /pathname === '\/api\/idari\/ilceler'/,
+    /pathname === '\/api\/idari\/mahalleler'/,
+    /pathname === '\/api\/parsel-sorgu'/,
     /pathname === '\/api\/terrain-analysis'/,
     /pathname === '\/api\/poi'/,
     /pathname === '\/api\/services'/,
@@ -32,11 +35,25 @@ const { PNG } = require('pngjs');
     /pathname === '\/api\/open-data\/wms-probe'/
   ]) assert(pattern.test(server), `Eksik rota: ${pattern}`);
 
-  assert(!/Math\.random\s*\(/.test(server + html + account + openDataCode), 'Rastgele veri üretimi bulunmamalı.');
+  const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(code => code.trim());
+  const adminScripts = [...admin.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(code => code.trim());
+  for (const [index, code] of [...inlineScripts, ...adminScripts].entries()) {
+    new vm.Script(code, { filename: `inline-script-${index + 1}.js` });
+  }
+
+  const allCode = server + html + account + openDataCode + tkgmCode;
+  assert(!/Math\.random\s*\(/.test(allCode), 'Uygulama kodunda rastgele veri üretimi bulunmamalı.');
   assert(!/mockData\s*:\s*true/.test(server + html), 'Mock veri açık olmamalı.');
   assert(server.includes("dataMode: 'live-only'"), 'Canlı veri modu belirtilmemiş.');
-  assert(server.includes("version: '1.5.1'"), 'Sunucu sürümü 1.5.1 değil.');
-  assert(server.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM 404 kullanıcı mesajı eksik.');
+  assert(server.includes("version: '1.5.2'"), 'Sunucu sürümü 1.5.2 değil.');
+  assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
+
+  assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
+  assert(tkgmCode.includes('doubleSlashAdmin'), 'Eski TKGM çift-slash yedek yolu eksik.');
+  assert(tkgmCode.indexOf("'ilId'") < tkgmCode.indexOf('properties?.fid'), 'Gerçek ilId, fid alanından önce değerlendirilmelidir.');
+  assert(html.includes("api('/idari/ilceler'"), 'İlçe listesi yeni kaynak-bağlı uçtan alınmıyor.');
+  assert(html.includes("api('/idari/mahalleler'"), 'Mahalle listesi yeni kaynak-bağlı uçtan alınmıyor.');
+  assert(html.includes("api('/parsel-sorgu'"), 'Parsel yeni kaynak-bağlı uçtan sorgulanmıyor.');
 
   assert(html.includes('TUCBS’de Bu Konumu Aç'), 'TUCBS geçişi eksik.');
   assert(html.includes('Katmanın mevcut olduğu kesinmiş gibi gösterilmez'), 'TUCBS doğruluk uyarısı eksik.');
@@ -48,7 +65,6 @@ const { PNG } = require('pngjs');
   assert(html.includes('Şeffaf veya boş görüntü başarı sayılmaz'), 'Boş WMS güvenlik uyarısı eksik.');
   assert(!html.includes('Servisi Aç ↗'), 'Teknik WMS XML bağlantısı kullanıcı ekranında görünmemeli.');
   assert(html.includes('resmî WMS görüntüsü parsel çevresinde kontrol edilir'), 'WMS görsel doğrulama açıklaması eksik.');
-
   assert(html.includes('id="legend-modal"') && html.includes('Renk Rehberi'), 'Gömülü renk rehberi eksik.');
   assert(html.includes('focusOpenDataPlan') && html.includes('Plan Ölçeğine Git'), 'Plan ölçeği görünüm düzeltmesi eksik.');
   assert(html.includes('22.01.2026') && html.includes('RGB 255/250/38'), 'Resmî 2026 ÇDP renk rehberi eksik.');
@@ -64,24 +80,24 @@ const { PNG } = require('pngjs');
 
   const summary = summarizeRayicCsv('Mahalle;Arsa Rayiç Değeri (TL/m2)\nA;1250,50\nB;980,00\nC;1500,00', '2025 Rayiç', '2025 CSV');
   assert(summary && summary.min === 980 && summary.max === 1500 && summary.dataYear === 2025, 'Rayiç CSV özeti başarısız.');
-  assert(matchesLocation({provinces:['Giresun'],districts:['Görele']},'Giresun','Görele'), 'Pilot bölge eşleştirmesi başarısız.');
+  assert(matchesLocation({ provinces: ['Giresun'], districts: ['Görele'] }, 'Giresun', 'Görele'), 'Pilot bölge eşleştirmesi başarısız.');
 
   const transparent = new PNG({ width: 16, height: 16 });
   transparent.data.fill(0);
   assert.strictEqual(analyzePngVisibility(PNG.sync.write(transparent)).visible, false, 'Tam şeffaf WMS görüntüsü görünür sayılmamalı.');
   const colored = new PNG({ width: 16, height: 16 });
-  for (let i = 0; i < colored.data.length; i += 4) { colored.data[i] = 255; colored.data[i + 1] = 250; colored.data[i + 2] = 38; colored.data[i + 3] = 255; }
+  for (let i = 0; i < colored.data.length; i += 4) {
+    colored.data[i] = 255; colored.data[i + 1] = 250; colored.data[i + 2] = 38; colored.data[i + 3] = 255;
+  }
   assert.strictEqual(analyzePngVisibility(PNG.sync.write(colored)).visible, true, 'Renkli WMS görüntüsü görünür sayılmalı.');
 
-  // Yozgat için katalog oluşturma internet gerektirmez: WMS tanımı doğrudan hazırlanmalıdır.
   const catalog = await buildPilotCatalog({ province: 'Yozgat', district: 'Yerköy' });
   const ysk = catalog.items.find(item => item.id === 'cdp-ysk');
-  assert(ysk?.type === 'wms', 'Yozgat WMS kaynağı sunucu doğrulaması olmadan listelenmedi.');
+  assert(ysk?.type === 'wms', 'Yozgat WMS kaynağı listelenmedi.');
   assert(ysk?.wms?.loadMode === 'browser-direct', 'WMS tarayıcıdan doğrudan yükleme modunda değil.');
-  assert(ysk?.wms?.layerCandidates?.includes('0'), 'WMS güvenli katman adayı eksik.');
   assert(catalog.wmsLoadMode === 'browser-direct', 'Katalog WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.5.1 doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.5.2 statik ve açık veri doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

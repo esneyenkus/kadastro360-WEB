@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { analyzeTerrain } = require('./terrain');
 const { AccountStore } = require('./account-store');
 const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo, wmsProbe } = require('./open-data');
+const { TKGMClient, sourcesFromEnvironment } = require('./tkgm-client');
 
 const HOST = process.env.HOST || '0.0.0.0';
 const START_PORT = Number(process.env.PORT) || 10000;
@@ -42,10 +43,10 @@ function markService(name, ok, message = '') {
   row.message = message || (ok ? 'Çalışıyor.' : 'Yanıt alınamadı.');
 }
 
-const TKGM_BASES = [
-  'https://cbsapi.tkgm.gov.tr/megsiswebapi.v3.1/api',
-  'https://cbsservis.tkgm.gov.tr/megsiswebapi.v3/api'
-];
+const tkgmClient = new TKGMClient({
+  sources: sourcesFromEnvironment(),
+  userAgent: 'Kadastro360-Web-Pilot/1.5.2'
+});
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
 // Aynı sorguyu bütün sunuculara aynı anda göndermiyoruz. Küçük sorgular sırayla
@@ -224,20 +225,6 @@ async function fetchJson(url, options = {}, timeoutMs = 8000) {
   }
 }
 
-async function firstSuccessful(tasks, fallbackMessage) {
-  try {
-    return await Promise.any(tasks);
-  } catch (error) {
-    const errors = error?.errors || [];
-    const messages = errors.map(item => item?.message).filter(Boolean);
-    const result = new Error(messages[0] || fallbackMessage);
-    const statuses = errors.map(item => Number(item?.statusCode)).filter(Number.isFinite);
-    if (statuses.length && statuses.every(status => status === 404)) result.statusCode = 404;
-    else if (statuses.length && statuses.every(status => status >= 400 && status < 500)) result.statusCode = statuses[0];
-    throw result;
-  }
-}
-
 function cached(key, ttlMs, loader) {
   const saved = cache.get(key);
   if (saved && saved.expiresAt > Date.now()) return saved.promise;
@@ -247,24 +234,6 @@ function cached(key, ttlMs, loader) {
   });
   cache.set(key, { expiresAt: Date.now() + ttlMs, promise });
   return promise;
-}
-
-async function tkgmGet(apiPath) {
-  const isAdminList = /\/idariYapi\//.test(apiPath);
-  const ttl = isAdminList ? 6 * 60 * 60 * 1000 : 0;
-  const loader = () => firstSuccessful(
-    TKGM_BASES.map(base => fetchJson(base + apiPath, {
-      headers: {
-        Accept: 'application/json, text/plain, */*',
-        'Accept-Language': 'tr-TR,tr;q=0.9',
-        Origin: 'https://parselsorgu.tkgm.gov.tr',
-        Referer: 'https://parselsorgu.tkgm.gov.tr/',
-        'User-Agent': 'Kadastro360-Web-Pilot/1.3'
-      }
-    }, 9000)),
-    'TKGM servisine ulaşılamadı.'
-  );
-  return ttl ? cached(`tkgm:${apiPath}`, ttl, loader) : loader();
 }
 
 function numberList(value) {
@@ -1127,7 +1096,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.5.1', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.5.2', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
@@ -1252,46 +1221,63 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { user: accounts.updateUser(decodeURIComponent(match[1]), await readJsonBody(req)) });
     }
     if (req.method === 'GET' && pathname === '/api/iller') {
-      const result = await tkgmGet('/idariYapi/ilListe');
-      markService('tkgm', true, 'TKGM idari liste servisi çalışıyor.');
+      const result = await tkgmClient.getAdminList('province');
+      markService('tkgm', true, `TKGM il listesi çalışıyor (${result.sourceLabel}).`);
       return sendJson(res, 200, result);
     }
 
-    match = pathname.match(/^\/api\/ilceler\/(\d+)$/);
-    if (req.method === 'GET' && match) {
-      const result = await tkgmGet(`/idariYapi/ilceListe/${match[1]}`);
-      markService('tkgm', true, 'TKGM ilçe servisi çalışıyor.');
+    if (req.method === 'POST' && pathname === '/api/idari/ilceler') {
+      const body = await readJsonBody(req, 50_000);
+      const result = await tkgmClient.getAdminList('district', body.parentId, String(body.source || ''));
+      markService('tkgm', true, `TKGM ilçe listesi çalışıyor (${result.sourceLabel}).`);
       return sendJson(res, 200, result);
     }
 
-    match = pathname.match(/^\/api\/mahalleler\/(\d+)$/);
-    if (req.method === 'GET' && match) {
-      const result = await tkgmGet(`/idariYapi/mahalleListe/${match[1]}`);
-      markService('tkgm', true, 'TKGM mahalle servisi çalışıyor.');
+    if (req.method === 'POST' && pathname === '/api/idari/mahalleler') {
+      const body = await readJsonBody(req, 50_000);
+      const result = await tkgmClient.getAdminList('neighborhood', body.parentId, String(body.source || ''));
+      markService('tkgm', true, `TKGM mahalle listesi çalışıyor (${result.sourceLabel}).`);
       return sendJson(res, 200, result);
     }
 
-    match = pathname.match(/^\/api\/parsel\/(\d+)\/([^/]+)\/([^/]+)$/);
+    // Eski arayüz bağlantıları bozulmasın diye sayısal GET uçları korunur.
+    // Yeni arayüz kaynak kimliğini de taşıyan POST uçlarını kullanır; böylece
+    // v3.1 ve eski TKGM servislerinin id hiyerarşileri birbirine karışmaz.
+    match = pathname.match(/^\/api\/ilceler\/(\d+)\/?$/);
     if (req.method === 'GET' && match) {
+      const result = await tkgmClient.getAdminList('district', match[1]);
+      markService('tkgm', true, `TKGM ilçe listesi çalışıyor (${result.sourceLabel}).`);
+      return sendJson(res, 200, result);
+    }
+
+    match = pathname.match(/^\/api\/mahalleler\/(\d+)\/?$/);
+    if (req.method === 'GET' && match) {
+      const result = await tkgmClient.getAdminList('neighborhood', match[1]);
+      markService('tkgm', true, `TKGM mahalle listesi çalışıyor (${result.sourceLabel}).`);
+      return sendJson(res, 200, result);
+    }
+
+    async function handleParcelLookup({ mahalleId, blockNo, parcelNo, source }) {
       const allowance = accounts.canQuery(sessionUser);
-      if (!allowance.ok) return sendJson(res, 429, { error: allowance.reason });
-      const [, mahalleId, adaRaw, parselRaw] = match;
-      const blockNo = decodeURIComponent(adaRaw);
-      const parcelNo = decodeURIComponent(parselRaw);
-      const ada = encodeURIComponent(blockNo);
-      const parsel = encodeURIComponent(parcelNo);
-      let payload;
+      if (!allowance.ok) {
+        const quotaError = new Error(allowance.reason);
+        quotaError.httpStatus = 429;
+        throw quotaError;
+      }
+      let result;
       try {
-        payload = await tkgmGet(`/parsel/${mahalleId}/${ada}/${parsel}`);
+        result = await tkgmClient.getParcel({
+          neighborhoodId: mahalleId,
+          block: blockNo,
+          parcel: parcelNo,
+          preferredSource: String(source || '')
+        });
       } catch (error) {
-        if (error?.statusCode === 404 || /HTTP 404/i.test(error?.message || '')) {
-          const notFound = new Error('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı. Mahalle, ada ve parsel bilgilerini kontrol edin.');
-          notFound.httpStatus = 404;
-          throw notFound;
-        }
+        if (error?.statusCode === 404) error.httpStatus = 404;
         throw error;
       }
-      markService('tkgm', true, 'TKGM parsel servisi çalışıyor.');
+      const payload = result.payload;
+      markService('tkgm', true, `TKGM parsel servisi çalışıyor (${result.sourceLabel}).`);
       const feature = payloadFeature(payload);
       if (feature?.geometry) {
         const props = feature.properties || {};
@@ -1304,6 +1290,28 @@ const server = http.createServer(async (req, res) => {
           blockNo, parcelNo, latitude: center.lat, longitude: center.lng, source: 'TKGM', status: 'success'
         });
       }
+      return payload;
+    }
+
+    if (req.method === 'POST' && pathname === '/api/parsel-sorgu') {
+      const body = await readJsonBody(req, 50_000);
+      const payload = await handleParcelLookup({
+        mahalleId: body.mahalleId,
+        blockNo: String(body.ada || '').trim(),
+        parcelNo: String(body.parsel || '').trim(),
+        source: body.source
+      });
+      return sendJson(res, 200, payload);
+    }
+
+    match = pathname.match(/^\/api\/parsel\/(\d+)\/([^/]+)\/([^/]+)\/?$/);
+    if (req.method === 'GET' && match) {
+      const payload = await handleParcelLookup({
+        mahalleId: match[1],
+        blockNo: decodeURIComponent(match[2]),
+        parcelNo: decodeURIComponent(match[3]),
+        source: ''
+      });
       return sendJson(res, 200, payload);
     }
 
@@ -1358,7 +1366,7 @@ const server = http.createServer(async (req, res) => {
   } catch (error) {
     console.error('[HATA]', req.method, pathname, error);
     const message = error?.message || 'Beklenmeyen sunucu hatası.';
-    if (/\/api\/(iller|ilceler|mahalleler|parsel)/.test(pathname)) markService('tkgm', false, message);
+    if (/\/api\/(iller|ilceler|mahalleler|idari\/|parsel(?:-sorgu)?)/.test(pathname)) markService('tkgm', false, message);
     if (/\/api\/(elevation|terrain-analysis)/.test(pathname)) markService('terrain', false, message);
     if (pathname === '/api/poi') markService('overpass', false, message);
     if (pathname.startsWith('/api/open-data/')) markService('openData', false, message);

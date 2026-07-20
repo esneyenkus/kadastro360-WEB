@@ -1,9 +1,9 @@
-KADASTRO360 WEB PILOT v1.5.1
+KADASTRO360 WEB PILOT v1.5.2
 
 YEREL KURULUM
 1. Node.js 22 kurun.
 2. Klasörde terminal açın.
-3. npm install
+3. npm ci
 4. TEST_USERNAME, TEST_PASSWORD ve SESSION_SECRET değişkenlerini ayarlayın.
 5. npm run check
 6. npm start
@@ -11,33 +11,18 @@ YEREL KURULUM
 RENDER GÜNCELLEME
 - ZIP içeriğini GitHub deposunun ana dizinine yükleyin.
 - Eski dosyaların üzerine yazılmasına izin verin.
-- Render üzerinde Manual Deploy > Deploy latest commit işlemini başlatın.
-- /api/health sonucunda version değerinin 1.5.0 olduğunu kontrol edin.
+- Özellikle server.js, index.html, tkgm-client.js, package.json, package-lock.json ve render.yaml değişmelidir.
+- Render > Blueprint > Manual sync çalıştırın.
+- Dağıtım tamamlanınca /api/health sonucunda version değerinin 1.5.2 olduğunu kontrol edin.
 - TEST_PASSWORD için güçlü ve yeni bir parola belirleyin.
 - SESSION_SECRET uzun ve rastgele olmalıdır.
-- Kullanıcı/geçmiş kalıcı olacaksa Persistent Disk ekleyip DATA_DIR değerini kalıcı dizine yazın.
 
-AÇIK VERİ PİLOTU
-- Kadastro360'dan gerçek parsel sorgulayın.
-- Açık Veri sekmesine girin.
-- Açık Katmanları Kontrol Et düğmesine basın.
-- İstediğiniz katmanı Haritaya Ekle düğmesiyle açın.
-- Katman yükleme sonucu kartın altında gösterilir.
-- Teknik XML sayfası kullanıcı ekranında artık gösterilmez.
-- Verinin güncelliğini Kaynak Sayfası bağlantısından doğrulayın.
+VERİ KLASÖRÜ
+- ZIP içinde boş data klasörü bulunmaz.
+- Uygulama ihtiyaç duyduğunda veritabanı klasörünü kendisi oluşturur.
+- Render test ortamında /tmp/kadastro360-data kullanılır; servis yeniden kurulursa geçmiş sıfırlanabilir.
+- Kalıcı kullanıcı/geçmiş için ileride Persistent Disk veya PostgreSQL kullanılmalıdır.
 
-GÖRÜNÜRLÜK KUTULARI
-- TKGM: parsel sınırını gösterir/gizler.
-- Eğim: eğim sonuç panelini gösterir/gizler.
-- Yakın Yer: bütün yakın yer işaretçilerini ve kuş uçuşu çizgisini gösterir/gizler.
-- TUCBS: TUCBS bağlantı panelini gösterir/gizler.
-- Açık Veri: seçili açık katmanları silmeden gösterir/gizler.
-
-TUCBS
-- Bağlantılar > TUCBS'de Bu Konumu Aç seçeneği korunmuştur.
-- Yetkili veya giriş gerektiren katmanlar için e-Devlet girişi kullanıcı tarafından yapılır.
-
-RENDER v1.5.1 NOTU
-- Eski package-lock.json dosyasını mutlaka yenisiyle değiştirin.
-- GitHub ana dizinine ZIP içindeki DOSYALARI yükleyin; üst klasörü yüklemeyin.
-- Blueprint > Manual sync çalıştırın.
+KONTROL
+- npm run check komutu hem statik testleri hem TKGM il → ilçe → mahalle → parsel regresyon testini çalıştırır.
+- Başarılı sonuçta iki ayrı “doğrulama geçti” mesajı görülür.
