@@ -1,12 +1,27 @@
-KADASTRO360 WEB PILOT v1.6.0
+KADASTRO360 WEB PILOT v1.7.0
 
-- Açık plan WMS katmanları artık çok sayıda karo yerine tek, yüksek çözünürlüklü ve doğrulanmış görüntü olarak önbelleğe alınır.
-- Haritaya Ekle mevcut merkez ve yakınlaştırmayı değiştirmez.
-- Yakınlaştırma/uzaklaştırma sırasında açık plan verisi yeniden indirilmez; bekleme ve donmuş hissi azaltılır.
-- Plan Ölçeğine Git yalnızca kullanıcı tıklarsa çalışır.
-- Parsel, beyaz dış çerçeve ve yeşil sınırla kamu katmanlarının üstünde tutulur.
-- Uzak görünümde animasyonlu kırmızı PARSEL hedefi görünür; yaklaştıkça küçülür ve ilk parsel yakınlığında kaybolur.
-- Aynı mahallede sorgulanan son 10 parsel oturumluk önbellekte tutulur ve turuncu kesik çizgiyle karşılaştırılır.
-- Karşılaştırma katmanı harita üzerinden açılıp kapatılabilir ve temizlenebilir.
-- Renk rehberi artık ekranı matlaştırmaz; bağımsız pencere olarak fareyle taşınabilir.
-- Sahte, tahmini veya boş WMS verisi gösterilmez.
+YAKIN YERLER VE YOL ROTASI
+- Yakın yer kategorileri artık iki ayrı listede tekrarlanmaz.
+- Arama sırasında geçici durum kutuları görünür; sonuç geldiğinde yalnızca kategori akordeonları kalır.
+- Kapalı akordeon başlığında kategori ve sonuç adedi görünür.
+- Her yakın yer satırına yol rotası seçim kutusu eklendi.
+- En fazla 5 nokta seçilebilir.
+- Seçilen noktalar için parsel merkezinden gerçek yol ağı rotaları Kadastro360 haritasında ayrı ayrı çizilir.
+- Her rota numaralandırılır; yol mesafesi ve tahmini sürüş süresi haritada ve özet panelinde gösterilir.
+- Rota görünümünde seçilmemiş yakın yer işaretleri soluklaştırılarak ekran görüntüsü daha okunaklı hale getirilir.
+- Rota servisi cevap vermezse sahte veya düz çizgi yol rotası üretilmez; hata açıkça gösterilir.
+
+AÇIK VERİ / WMS
+- v1.6.0'daki kesik görüntünün nedeni olan sabit tek görüntü sınırı kaldırıldı.
+- İlk doğrulanmış plan görüntüsü hemen gösterilir.
+- Harita taşındığında görünür alan, çevresinde tampon bırakılarak arka planda yenilenir.
+- Yakınlaştırma tamamlandığında yeni çözünürlükte görüntü istenir; eski görüntü yenisi hazır olana kadar ekranda kalır.
+- Böylece haritanın bir bölümünün plansız kalması ve yakınlaştırmada uzun süre bulanık görünmesi azaltılır.
+- Parsel sınırı ve uzak görünümdeki PARSEL hedefi kamu katmanının üstünde kalır.
+
+KORUNAN ÖZELLİKLER
+- TKGM il → ilçe → mahalle → parsel kaynak zinciri ve regresyon koruması
+- Aynı mahallede son 10 parselin oturumluk karşılaştırması
+- Taşınabilir, ekranı matlaştırmayan renk rehberi
+- Boş/şeffaf WMS görüntüsünü reddetme
+- Örnek, rastgele veya tahmini sonuç üretmeme

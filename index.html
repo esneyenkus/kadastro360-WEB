@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kadastro360 — Web Pilot v1.6.0</title>
+<title>Kadastro360 — Web Pilot v1.7.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="endeksa-utils.js"></script>
@@ -47,6 +47,8 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 .poi-controls{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:7px;margin-bottom:7px}.poi-controls .primary{grid-column:1/-1}.hint{font-size:10px;color:var(--muted);line-height:1.45;margin:7px 0 10px}
 .poi-summary{font-size:10px;color:var(--muted);margin:0 0 7px;line-height:1.45}.poi-progress{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:0 0 8px}.category-chip{border:1px solid var(--line);border-radius:7px;padding:6px 7px;background:#fff;font-size:9px;display:flex;align-items:center;justify-content:space-between;gap:5px}.category-chip strong{font-size:9px}.category-chip.searching{border-color:#9eb7e8;background:#f4f7ff}.category-chip.found{border-color:#9fd3bf;background:#eff9f5}.category-chip.empty{background:#f7f8f9;color:var(--muted)}.category-chip.failed{border-color:#e5b4ad;background:#fff4f2;color:#8b2d22}.poi-section{border:1px solid var(--line);border-radius:9px;background:#fbfcfc;margin-bottom:8px;overflow:hidden}.poi-section-toggle{width:100%;min-height:40px;border:0;background:#fbfcfc;padding:8px 9px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;cursor:pointer;color:var(--text)}.poi-section-toggle:hover{background:#f2f7f5}.poi-section-toggle:focus-visible{outline:2px solid var(--green);outline-offset:-2px}.poi-section-heading{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800}.poi-section-meta{display:flex;align-items:center;gap:7px;flex:0 0 auto}.poi-section-count{font-size:9px;color:var(--muted);font-weight:700}.poi-section-arrow{font-size:12px;color:var(--muted);transition:transform .18s ease}.poi-section.open .poi-section-arrow{transform:rotate(180deg)}.poi-section-body{padding:0 7px 7px;border-top:1px solid var(--line)}.poi-section-body[hidden]{display:none}.poi-section .poi-list{margin-top:7px}.poi-list{display:grid;gap:6px}.poi-item{width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;padding:8px 9px;background:#fff;cursor:pointer}.poi-item:hover,.poi-item.selected{border-color:var(--green);background:var(--green2)}.poi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.poi-name{font-size:11px;font-weight:750}.poi-dist{font-size:10px;color:var(--green);font-weight:800;white-space:nowrap;text-align:right}.poi-sub{font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4}.quality{display:inline-block;margin-top:4px;border-radius:99px;padding:2px 6px;background:#eef2f5;color:#53616e;font-size:8px;font-weight:750}.quality.high{background:#e8f6f1;color:#0e6b51}.quality.check{background:#fff6df;color:#72500a}.poi-pin{position:relative;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#fff;border:2px solid #168a68;box-shadow:0 2px 7px rgba(0,0,0,.25);font-size:15px}.poi-pin .unnamed{position:absolute;right:-5px;top:-6px;width:15px;height:15px;border-radius:50%;background:#17212b;color:#fff;display:grid;place-items:center;font:800 9px/1 Arial;border:1px solid #fff}
 .selected-route{margin:6px 0;border:1px solid #b9ddcf;background:var(--green2);border-radius:8px;padding:9px}.selected-route strong{font-size:11px}.route-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}.route-link{display:block;text-align:center;text-decoration:none;background:var(--blue);color:#fff;border-radius:7px;padding:8px 6px;font-size:10px;font-weight:800}.route-link.secondary{background:#fff;color:#244f9e;border:1px solid #9eb7e8}.google-poi-link{margin:0 0 9px;border-color:#9eb7e8;background:#f4f7ff;color:#244f9e}.google-poi-link:hover{border-color:#4f76c7;background:#edf2ff}
+.poi-route-planner{border:1px solid #9eb7e8;background:#f5f8ff;border-radius:9px;padding:8px 9px;margin:0 0 9px}.poi-route-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.poi-route-title{font-size:11px;font-weight:850;color:#244f9e}.poi-route-count{font-size:9px;font-weight:800;color:#53616e;background:#fff;border:1px solid #cdd9ee;border-radius:99px;padding:3px 7px;white-space:nowrap}.poi-route-note{font-size:9px;color:#53616e;line-height:1.45;margin-top:5px}.poi-route-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}.poi-route-buttons button{min-height:32px;border-radius:7px;border:1px solid #9eb7e8;background:#fff;color:#244f9e;font-size:9px;font-weight:850;cursor:pointer}.poi-route-buttons button.primary-route{background:#2463eb;color:#fff;border-color:#2463eb}.poi-route-buttons button:disabled{opacity:.45;cursor:not-allowed}.route-results{display:grid;gap:5px;margin-top:7px}.route-result-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:6px;align-items:center;border:1px solid #d9e2ef;background:#fff;border-radius:7px;padding:6px 7px}.route-result-number{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:9px;font-weight:900}.route-result-name{font-size:9px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.route-result-meta{font-size:8px;color:#53616e;text-align:right;white-space:nowrap}.poi-accordion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:start}.poi-accordion-grid .poi-section{margin:0}.poi-accordion-grid .poi-section.open{grid-column:1/-1}.poi-choice-row{display:grid;grid-template-columns:26px minmax(0,1fr);gap:5px;align-items:stretch}.poi-route-check{display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}.poi-route-check:hover{border-color:#2463eb;background:#f4f7ff}.poi-route-check input{width:15px;height:15px;accent-color:#2463eb;cursor:pointer}.poi-choice-row.route-selected .poi-route-check{border-color:#2463eb;background:#eaf0ff}.route-number-pin{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.28);font:900 12px/1 Arial}.route-distance-label{background:#17212b;color:#fff;border-radius:6px;padding:4px 6px;font:800 9px/1.2 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.25)}.route-distance-label:after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#17212b}.open-data-refreshing{filter:saturate(.92);transition:opacity .2s ease}.open-data-refreshing.pending{opacity:.62}
+
 .notice{border-radius:8px;padding:8px 9px;font-size:10px;line-height:1.45;margin-bottom:8px}.notice.info{background:#eef4ff;color:#31527f}.notice.warn{background:#fff6df;color:#72500a}.notice.error{background:#fff0f0;color:#8d3030}
 .map-wrap{position:relative;min-width:0}.map{height:100%;width:100%}.map-badge{position:absolute;left:12px;bottom:12px;z-index:500;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:10px;color:var(--muted);box-shadow:0 3px 12px rgba(0,0,0,.08)}
 .distance-label{background:#17212b;color:#fff;border:0;border-radius:14px;padding:4px 7px;font-size:11px;font-weight:800;box-shadow:0 2px 7px rgba(0,0,0,.25);white-space:nowrap}.distance-label:before{display:none}
@@ -67,7 +69,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 
 
 
-/* v1.6.0 — hızlı tek-görüntü plan önbelleği, parsel hedefi, karşılaştırma ve taşınabilir rehber */
+/* v1.7.0 — seçilebilir yol rotaları, tek akordeon yakın yer listesi ve dinamik açık veri kapsamı */
 .map-runtime-status{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1450;display:none;align-items:center;gap:8px;max-width:min(520px,calc(100% - 120px));padding:8px 12px;border-radius:9px;background:rgba(23,33,43,.92);color:#fff;font-size:10px;font-weight:750;box-shadow:0 7px 25px rgba(0,0,0,.22);pointer-events:none}.map-runtime-status.show{display:flex}.map-runtime-status.ok{background:rgba(14,107,81,.94)}.map-runtime-status.error{background:rgba(139,45,34,.94)}.map-runtime-status.loading:before{content:"";width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex:0 0 auto}
 .compare-control{position:absolute;right:12px;top:12px;z-index:1300;display:none;align-items:center;gap:5px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:9px;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,.12)}.compare-control.show{display:flex}.compare-control button{border:0;border-radius:6px;padding:6px 8px;background:#fff;font-size:9px;font-weight:800;cursor:pointer;color:var(--text)}.compare-control .compare-main{background:#fff5e8;color:#8a4c00}.compare-control .compare-main.off{background:#f1f3f5;color:#687583}.compare-control .compare-clear{border-left:1px solid var(--line);border-radius:0 6px 6px 0;color:#8b2d22}
 .parcel-locator-wrapper{background:transparent;border:0}.parcel-locator{--locator-size:34px;width:var(--locator-size);height:var(--locator-size);margin-left:calc(var(--locator-size) / -2);margin-top:calc(var(--locator-size) / -2);border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.96);border:3px solid #e33737;box-shadow:0 0 0 4px rgba(227,55,55,.18),0 5px 18px rgba(0,0,0,.3);transition:width .16s,height .16s,margin .16s,opacity .16s;animation:parcelPulse 1.6s ease-out infinite}.parcel-locator:before{content:"";width:32%;height:32%;border-radius:50%;background:#e33737}.parcel-locator-label{position:absolute;left:50%;top:calc(var(--locator-size) + 5px);transform:translateX(-50%);background:#17212b;color:#fff;border-radius:5px;padding:3px 5px;font:800 8px/1 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.24)}@keyframes parcelPulse{0%{box-shadow:0 0 0 0 rgba(227,55,55,.38),0 5px 18px rgba(0,0,0,.3)}70%{box-shadow:0 0 0 12px rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}100%{box-shadow:0 0 0 0 rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}}
@@ -75,6 +77,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 .legend-window{position:fixed;right:20px;top:86px;z-index:5100;width:min(400px,calc(100vw - 28px));max-height:min(78vh,720px);display:none}.legend-window.open{display:block}.legend-window .modal-card{width:100%;max-height:min(78vh,720px);overflow:auto;border:1px solid #cfd8e1;border-radius:12px;background:#fff;box-shadow:0 16px 50px rgba(0,0,0,.25)}.legend-window .modal-head{position:sticky;top:0;z-index:2;background:#fff;cursor:move;user-select:none;touch-action:none}.legend-drag-hint{margin-left:auto;margin-right:8px;font-size:8px;color:var(--muted);font-weight:700}.legend-window .modal-body{padding:12px}.legend-window.dragging{opacity:.96}.legend-window.dragging .modal-card{box-shadow:0 22px 65px rgba(0,0,0,.32)}
 .session-compare-note{font-size:9px;color:#7b4b0b;background:#fff7eb;border:1px solid #f0d2a6;border-radius:7px;padding:7px;margin:7px 0;line-height:1.45}
 @media(max-width:820px){.compare-control{top:54px;right:8px}.map-runtime-status{top:54px;max-width:calc(100% - 20px)}.legend-window{left:8px!important;right:8px!important;top:70px!important;width:auto;max-height:72vh}.legend-drag-hint{display:none}}
+@media(max-width:820px){.poi-accordion-grid{grid-template-columns:1fr}.poi-accordion-grid .poi-section.open{grid-column:auto}.poi-route-buttons{grid-template-columns:1fr}}
 
 </style>
 </head>
@@ -158,8 +161,14 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
           </select>
           <button class="primary" id="poi-btn" disabled>Yakın Yerleri Bul</button>
         </div>
-        <div class="hint">Sonuçlar kategori başlıkları altında kapalı tutulur. Kategoriye tıklayınca liste açılır; tekrar tıklayınca kapanır. Sonuçlar parsel sınırına olan gerçek kuş uçuşu mesafesine göre sıralanır. İkona veya liste satırına tıklayınca parsel merkezinden çizgi ve Google Maps yol tarifi açılır.</div>
+        <div class="hint">Her kategori tek bir akordeon başlığında gösterilir; başlık kapalıyken sonuç sayısı görünür. Liste içindeki kutulardan en fazla 5 nokta seçip Google Maps’e gitmeden yol rotalarını doğrudan Kadastro360 haritasında çizebilirsiniz. Liste satırına tıklamak yalnızca noktayı odaklar ve kuş uçuşu bilgisini gösterir.</div>
         <a class="link-btn google-poi-link disabled" id="google-poi-link" target="_blank" rel="noopener">Google Maps’te Seçili Türü Ara <span>↗</span></a>
+        <div class="poi-route-planner" id="poi-route-planner" hidden>
+          <div class="poi-route-head"><div class="poi-route-title">Seçili noktalara yol rotası</div><div class="poi-route-count" id="route-selection-count">0 / 5 seçili</div></div>
+          <div class="poi-route-note">Rotalar parsel merkezinden seçtiğiniz noktalara ayrı ayrı çizilir. Böylece ekran görüntüsünde yol mesafesi ve tahmini sürüş süresi karşılaştırılabilir.</div>
+          <div class="poi-route-buttons"><button type="button" class="primary-route" id="route-draw-btn" disabled>Seçili Rotaları Çiz</button><button type="button" id="route-clear-btn" disabled>Seçimleri / Rotaları Temizle</button></div>
+          <div class="route-results" id="route-results"></div>
+        </div>
         <div class="poi-progress" id="poi-progress"></div>
         <div id="poi-output"><div class="empty"><div class="big">📍</div>Önce bir parsel sorgulayın.</div></div>
       </section>
@@ -267,6 +276,7 @@ const store = {
   map:null, parcelLayer:null, parcelHaloLayer:null, parcelFeature:null, parcelCenter:null,
   parcelLocator:null, parcelFocusZoom:null, comparisonGroup:null, comparisonVisible:true, comparisonItems:[],
   poiGroup:null, poiMarkers:new Map(), selectedLine:null, selectedLabel:null,
+  routeGroup:null, routeSelection:new Map(), routeLayers:[], routeRequestId:0, routeFocusActive:false,
   poiItems:[], poiSearchMeta:null, requestId:0, poiRequestId:0, account:null, services:null,
   openDataCatalog:null, openDataLayers:new Map(), openDataRequestId:0, openDataInfoBusy:false,
   wmsDiscoveryCache:new Map(), mapActivityTimer:null,
@@ -333,12 +343,16 @@ function applyLayerVisibility(key){
   if(key==='terrain') $('terrain-card')?.classList.toggle('panel-hidden',!visible);
   if(key==='poi'){
     putLayer(store.poiGroup,visible);
+    putLayer(store.routeGroup,visible);
     putLayer(store.selectedLine,visible);
     putLayer(store.selectedLabel,visible);
   }
   if(key==='tucbs') $('tucbs-box')?.classList.toggle('panel-hidden',!visible);
   if(key==='openData'){
-    for(const {layer} of store.openDataLayers.values()) putLayer(layer,visible);
+    for(const row of store.openDataLayers.values()){
+      putLayer(row.layer,visible);
+      if(visible) row.refresh?.(true);
+    }
     updateOpenDataMapBadge();
   }
   if(visible&&key==='parcel') bringParcelToFront();
@@ -874,6 +888,72 @@ async function createDirectWmsLayer(item,statusNode){
   throw new Error(`${lastMessage} Hiçbir boş/şeffaf görüntü katman olarak eklenmedi.`);
 }
 
+function expandedMapBounds(bounds,factor=.55){
+  const sw=bounds.getSouthWest(),ne=bounds.getNorthEast();
+  const latPad=(ne.lat-sw.lat)*factor,lngPad=(ne.lng-sw.lng)*factor;
+  return L.latLngBounds([sw.lat-latPad,sw.lng-lngPad],[ne.lat+latPad,ne.lng+lngPad]);
+}
+
+function wmsViewportRequest(item,attempt,bounds){
+  const size=store.map.getSize();
+  const sw=L.CRS.EPSG3857.project(bounds.getSouthWest()),ne=L.CRS.EPSG3857.project(bounds.getNorthEast());
+  const projectedWidth=Math.max(1,Math.abs(ne.x-sw.x)),projectedHeight=Math.max(1,Math.abs(ne.y-sw.y));
+  const width=Math.max(900,Math.min(1800,Math.round(size.x*1.35)));
+  const height=Math.max(600,Math.min(1700,Math.round(width*(projectedHeight/projectedWidth))));
+  const url=new URL(item.wms.baseUrl);
+  const params={SERVICE:'WMS',REQUEST:'GetMap',VERSION:attempt.version,LAYERS:attempt.layerName,STYLES:String(attempt.layerName).split(',').map(()=>'').join(','),FORMAT:'image/png',TRANSPARENT:'TRUE',WIDTH:String(width),HEIGHT:String(height),BBOX:[sw.x,sw.y,ne.x,ne.y].join(',')};
+  if(attempt.version==='1.3.0')params.CRS='EPSG:3857';else params.SRS='EPSG:3857';
+  Object.entries(params).forEach(([key,value])=>url.searchParams.set(key,value));
+  return {url:url.toString(),bounds,width,height};
+}
+
+function createDynamicWmsController(item,attempt,initial){
+  const group=L.layerGroup(),state={overlay:null,objectUrl:null,bounds:initial.bounds,busy:false,pending:false,disposed:false,timer:null};
+  group.addLayer(initial.layer);state.overlay=initial.layer;state.objectUrl=initial.objectUrl;
+  const containsView=()=>state.bounds?.contains?.(store.map.getBounds());
+  const refresh=async(force=false)=>{
+    if(state.disposed||state.busy||!store.visibility.openData||!layerOnMap(group)) return;
+    if(!force&&containsView()) return;
+    state.busy=true;state.overlay?.getElement?.()?.classList.add('pending');
+    try{
+      const request=wmsViewportRequest(item,attempt,expandedMapBounds(store.map.getBounds()));
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),22000);
+      let objectUrl='';
+      try{
+        const response=await fetch(request.url,{signal:controller.signal,cache:'force-cache',headers:{Accept:'image/png,image/*;q=.9,*/*;q=.5'}});
+        if(!response.ok) throw new Error(`GetMap HTTP ${response.status}`);
+        const blob=await response.blob();
+        if(!String(response.headers.get('content-type')||'').includes('image')&&blob.size<2000) throw new Error('WMS görüntü yerine servis hatası döndürdü.');
+        objectUrl=URL.createObjectURL(blob);
+        const overlay=L.imageOverlay(objectUrl,request.bounds,{opacity:item.category==='ortho'?.9:.82,pane:'openDataPane',interactive:false,className:'open-data-static-image open-data-refreshing'});
+        await new Promise((resolve,reject)=>{const img=new Image();img.onload=resolve;img.onerror=()=>reject(new Error('WMS görüntüsü açılamadı.'));img.src=objectUrl;});
+        if(state.disposed){URL.revokeObjectURL(objectUrl);return;}
+        group.addLayer(overlay);
+        const oldOverlay=state.overlay,oldUrl=state.objectUrl;
+        state.overlay=overlay;state.objectUrl=objectUrl;state.bounds=request.bounds;
+        if(oldOverlay)group.removeLayer(oldOverlay);
+        if(oldUrl)URL.revokeObjectURL(oldUrl);
+        bringParcelToFront();
+      }catch(error){if(objectUrl)URL.revokeObjectURL(objectUrl);throw error;}
+      finally{clearTimeout(timer);}
+    }catch(error){console.warn('[WMS görünüm güncelleme]',error?.name==='AbortError'?'WMS görünüm güncellemesi zaman aşımına uğradı.':humanError(error));}
+    finally{state.busy=false;state.overlay?.getElement?.()?.classList.remove('pending');if(state.pending){state.pending=false;schedule(true);}}
+  };
+  const schedule=(force=false)=>{
+    if(state.disposed)return;
+    clearTimeout(state.timer);
+    state.timer=setTimeout(()=>{if(state.busy){state.pending=true;return;}refresh(force);},320);
+  };
+  const dispose=()=>{state.disposed=true;clearTimeout(state.timer);if(state.objectUrl)URL.revokeObjectURL(state.objectUrl);};
+  group._k360Refresh=schedule;group._k360Dispose=dispose;group._k360Coverage=()=>state.bounds;
+  return {layer:group,dispose,refresh:schedule};
+}
+
+function refreshDynamicOpenDataLayers(force=false){
+  for(const row of store.openDataLayers.values()) row.refresh?.(force);
+}
+
 async function toggleOpenDataLayer(itemId,button){
   const item=store.openDataCatalog?.items?.find(row=>row.id===itemId);if(!item)return;
   const existing=store.openDataLayers.get(itemId),card=button.closest('.open-data-card'),statusNode=card?.querySelector('.open-data-load-status');
@@ -890,7 +970,8 @@ async function toggleOpenDataLayer(itemId,button){
     let row;
     if(item.type==='wms'){
       const buffered=await createBufferedWmsLayer(item,statusNode);
-      row={layer:buffered.layer,item,visualVerified:true,objectUrl:buffered.objectUrl,bounds:buffered.bounds,attempt:buffered.attempt};
+      const dynamic=createDynamicWmsController(item,buffered.attempt,buffered);
+      row={layer:dynamic.layer,item,visualVerified:true,bounds:buffered.bounds,attempt:buffered.attempt,dispose:dynamic.dispose,refresh:dynamic.refresh};
     }else if(item.type==='geojson'){
       showMapActivity('Açık veri katmanı yükleniyor · Harita konumu korunuyor','loading');
       const geojson=await api(`/open-data/geojson?token=${encodeURIComponent(item.resourceToken)}`,{},30000);
@@ -898,13 +979,13 @@ async function toggleOpenDataLayer(itemId,button){
       row={layer,item,visualVerified:true,bounds:layer.getBounds?.()};
     }else return;
     store.openDataLayers.set(itemId,row);
-    setLayerVisibility('openData',true);putLayer(row.layer,true);bringParcelToFront();updateParcelLocator();
+    setLayerVisibility('openData',true);putLayer(row.layer,true);row.refresh?.(true);bringParcelToFront();updateParcelLocator();
     card?.classList.add('active');button.textContent='Haritadan Kaldır';button.classList.add('remove');
     if(statusNode){
       statusNode.className='open-data-load-status notice ok';
-      statusNode.innerHTML=item.type==='wms'?'Plan görüntüsü tek seferde önbelleğe alındı. Haritayı yakınlaştırıp uzaklaştırırken yeniden indirme yapılmaz; mevcut konum korunur.<div class="scale-note">Parsel sınırı beyaz çerçeve ve yeşil çizgiyle üstte; uzakta kırmızı hedef işaretiyle gösterilir.</div>':'Katman yüklendi; mevcut harita konumu korundu.';
+      statusNode.innerHTML=item.type==='wms'?'Plan görüntüsü doğrulandı. Harita taşındığında görünür alan arka planda güncellenir; eski görüntü yenisi hazır olana kadar korunur.<div class="scale-note">Parsel sınırı beyaz çerçeve ve yeşil çizgiyle üstte; uzakta kırmızı hedef işaretiyle gösterilir.</div>':'Katman yüklendi; mevcut harita konumu korundu.';
     }
-    updateOpenDataMapBadge();showMapActivity('Katman hazır · Yakınlaştırma artık anlık','ok',2600);
+    updateOpenDataMapBadge();showMapActivity('Katman hazır · Görünür alan dinamik güncellenir','ok',2600);
   }catch(error){
     button.textContent=old;showMapActivity(`Katman yüklenemedi: ${humanError(error)}`,'error',4200);
     if(statusNode){statusNode.className='open-data-load-status notice error';statusNode.textContent=`Katman eklenmedi: ${humanError(error)} Kaynak sayfası bağlantısı kullanılabilir.`;}
@@ -1144,11 +1225,13 @@ function clearSelectionGraphics(){
 
 function clearPoi(){
   clearSelectionGraphics();
+  clearRoadRoutes(true);
   store.poiItems = [];
   store.poiSearchMeta = null;
   store.poiMarkers.clear();
   store.poiGroup?.clearLayers();
   if($('poi-progress')) $('poi-progress').innerHTML = '';
+  if($('poi-route-planner')) $('poi-route-planner').hidden = true;
   $('poi-output').innerHTML = '<div class="empty"><div class="big">📍</div>Yakın yer araması yapılmadı.</div>';
 }
 
@@ -1423,8 +1506,125 @@ function selectPoi(item, button){
   const routeLink = document.createElement('a'); routeLink.className = 'route-link'; routeLink.target = '_blank'; routeLink.rel = 'noopener'; routeLink.href = route; routeLink.textContent = 'Google Maps Yol Tarifi';
   const pointLink = document.createElement('a'); pointLink.className = 'route-link secondary'; pointLink.target = '_blank'; pointLink.rel = 'noopener'; pointLink.href = point; pointLink.textContent = 'Noktayı Maps’te Aç';
   actions.append(routeLink,pointLink); box.append(title,actions);
-  if(button?.parentNode) button.insertAdjacentElement('afterend',box); else $('poi-output').prepend(box);
+  const anchor=button?.closest('.poi-choice-row')||button;
+  if(anchor?.parentNode) anchor.insertAdjacentElement('afterend',box); else $('poi-output').prepend(box);
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+const ROUTE_COLORS = ['#2463eb','#d1495b','#168a68','#8a4fd3','#e27a18'];
+
+function routeDuration(seconds){
+  const minutes=Math.max(1,Math.round(Number(seconds||0)/60));
+  if(minutes<60) return `${minutes} dk`;
+  const hours=Math.floor(minutes/60),rest=minutes%60;
+  return rest?`${hours} sa ${rest} dk`:`${hours} sa`;
+}
+
+function setRouteMarkerFocus(active){
+  store.routeFocusActive=Boolean(active);
+  for(const [id,marker] of store.poiMarkers.entries()){
+    const selected=store.routeSelection.has(id);
+    marker.setOpacity?.(active && !selected ? 0.16 : 1);
+  }
+}
+
+function updateRoutePlanner(){
+  const planner=$('poi-route-planner'),count=$('route-selection-count'),draw=$('route-draw-btn'),clear=$('route-clear-btn');
+  if(!planner||!count||!draw||!clear) return;
+  planner.hidden=!store.poiItems.length;
+  count.textContent=`${store.routeSelection.size} / 5 seçili`;
+  draw.disabled=store.routeSelection.size===0;
+  clear.disabled=store.routeSelection.size===0&&!store.routeLayers.length;
+  document.querySelectorAll('.poi-choice-row').forEach(row=>row.classList.toggle('route-selected',store.routeSelection.has(row.dataset.poiId)));
+}
+
+function clearRoadRoutes(resetSelection=false){
+  store.routeRequestId++;
+  store.routeGroup?.clearLayers();
+  store.routeLayers=[];
+  setRouteMarkerFocus(false);
+  if(resetSelection){
+    store.routeSelection.clear();
+    document.querySelectorAll('.poi-route-checkbox').forEach(input=>{input.checked=false;});
+  }
+  if($('route-results')) $('route-results').innerHTML='';
+  updateRoutePlanner();
+}
+
+function toggleRouteSelection(item,checked,input){
+  if(checked&&store.routeSelection.size>=5&&!store.routeSelection.has(item.id)){
+    if(input) input.checked=false;
+    setStatus('error','En fazla 5 yakın yer seçebilirsiniz.');
+    return;
+  }
+  if(checked) store.routeSelection.set(item.id,item); else store.routeSelection.delete(item.id);
+  clearRoadRoutes(false);
+  if(input) input.checked=store.routeSelection.has(item.id);
+  updateRoutePlanner();
+}
+
+function routeResultRow(route,index){
+  const item=store.routeSelection.get(route.id)||store.poiItems.find(row=>row.id===route.id)||{};
+  const row=document.createElement('div');row.className='route-result-row';
+  const number=document.createElement('span');number.className='route-result-number';number.style.background=ROUTE_COLORS[index%ROUTE_COLORS.length];number.textContent=String(index+1);
+  const name=document.createElement('span');name.className='route-result-name';name.textContent=`${CATEGORY_ICONS[item.type]||'📍'} ${item.name||'Seçili nokta'}`;
+  const meta=document.createElement('span');meta.className='route-result-meta';meta.textContent=`${formatDistance(route.distance)} · ${routeDuration(route.duration)}`;
+  row.append(number,name,meta);return row;
+}
+
+function routeLatLngs(geometry){
+  if(!geometry||geometry.type!=='LineString'||!Array.isArray(geometry.coordinates)) return [];
+  return geometry.coordinates.map(pair=>[Number(pair[1]),Number(pair[0])]).filter(pair=>Number.isFinite(pair[0])&&Number.isFinite(pair[1]));
+}
+
+async function drawRoadRoutes(){
+  if(!store.parcelCenter||!store.routeSelection.size) return;
+  const requestId=++store.routeRequestId;
+  const button=$('route-draw-btn');button.disabled=true;button.textContent='Rotalar hazırlanıyor…';
+  const selected=[...store.routeSelection.values()];
+  if($('route-results')) $('route-results').innerHTML='<div class="notice info">Yol ağı üzerinden rota hesaplanıyor…</div>';
+  setStatus('loading',`${selected.length} yol rotası hesaplanıyor…`);
+  try{
+    const data=await api('/route',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      origin:{lat:store.parcelCenter.lat,lng:store.parcelCenter.lng},
+      destinations:selected.map(item=>({id:item.id,lat:item.lat,lng:item.lng}))
+    })},45000);
+    if(requestId!==store.routeRequestId) return;
+    store.routeGroup.clearLayers();store.routeLayers=[];
+    const bounds=L.latLngBounds([store.parcelCenter]);
+    const routes=Array.isArray(data.routes)?data.routes:[];
+    const results=$('route-results');results.innerHTML='';
+    routes.forEach((route,index)=>{
+      const color=ROUTE_COLORS[index%ROUTE_COLORS.length],latlngs=routeLatLngs(route.geometry);
+      if(latlngs.length<2) return;
+      latlngs.forEach(point=>bounds.extend(point));
+      const halo=L.polyline(latlngs,{pane:'routePane',color:'#fff',weight:8,opacity:.88,lineJoin:'round'});
+      const line=L.polyline(latlngs,{pane:'routePane',color,weight:4,opacity:.96,lineJoin:'round'});
+      halo.addTo(store.routeGroup);line.addTo(store.routeGroup);
+      const destination=latlngs[latlngs.length-1];
+      const pin=L.marker(destination,{pane:'routePane',interactive:false,icon:L.divIcon({className:'',html:`<div class="route-number-pin" style="background:${color}">${index+1}</div>`,iconSize:[28,28],iconAnchor:[14,14]})});
+      pin.addTo(store.routeGroup);
+      const middle=latlngs[Math.floor(latlngs.length*.55)];
+      const label=L.marker(middle,{pane:'routePane',interactive:false,icon:L.divIcon({className:'',html:`<div class="route-distance-label">${index+1} · ${formatDistance(route.distance)} · ${routeDuration(route.duration)}</div>`,iconSize:null,iconAnchor:[0,18]})});
+      label.addTo(store.routeGroup);
+      store.routeLayers.push({halo,line,pin,label});
+      results.appendChild(routeResultRow(route,index));
+    });
+    if(Array.isArray(data.failed)&&data.failed.length){
+      const warning=document.createElement('div');warning.className='notice warn';warning.textContent=`${data.failed.length} nokta için yol rotası alınamadı; başarılı rotalar gösterildi.`;results.appendChild(warning);
+    }
+    putLayer(store.routeGroup,store.visibility.poi);
+    setRouteMarkerFocus(true);
+    bringParcelToFront();
+    if(bounds.isValid()) store.map.fitBounds(bounds,{padding:[45,45],maxZoom:15});
+    setStatus(routes.length?'ok':'error',routes.length?`${routes.length} yol rotası haritada gösterildi.`:'Yol rotası alınamadı.');
+  }catch(error){
+    if(requestId!==store.routeRequestId) return;
+    setStatus('error',humanError(error));
+    if($('route-results')) $('route-results').innerHTML=`<div class="notice error">${escapeHtml(humanError(error))} Sahte rota çizilmedi.</div>`;
+  }finally{
+    button.disabled=store.routeSelection.size===0;button.textContent='Seçili Rotaları Çiz';updateRoutePlanner();
+  }
 }
 
 function progressText(state){
@@ -1524,6 +1724,10 @@ function createPoiButton(item, mapBounds){
   const marker = L.marker([item.lat,item.lng],{icon:markerIcon(item),title:item.name}).bindPopup(popup).bindTooltip(item.name,{direction:'top',offset:[0,-12]});
   marker.addTo(store.poiGroup); store.poiMarkers.set(item.id,marker); mapBounds.extend([item.lat,item.lng]);
 
+  const row=document.createElement('div');row.className='poi-choice-row';row.dataset.poiId=item.id;
+  const checkLabel=document.createElement('label');checkLabel.className='poi-route-check';checkLabel.title='Yol rotasına ekle';
+  const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.className='poi-route-checkbox';checkbox.checked=store.routeSelection.has(item.id);checkbox.setAttribute('aria-label',`${item.name} yol rotasına ekle`);
+  checkLabel.appendChild(checkbox);
   const button = document.createElement('button'); button.className = 'poi-item'; button.dataset.poiId = item.id;
   const top = document.createElement('div'); top.className = 'poi-top';
   const name = document.createElement('div'); name.className = 'poi-name'; name.textContent = `${CATEGORY_ICONS[item.type] || '📍'} ${item.name}`;
@@ -1537,8 +1741,11 @@ function createPoiButton(item, mapBounds){
   quality.textContent = `${item.isUnnamed ? 'İsimsiz kayıt · ' : ''}Tespit güveni: ${item.confidence || 'Belirtilmedi'}`;
   button.append(top,sub,quality);
   button.addEventListener('click',() => selectPoi(item,button));
+  checkbox.addEventListener('change',event=>{event.stopPropagation();toggleRouteSelection(item,checkbox.checked,checkbox);});
+  checkLabel.addEventListener('click',event=>event.stopPropagation());
   marker.on('click',() => selectPoi(item,button));
-  return button;
+  row.append(checkLabel,button);row.classList.toggle('route-selected',checkbox.checked);
+  return row;
 }
 
 function renderPoiResults(items, context = {}){
@@ -1548,6 +1755,9 @@ function renderPoiResults(items, context = {}){
   store.poiItems = items;
   store.poiSearchMeta = context;
   const output = $('poi-output'); output.innerHTML = '';
+  if($('poi-progress')) $('poi-progress').innerHTML='';
+  store.routeSelection.clear();
+  clearRoadRoutes(false);
   const states = context.states || {};
   const failed = Object.entries(states).filter(([,value]) => value.state === 'failed').map(([key]) => CATEGORY_NAMES[key]);
   const empty = Object.entries(states).filter(([,value]) => value.state === 'empty').map(([key]) => CATEGORY_NAMES[key]);
@@ -1555,6 +1765,7 @@ function renderPoiResults(items, context = {}){
   if(!items.length){
     const details = failed.length ? ` Yanıt alınamayan türler: ${failed.join(', ')}.` : '';
     output.innerHTML = `<div class="notice warn">Kayıtlı yakın yer bulunamadı.${details} Sahte sonuç eklenmedi. Yukarıdaki Google Maps bağlantısı seçili türü parsel koordinatında açar.</div>`;
+    if($('poi-route-planner')) $('poi-route-planner').hidden=true;
     setStatus(failed.length ? 'error' : 'ok','Yakın yer kaydı bulunamadı.');
     return;
   }
@@ -1576,11 +1787,12 @@ function renderPoiResults(items, context = {}){
   const parcelBounds = store.parcelLayer?.getBounds();
   const mapBounds = parcelBounds?.isValid() ? parcelBounds : L.latLngBounds([store.parcelCenter]);
 
+  const accordionGrid=document.createElement('div');accordionGrid.className='poi-accordion-grid';
   if(context.all){
     for(const category of PRIORITY_CATEGORIES){
       const state = states[category] || {};
       const categoryItems = items.filter(item => item.type === category).sort((a,b) => a.distance-b.distance || a.centerDistance-b.centerDistance);
-      const countText = state.state === 'failed' ? 'servis yanıt vermedi' : `${counts[category] || 0} sonuç`;
+      const countText = state.state === 'failed' ? 'servis yanıt vermedi' : `${counts[category] || 0} adet`;
       const {section,body} = createPoiSection(category,countText,false);
       if(categoryItems.length){
         const list = document.createElement('div'); list.className = 'poi-list';
@@ -1591,19 +1803,21 @@ function renderPoiResults(items, context = {}){
         note.textContent = state.state === 'failed' ? 'Bu kategori için servis yanıt vermedi.' : 'Seçilen tarama içinde kayıt bulunamadı.';
         body.appendChild(note);
       }
-      output.appendChild(section);
+      accordionGrid.appendChild(section);
     }
   }else{
     const sortedItems = items.sort((a,b) => a.distance-b.distance || a.centerDistance-b.centerDistance);
-    const {section,body} = createPoiSection(context.category,`${sortedItems.length} sonuç`,true);
+    const {section,body} = createPoiSection(context.category,`${sortedItems.length} adet`,true);
     const list = document.createElement('div'); list.className = 'poi-list';
     for(const item of sortedItems) list.appendChild(createPoiButton(item,mapBounds));
     body.appendChild(list);
-    output.appendChild(section);
+    accordionGrid.appendChild(section);
   }
+  output.appendChild(accordionGrid);
+  updateRoutePlanner();
 
   if(mapBounds.isValid()) store.map.fitBounds(mapBounds,{padding:[55,55],maxZoom:15});
-  setStatus('ok',`${items.length} yakın yer listelendi. Bir satıra tıklayarak kuş uçuşu çizgisini ve Google Maps bağlantısını açın.`);
+  setStatus('ok',`${items.length} yakın yer listelendi. Akordeondan en fazla 5 nokta seçip yol rotalarını haritada çizebilirsiniz.`);
 }
 
 async function searchPoi(){
@@ -1776,15 +1990,17 @@ function escapeHtml(text){
 
 async function init(){
   store.map = L.map('map',{zoomControl:true}).setView([39.0,35.0],6);
-  for(const [name,zIndex] of [['openDataPane',330],['comparisonPane',510],['parcelHaloPane',620],['parcelPane',630],['locatorPane',645]]){const pane=store.map.createPane(name);pane.style.zIndex=String(zIndex);}
+  for(const [name,zIndex] of [['openDataPane',330],['comparisonPane',510],['routePane',570],['parcelHaloPane',620],['parcelPane',630],['locatorPane',645]]){const pane=store.map.createPane(name);pane.style.zIndex=String(zIndex);}
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:20,attribution:'© OpenStreetMap contributors'}).addTo(store.map);
   store.poiGroup = L.layerGroup();
+  store.routeGroup = L.layerGroup();
   store.comparisonGroup=L.layerGroup({pane:'comparisonPane'});
-  putLayer(store.poiGroup,true);putLayer(store.comparisonGroup,true);
+  putLayer(store.poiGroup,true);putLayer(store.routeGroup,true);putLayer(store.comparisonGroup,true);
   store.map.on('click',queryOpenDataFeatureInfo);
-  const handleMapViewChange=()=>{updateParcelLocator();bringParcelToFront();};
-  store.map.on('zoomend',handleMapViewChange);
-  store.map.on('moveend',handleMapViewChange);
+  const handleMapMove=()=>{updateParcelLocator();bringParcelToFront();refreshDynamicOpenDataLayers(false);};
+  const handleMapZoom=()=>{updateParcelLocator();bringParcelToFront();refreshDynamicOpenDataLayers(true);};
+  store.map.on('zoomend',handleMapZoom);
+  store.map.on('moveend',handleMapMove);
 
   document.querySelectorAll('.service-chip[data-layer-toggle]').forEach(chip=>chip.addEventListener('click',()=>toggleLayerVisibility(chip.dataset.layerToggle)));
   Object.keys(store.visibility).forEach(updateLayerControl);
@@ -1810,6 +2026,8 @@ async function init(){
   $('search-btn').addEventListener('click',searchParcel);
   $('poi-category').addEventListener('change',updateGooglePoiLink);
   $('poi-btn').addEventListener('click',searchPoi);
+  $('route-draw-btn').addEventListener('click',drawRoadRoutes);
+  $('route-clear-btn').addEventListener('click',()=>clearRoadRoutes(true));
   ['ada','parsel'].forEach(id => $(id).addEventListener('keydown',event => { if(event.key === 'Enter') searchParcel(); }));
 
   loadAccount();

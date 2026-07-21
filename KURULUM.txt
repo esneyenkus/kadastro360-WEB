@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.6.0
+KADASTRO360 WEB PILOT v1.7.0
 
 YEREL KURULUM
 1. Node.js 22 kurun.
@@ -13,7 +13,7 @@ RENDER GÜNCELLEME
 - Eski dosyaların üzerine yazılmasına izin verin.
 - Özellikle server.js, index.html, tkgm-client.js, package.json, package-lock.json ve render.yaml değişmelidir.
 - Render > Blueprint > Manual sync çalıştırın.
-- Dağıtım tamamlanınca /api/health sonucunda version değerinin 1.6.0 olduğunu kontrol edin.
+- Dağıtım tamamlanınca /api/health sonucunda version değerinin 1.7.0 olduğunu kontrol edin.
 - TEST_PASSWORD için güçlü ve yeni bir parola belirleyin.
 - SESSION_SECRET uzun ve rastgele olmalıdır.
 
@@ -25,4 +25,8 @@ VERİ KLASÖRÜ
 
 KONTROL
 - npm run check komutu hem statik testleri hem TKGM il → ilçe → mahalle → parsel regresyon testini çalıştırır.
-- Başarılı sonuçta iki ayrı “doğrulama geçti” mesajı görülür.
+- Başarılı sonuçta statik/açık veri, TKGM regresyonu ve yol rotası için üç ayrı “doğrulama geçti” mesajı görülür.
+
+YOL ROTASI
+- Pilot varsayılanı: ROUTING_BASE_URL=https://router.project-osrm.org
+- Üretimde bu değer kendi OSRM sunucusuna yönlendirilebilir.

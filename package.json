@@ -1,12 +1,12 @@
 {
   "name": "kadastro360-web-pilot",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
-  "description": "Kadastro360 canlı veri web pilotu; hızlı tek-görüntü açık plan önbelleği, parsel hedefi ve aynı-mahalle karşılaştırması",
+  "description": "Kadastro360 canlı veri web pilotu; seçilebilir yol rotaları, tek akordeon yakın yer listesi ve dinamik açık veri kapsamı",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check tkgm-client.js && node --check account-store.js && node --check terrain.js && node --check endeksa-utils.js && node --check open-data.js && node --check test-pilot.js && node --check test-tkgm-regression.js && node test-pilot.js && node test-tkgm-regression.js"
+    "check": "node --check server.js && node --check tkgm-client.js && node --check account-store.js && node --check terrain.js && node --check endeksa-utils.js && node --check open-data.js && node --check test-pilot.js && node --check test-tkgm-regression.js && node --check test-route.js && node test-pilot.js && node test-tkgm-regression.js && node test-route.js"
   },
   "engines": {
     "node": "22.x"

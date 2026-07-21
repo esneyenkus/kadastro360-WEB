@@ -20,6 +20,7 @@ const COOKIE_SECURE = process.env.COOKIE_SECURE !== '0';
 const ROOT = __dirname;
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const DEFAULT_DAILY_QUOTA = Math.max(1, Number(process.env.DEFAULT_DAILY_QUOTA) || 20);
+const ROUTING_BASE_URL = String(process.env.ROUTING_BASE_URL || 'https://router.project-osrm.org').replace(/\/$/, '');
 const accounts = new AccountStore({
   dataDir: DATA_DIR,
   adminUsername: TEST_USERNAME,
@@ -31,6 +32,7 @@ const serviceHealth = {
   tkgm: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz kontrol edilmedi.' },
   terrain: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz kontrol edilmedi.' },
   overpass: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz kontrol edilmedi.' },
+  routing: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz yol rotası hesaplanmadı.' },
   tucbs: { status: 'external', lastSuccessAt: null, lastErrorAt: null, message: 'e-Devlet oturumu gerektiren dış platform.' },
   openData: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Kullanıcı isteğiyle kontrol edilir.' }
 };
@@ -45,7 +47,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.6.0'
+  userAgent: 'Kadastro360-Web-Pilot/1.7.0'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -277,6 +279,70 @@ async function getElevation(locations) {
     throw new Error('Eğim servisi geçerli sonuç döndürmedi.');
   }
   return { source: 'Open-Elevation', results: fallback.results };
+}
+
+function validRoutePoint(value) {
+  const lat = Number(value?.lat);
+  const lng = Number(value?.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  return { lat, lng };
+}
+
+function normalizeRouteRequest(body = {}) {
+  const origin = validRoutePoint(body.origin);
+  const rows = Array.isArray(body.destinations) ? body.destinations : [];
+  if (!origin) throw Object.assign(new Error('Geçerli parsel başlangıç koordinatı gereklidir.'), { httpStatus: 400 });
+  if (!rows.length || rows.length > 5) throw Object.assign(new Error('Yol rotası için 1-5 arasında hedef seçilmelidir.'), { httpStatus: 400 });
+  const destinations = rows.map((row, index) => {
+    const point = validRoutePoint(row);
+    if (!point) throw Object.assign(new Error(`${index + 1}. hedef koordinatı geçersiz.`), { httpStatus: 400 });
+    return { id: String(row.id || index + 1).slice(0, 160), ...point };
+  });
+  return { origin, destinations };
+}
+
+function routeCacheKey(origin, destination) {
+  const rounded = value => Number(value).toFixed(5);
+  return `road:${rounded(origin.lat)},${rounded(origin.lng)}:${rounded(destination.lat)},${rounded(destination.lng)}`;
+}
+
+async function routeOne(origin, destination) {
+  return cached(routeCacheKey(origin, destination), 30 * 60_000, async () => {
+    const coordinates = `${origin.lng},${origin.lat};${destination.lng},${destination.lat}`;
+    const url = new URL(`${ROUTING_BASE_URL}/route/v1/driving/${coordinates}`);
+    url.searchParams.set('alternatives', 'false');
+    url.searchParams.set('steps', 'false');
+    url.searchParams.set('overview', 'full');
+    url.searchParams.set('geometries', 'geojson');
+    const payload = await fetchJson(url.toString(), {
+      headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.7.0', Accept: 'application/json' }
+    }, 22_000);
+    if (payload?.code !== 'Ok' || !Array.isArray(payload.routes) || !payload.routes[0]?.geometry) {
+      throw new Error(payload?.message || 'Yol rotası servisi geçerli rota döndürmedi.');
+    }
+    const route = payload.routes[0];
+    return {
+      id: destination.id,
+      distance: Number(route.distance) || 0,
+      duration: Number(route.duration) || 0,
+      geometry: route.geometry,
+      provider: 'OSRM / OpenStreetMap yol ağı'
+    };
+  });
+}
+
+async function getRoadRoutes(body) {
+  const { origin, destinations } = normalizeRouteRequest(body);
+  const settled = await mapLimit(destinations, 2, async destination => {
+    try { return { ok: true, route: await routeOne(origin, destination) }; }
+    catch (error) { return { ok: false, id: destination.id, error: error?.message || 'Rota alınamadı.' }; }
+  });
+  return {
+    origin,
+    routes: settled.filter(row => row.ok).map(row => row.route),
+    failed: settled.filter(row => !row.ok).map(row => ({ id: row.id, error: row.error })),
+    provider: 'OSRM / OpenStreetMap yol ağı'
+  };
 }
 
 const CATEGORY_LABELS = {
@@ -1074,7 +1140,7 @@ function requestAllowed(req, pathname) {
   const ip = forwarded || req.socket.remoteAddress || 'unknown';
   const now = Date.now();
   const windowMs = 60_000;
-  const limit = pathname === '/api/poi' || pathname === '/api/terrain-analysis' ? 20 : 120;
+  const limit = pathname === '/api/poi' || pathname === '/api/terrain-analysis' || pathname === '/api/route' ? 20 : 120;
   const key = `${ip}:${pathname}`;
   const current = requestWindows.get(key);
   if (!current || current.resetAt <= now) {
@@ -1096,7 +1162,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.6.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.7.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
@@ -1341,6 +1407,15 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, result);
     }
 
+    if (req.method === 'POST' && pathname === '/api/route') {
+      const body = await readJsonBody(req, 100_000);
+      const result = await getRoadRoutes(body);
+      const ok = result.routes.length > 0;
+      markService('routing', ok, ok ? `${result.routes.length} yol rotası hesaplandı.` : 'Yol rotası alınamadı.');
+      if (!ok) throw new Error(result.failed[0]?.error || 'Yol rotası alınamadı.');
+      return sendJson(res, 200, result);
+    }
+
     if (req.method === 'POST' && pathname === '/api/poi') {
       const body = await readJsonBody(req);
       const lat = Number(body.lat);
@@ -1369,6 +1444,7 @@ const server = http.createServer(async (req, res) => {
     if (/\/api\/(iller|ilceler|mahalleler|idari\/|parsel(?:-sorgu)?)/.test(pathname)) markService('tkgm', false, message);
     if (/\/api\/(elevation|terrain-analysis)/.test(pathname)) markService('terrain', false, message);
     if (pathname === '/api/poi') markService('overpass', false, message);
+    if (pathname === '/api/route') markService('routing', false, message);
     if (pathname.startsWith('/api/open-data/')) markService('openData', false, message);
     const upstream = /TKGM|yakın yer|eğim|HTTP|zaman aşımı/i.test(message);
     const status = Number(error?.httpStatus) || (upstream ? 502 : 500);
@@ -1402,5 +1478,8 @@ module.exports = {
   itemFromElement,
   distanceToGeometry,
   limitBalanced,
-  haversine
+  haversine,
+  validRoutePoint,
+  normalizeRouteRequest,
+  getRoadRoutes
 };

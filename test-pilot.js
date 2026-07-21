@@ -26,6 +26,7 @@ const { PNG } = require('pngjs');
     /pathname === '\/api\/parsel-sorgu'/,
     /pathname === '\/api\/terrain-analysis'/,
     /pathname === '\/api\/poi'/,
+    /pathname === '\/api\/route'/,
     /pathname === '\/api\/services'/,
     /pathname === '\/api\/history'/,
     /pathname === '\/api\/admin\/users'/,
@@ -45,7 +46,7 @@ const { PNG } = require('pngjs');
   assert(!/Math\.random\s*\(/.test(allCode), 'Uygulama kodunda rastgele veri üretimi bulunmamalı.');
   assert(!/mockData\s*:\s*true/.test(server + html), 'Mock veri açık olmamalı.');
   assert(server.includes("dataMode: 'live-only'"), 'Canlı veri modu belirtilmemiş.');
-  assert(server.includes("version: '1.6.0'"), 'Sunucu sürümü 1.6.0 değil.');
+  assert(server.includes("version: '1.7.0'"), 'Sunucu sürümü 1.7.0 değil.');
   assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
 
   assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
@@ -70,11 +71,14 @@ const { PNG } = require('pngjs');
   assert(html.includes('22.01.2026') && html.includes('RGB 255/250/38'), 'Resmî 2026 ÇDP renk rehberi eksik.');
   assert(!html.includes('Renk Lejantı ↗'), 'Teknik GetLegendGraphic bağlantısı kullanıcı ekranında görünmemeli.');
 
-  assert(html.includes('createBufferedWmsLayer') && html.includes('L.imageOverlay'), 'Tek-görüntü WMS önbelleği eksik.');
-  assert(html.includes('Harita konumu korunuyor') && html.includes('yeniden indirme yapılmaz'), 'Açık veri performans açıklaması eksik.');
+  assert(html.includes('createBufferedWmsLayer') && html.includes('createDynamicWmsController') && html.includes('refreshDynamicOpenDataLayers'), 'Dinamik WMS kapsam güncellemesi eksik.');
+  assert(html.includes('Harita konumu korunuyor') && html.includes('görünür alan arka planda güncellenir'), 'Açık veri dinamik güncelleme açıklaması eksik.');
   assert(html.includes('parcel-locator') && html.includes('updateParcelLocator'), 'Parsel hedef animasyonu eksik.');
   assert(html.includes('sessionStorage') && html.includes('renderNeighborhoodComparisons'), 'Aynı mahalle geçici karşılaştırma önbelleği eksik.');
   assert(html.includes('parcelHaloPane') && html.includes('bringParcelToFront'), 'Parsel üst görünürlük katmanı eksik.');
+  assert(html.includes('id="poi-route-planner"') && html.includes('route-draw-btn') && html.includes('poi-route-checkbox'), 'Seçilebilir yakın yer rota arayüzü eksik.');
+  assert(html.includes('drawRoadRoutes') && html.includes("api('/route'") && html.includes('routePane'), 'Harita içi yol rotası çizimi eksik.');
+  assert(html.includes('poi-accordion-grid') && html.includes('adet'), 'Tek akordeon kategori listesi eksik.');
 
   assert(admin.includes('Yeni kullanıcı') && account.includes('CREATE TABLE IF NOT EXISTS users'), 'Kullanıcı yönetimi eksik.');
   assert(html.includes('örnek, sanal veya tahmini parsel/yakın yer sonucu üretmez'), 'Canlı veri ilkesi görünmüyor.');
@@ -103,7 +107,7 @@ const { PNG } = require('pngjs');
   assert(ysk?.wms?.loadMode === 'browser-direct', 'WMS tarayıcıdan doğrudan yükleme modunda değil.');
   assert(catalog.wmsLoadMode === 'browser-direct', 'Katalog WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.6.0 statik ve açık veri doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.7.0 statik, rota ve açık veri doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

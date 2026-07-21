@@ -1,14 +1,20 @@
-KADASTRO360 WEB PILOT v1.6.0 DOĞRULAMA RAPORU
+KADASTRO360 WEB PILOT v1.7.0 DOĞRULAMA RAPORU
 
-Kontroller:
-- JavaScript ve Node.js sözdizimi
-- TKGM il-ilçe-mahalle-parsel regresyon testleri
-- Tek-görüntü WMS önbellek kodu
-- Harita konumunun açık veri eklenirken korunması
-- Parsel hedef işareti ve üst katman sırası
-- Aynı mahalle sessionStorage karşılaştırma önbelleği
-- Taşınabilir, arka planı matlaştırmayan renk rehberi
-- Boş/şeffaf WMS güvenlik denetimi
+Çalıştırılan kontroller:
+- Node.js ve tarayıcı içi JavaScript sözdizimi
+- TKGM il → ilçe → mahalle → parsel regresyon testi
+- Yol rotası istek doğrulaması: 1-5 hedef sınırı ve koordinat denetimi
+- Sahte OSRM sunucusu ile iki gerçek rota geometrisi, mesafe ve süre ayrıştırma testi
+- Yakın yer seçim kutuları ve tek akordeon arayüzünün statik doğrulaması
+- Dinamik WMS görünüm yenileme kodunun statik doğrulaması
+- Boş/şeffaf WMS piksel denetimi
+- Parsel üst katman sırası, hedef işareti ve mahalle karşılaştırma önbelleği
 - Rastgele/mock veri bulunmaması
 
-Canlı kamu WMS servisinin hız ve görüntü kontrolü yayın ortamında pilot bölgelerle ayrıca yapılmalıdır.
+Test sonucu:
+- Kadastro360 Web Pilot v1.7.0 statik, rota ve açık veri doğrulaması geçti.
+- TKGM il → ilçe → mahalle → parsel regresyon testi geçti.
+- Kadastro360 yol rotası regresyon testi geçti.
+
+Not:
+Canlı TUCBS/ULASAV WMS ve canlı yol servisi hızları dış sağlayıcıların anlık durumuna bağlıdır. Servis yanıt vermezse uygulama sahte katman veya rota oluşturmaz.
