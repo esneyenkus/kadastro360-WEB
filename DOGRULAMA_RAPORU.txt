@@ -1,20 +1,28 @@
-KADASTRO360 WEB PILOT v1.7.0 DOĞRULAMA RAPORU
+KADASTRO360 WEB PILOT v1.8.0 DOĞRULAMA RAPORU
 
-Çalıştırılan kontroller:
-- Node.js ve tarayıcı içi JavaScript sözdizimi
-- TKGM il → ilçe → mahalle → parsel regresyon testi
-- Yol rotası istek doğrulaması: 1-5 hedef sınırı ve koordinat denetimi
-- Sahte OSRM sunucusu ile iki gerçek rota geometrisi, mesafe ve süre ayrıştırma testi
-- Yakın yer seçim kutuları ve tek akordeon arayüzünün statik doğrulaması
-- Dinamik WMS görünüm yenileme kodunun statik doğrulaması
-- Boş/şeffaf WMS piksel denetimi
-- Parsel üst katman sırası, hedef işareti ve mahalle karşılaştırma önbelleği
-- Rastgele/mock veri bulunmaması
+TARİH: 22.07.2026
+VERİ MODU: live-only
+MOCK VERİ: kapalı
 
-Test sonucu:
-- Kadastro360 Web Pilot v1.7.0 statik, rota ve açık veri doğrulaması geçti.
-- TKGM il → ilçe → mahalle → parsel regresyon testi geçti.
-- Kadastro360 yol rotası regresyon testi geçti.
+OTOMATİK TESTLER
+[GEÇTİ] Sunucu ve yardımcı JavaScript dosyalarının sözdizimi
+[GEÇTİ] HTML içindeki kullanıcı ve yönetici JavaScript kodlarının ayrıştırılması
+[GEÇTİ] TKGM il → ilçe → mahalle → parsel regresyon testi
+[GEÇTİ] Dört seçili hedef için birincil rota servisi hata verdiğinde yedek servisin dört rotayı da döndürmesi
+[GEÇTİ] Rota API oturum ve 1-5 hedef sınırı testi
+[GEÇTİ] WMS karo BBOX hesaplama, PNG doğrulama ve ikinci isteğin önbellekten gelmesi
+[GEÇTİ] 11 yakın yer kategorisinin üç toplu sorguda bulunması
+[GEÇTİ] Aynı yakın yer sorgusunun ikinci kez dış servise gitmeden önbellekten gelmesi
+[GEÇTİ] Kodda Math.random ile sahte sonuç üretimi bulunmaması
+[GEÇTİ] ZIP içinde node_modules ve boş data klasörü bulunmaması kontrolü
 
-Not:
-Canlı TUCBS/ULASAV WMS ve canlı yol servisi hızları dış sağlayıcıların anlık durumuna bağlıdır. Servis yanıt vermezse uygulama sahte katman veya rota oluşturmaz.
+SINIR
+Bu çalışma ortamında dış DNS erişimi kapalıdır. Bu nedenle gerçek TKGM, TUCBS/ULASAV WMS, Overpass ve OSRM servisleri burada canlı olarak çağrılamadı. Dış servis davranışları, gerçek API biçimini kullanan kontrollü yerel servislerle regresyon testine tabi tutuldu. Son canlı doğrulama Render dağıtımından sonra pilot bölgelerde yapılmalıdır.
+
+ÖNERİLEN CANLI TESTLER
+- Tekirdağ / Çorlu / Önerler / 323 / 2
+- Tekirdağ / Malkara / Camiatik / 418 / 61
+- Kırıkkale / Yahşihan bölgesinde geçerli bir ada-parsel
+- Kayseri veya Yozgat'ta YSK çevre düzeni planı
+- Giresun / Görele ortofoto
+- 4 farklı yakın yer seçip 4/4 rota sonucu

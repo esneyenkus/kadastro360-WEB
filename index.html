@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kadastro360 — Web Pilot v1.7.0</title>
+<title>Kadastro360 — Web Pilot v1.8.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="endeksa-utils.js"></script>
@@ -33,7 +33,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 .dropdown.open{display:block}.option{padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px}.option:hover,.option.selected{background:var(--green2);color:#0e6b51}.option.empty{cursor:default;color:var(--muted)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}.primary{width:100%;height:36px;border:0;border-radius:7px;background:var(--green);color:#fff;font-size:12px;font-weight:750;cursor:pointer}.primary:hover{filter:brightness(.96)}.primary:disabled{opacity:.5;cursor:not-allowed}
 .status{min-height:30px;padding:6px 12px;border-bottom:1px solid var(--line);font-size:11px;display:flex;align-items:center;gap:7px;color:var(--muted)}
-.dot{width:7px;height:7px;border-radius:50%;background:#9da7b1;flex:0 0 auto}.dot.ok{background:var(--green)}.dot.loading{background:#e2a100;animation:pulse .8s infinite}.dot.error{background:var(--red)}
+.dot{width:7px;height:7px;border-radius:50%;background:#9da7b1;flex:0 0 auto}.dot.ok{background:var(--green)}.dot.warn{background:#e27a18}.dot.loading{background:#e2a100;animation:pulse .8s infinite}.dot.error{background:var(--red)}
 @keyframes pulse{50%{opacity:.25}}
 .tabs{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1100;background:#fff;box-shadow:0 2px 5px rgba(22,33,43,.04)}
 .tab{height:38px;border:0;background:#fff;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;border-bottom:2px solid transparent}.tab.active{color:var(--green);border-bottom-color:var(--green);background:#fbfdfc}
@@ -47,7 +47,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 .poi-controls{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:7px;margin-bottom:7px}.poi-controls .primary{grid-column:1/-1}.hint{font-size:10px;color:var(--muted);line-height:1.45;margin:7px 0 10px}
 .poi-summary{font-size:10px;color:var(--muted);margin:0 0 7px;line-height:1.45}.poi-progress{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:0 0 8px}.category-chip{border:1px solid var(--line);border-radius:7px;padding:6px 7px;background:#fff;font-size:9px;display:flex;align-items:center;justify-content:space-between;gap:5px}.category-chip strong{font-size:9px}.category-chip.searching{border-color:#9eb7e8;background:#f4f7ff}.category-chip.found{border-color:#9fd3bf;background:#eff9f5}.category-chip.empty{background:#f7f8f9;color:var(--muted)}.category-chip.failed{border-color:#e5b4ad;background:#fff4f2;color:#8b2d22}.poi-section{border:1px solid var(--line);border-radius:9px;background:#fbfcfc;margin-bottom:8px;overflow:hidden}.poi-section-toggle{width:100%;min-height:40px;border:0;background:#fbfcfc;padding:8px 9px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;cursor:pointer;color:var(--text)}.poi-section-toggle:hover{background:#f2f7f5}.poi-section-toggle:focus-visible{outline:2px solid var(--green);outline-offset:-2px}.poi-section-heading{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800}.poi-section-meta{display:flex;align-items:center;gap:7px;flex:0 0 auto}.poi-section-count{font-size:9px;color:var(--muted);font-weight:700}.poi-section-arrow{font-size:12px;color:var(--muted);transition:transform .18s ease}.poi-section.open .poi-section-arrow{transform:rotate(180deg)}.poi-section-body{padding:0 7px 7px;border-top:1px solid var(--line)}.poi-section-body[hidden]{display:none}.poi-section .poi-list{margin-top:7px}.poi-list{display:grid;gap:6px}.poi-item{width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;padding:8px 9px;background:#fff;cursor:pointer}.poi-item:hover,.poi-item.selected{border-color:var(--green);background:var(--green2)}.poi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.poi-name{font-size:11px;font-weight:750}.poi-dist{font-size:10px;color:var(--green);font-weight:800;white-space:nowrap;text-align:right}.poi-sub{font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4}.quality{display:inline-block;margin-top:4px;border-radius:99px;padding:2px 6px;background:#eef2f5;color:#53616e;font-size:8px;font-weight:750}.quality.high{background:#e8f6f1;color:#0e6b51}.quality.check{background:#fff6df;color:#72500a}.poi-pin{position:relative;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#fff;border:2px solid #168a68;box-shadow:0 2px 7px rgba(0,0,0,.25);font-size:15px}.poi-pin .unnamed{position:absolute;right:-5px;top:-6px;width:15px;height:15px;border-radius:50%;background:#17212b;color:#fff;display:grid;place-items:center;font:800 9px/1 Arial;border:1px solid #fff}
 .selected-route{margin:6px 0;border:1px solid #b9ddcf;background:var(--green2);border-radius:8px;padding:9px}.selected-route strong{font-size:11px}.route-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}.route-link{display:block;text-align:center;text-decoration:none;background:var(--blue);color:#fff;border-radius:7px;padding:8px 6px;font-size:10px;font-weight:800}.route-link.secondary{background:#fff;color:#244f9e;border:1px solid #9eb7e8}.google-poi-link{margin:0 0 9px;border-color:#9eb7e8;background:#f4f7ff;color:#244f9e}.google-poi-link:hover{border-color:#4f76c7;background:#edf2ff}
-.poi-route-planner{border:1px solid #9eb7e8;background:#f5f8ff;border-radius:9px;padding:8px 9px;margin:0 0 9px}.poi-route-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.poi-route-title{font-size:11px;font-weight:850;color:#244f9e}.poi-route-count{font-size:9px;font-weight:800;color:#53616e;background:#fff;border:1px solid #cdd9ee;border-radius:99px;padding:3px 7px;white-space:nowrap}.poi-route-note{font-size:9px;color:#53616e;line-height:1.45;margin-top:5px}.poi-route-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}.poi-route-buttons button{min-height:32px;border-radius:7px;border:1px solid #9eb7e8;background:#fff;color:#244f9e;font-size:9px;font-weight:850;cursor:pointer}.poi-route-buttons button.primary-route{background:#2463eb;color:#fff;border-color:#2463eb}.poi-route-buttons button:disabled{opacity:.45;cursor:not-allowed}.route-results{display:grid;gap:5px;margin-top:7px}.route-result-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:6px;align-items:center;border:1px solid #d9e2ef;background:#fff;border-radius:7px;padding:6px 7px}.route-result-number{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:9px;font-weight:900}.route-result-name{font-size:9px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.route-result-meta{font-size:8px;color:#53616e;text-align:right;white-space:nowrap}.poi-accordion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:start}.poi-accordion-grid .poi-section{margin:0}.poi-accordion-grid .poi-section.open{grid-column:1/-1}.poi-choice-row{display:grid;grid-template-columns:26px minmax(0,1fr);gap:5px;align-items:stretch}.poi-route-check{display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}.poi-route-check:hover{border-color:#2463eb;background:#f4f7ff}.poi-route-check input{width:15px;height:15px;accent-color:#2463eb;cursor:pointer}.poi-choice-row.route-selected .poi-route-check{border-color:#2463eb;background:#eaf0ff}.route-number-pin{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.28);font:900 12px/1 Arial}.route-distance-label{background:#17212b;color:#fff;border-radius:6px;padding:4px 6px;font:800 9px/1.2 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.25)}.route-distance-label:after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#17212b}.open-data-refreshing{filter:saturate(.92);transition:opacity .2s ease}.open-data-refreshing.pending{opacity:.62}
+.poi-route-planner{border:1px solid #9eb7e8;background:#f5f8ff;border-radius:9px;padding:8px 9px;margin:0 0 9px}.poi-route-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.poi-route-title{font-size:11px;font-weight:850;color:#244f9e}.poi-route-count{font-size:9px;font-weight:800;color:#53616e;background:#fff;border:1px solid #cdd9ee;border-radius:99px;padding:3px 7px;white-space:nowrap}.poi-route-note{font-size:9px;color:#53616e;line-height:1.45;margin-top:5px}.poi-route-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}.poi-route-buttons button{min-height:32px;border-radius:7px;border:1px solid #9eb7e8;background:#fff;color:#244f9e;font-size:9px;font-weight:850;cursor:pointer}.poi-route-buttons button.primary-route{background:#2463eb;color:#fff;border-color:#2463eb}.poi-route-buttons button:disabled{opacity:.45;cursor:not-allowed}.route-results{display:grid;gap:5px;margin-top:7px}.route-result-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:6px;align-items:center;border:1px solid #d9e2ef;background:#fff;border-radius:7px;padding:6px 7px}.route-result-number{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:9px;font-weight:900}.route-result-name{font-size:9px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.route-result-meta{font-size:8px;color:#53616e;text-align:right;white-space:nowrap}.route-result-row.failed{border-color:#e2b6b6;background:#fff4f4}.route-result-row.failed .route-result-meta{color:#a12626;font-weight:800}.route-result-row.pending{background:#f7f9fc}.poi-accordion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:start}.poi-accordion-grid .poi-section{margin:0}.poi-accordion-grid .poi-section.open{grid-column:1/-1}.poi-choice-row{display:grid;grid-template-columns:26px minmax(0,1fr);gap:5px;align-items:stretch}.poi-route-check{display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}.poi-route-check:hover{border-color:#2463eb;background:#f4f7ff}.poi-route-check input{width:15px;height:15px;accent-color:#2463eb;cursor:pointer}.poi-choice-row.route-selected .poi-route-check{border-color:#2463eb;background:#eaf0ff}.route-number-pin{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.28);font:900 12px/1 Arial}.route-distance-label{background:#17212b;color:#fff;border-radius:6px;padding:4px 6px;font:800 9px/1.2 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.25)}.route-distance-label:after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#17212b}.open-data-refreshing{filter:saturate(.92);transition:opacity .2s ease}.open-data-refreshing.pending{opacity:.62}
 
 .notice{border-radius:8px;padding:8px 9px;font-size:10px;line-height:1.45;margin-bottom:8px}.notice.info{background:#eef4ff;color:#31527f}.notice.warn{background:#fff6df;color:#72500a}.notice.error{background:#fff0f0;color:#8d3030}
 .map-wrap{position:relative;min-width:0}.map{height:100%;width:100%}.map-badge{position:absolute;left:12px;bottom:12px;z-index:500;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:10px;color:var(--muted);box-shadow:0 3px 12px rgba(0,0,0,.08)}
@@ -69,11 +69,11 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 
 
 
-/* v1.7.0 — seçilebilir yol rotaları, tek akordeon yakın yer listesi ve dinamik açık veri kapsamı */
+/* v1.8.0 — seçilebilir yol rotaları, tek akordeon yakın yer listesi ve dinamik açık veri kapsamı */
 .map-runtime-status{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1450;display:none;align-items:center;gap:8px;max-width:min(520px,calc(100% - 120px));padding:8px 12px;border-radius:9px;background:rgba(23,33,43,.92);color:#fff;font-size:10px;font-weight:750;box-shadow:0 7px 25px rgba(0,0,0,.22);pointer-events:none}.map-runtime-status.show{display:flex}.map-runtime-status.ok{background:rgba(14,107,81,.94)}.map-runtime-status.error{background:rgba(139,45,34,.94)}.map-runtime-status.loading:before{content:"";width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex:0 0 auto}
 .compare-control{position:absolute;right:12px;top:12px;z-index:1300;display:none;align-items:center;gap:5px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:9px;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,.12)}.compare-control.show{display:flex}.compare-control button{border:0;border-radius:6px;padding:6px 8px;background:#fff;font-size:9px;font-weight:800;cursor:pointer;color:var(--text)}.compare-control .compare-main{background:#fff5e8;color:#8a4c00}.compare-control .compare-main.off{background:#f1f3f5;color:#687583}.compare-control .compare-clear{border-left:1px solid var(--line);border-radius:0 6px 6px 0;color:#8b2d22}
 .parcel-locator-wrapper{background:transparent;border:0}.parcel-locator{--locator-size:34px;width:var(--locator-size);height:var(--locator-size);margin-left:calc(var(--locator-size) / -2);margin-top:calc(var(--locator-size) / -2);border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.96);border:3px solid #e33737;box-shadow:0 0 0 4px rgba(227,55,55,.18),0 5px 18px rgba(0,0,0,.3);transition:width .16s,height .16s,margin .16s,opacity .16s;animation:parcelPulse 1.6s ease-out infinite}.parcel-locator:before{content:"";width:32%;height:32%;border-radius:50%;background:#e33737}.parcel-locator-label{position:absolute;left:50%;top:calc(var(--locator-size) + 5px);transform:translateX(-50%);background:#17212b;color:#fff;border-radius:5px;padding:3px 5px;font:800 8px/1 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.24)}@keyframes parcelPulse{0%{box-shadow:0 0 0 0 rgba(227,55,55,.38),0 5px 18px rgba(0,0,0,.3)}70%{box-shadow:0 0 0 12px rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}100%{box-shadow:0 0 0 0 rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}}
-.open-data-static-image{image-rendering:auto;transition:opacity .15s ease}.leaflet-openData-pane{mix-blend-mode:normal}.leaflet-parcelHalo-pane,.leaflet-parcel-pane,.leaflet-locator-pane{pointer-events:none}.leaflet-comparison-pane{pointer-events:auto}
+.leaflet-openData-pane{mix-blend-mode:normal}.leaflet-parcelHalo-pane,.leaflet-parcel-pane,.leaflet-locator-pane{pointer-events:none}.leaflet-comparison-pane{pointer-events:auto}
 .legend-window{position:fixed;right:20px;top:86px;z-index:5100;width:min(400px,calc(100vw - 28px));max-height:min(78vh,720px);display:none}.legend-window.open{display:block}.legend-window .modal-card{width:100%;max-height:min(78vh,720px);overflow:auto;border:1px solid #cfd8e1;border-radius:12px;background:#fff;box-shadow:0 16px 50px rgba(0,0,0,.25)}.legend-window .modal-head{position:sticky;top:0;z-index:2;background:#fff;cursor:move;user-select:none;touch-action:none}.legend-drag-hint{margin-left:auto;margin-right:8px;font-size:8px;color:var(--muted);font-weight:700}.legend-window .modal-body{padding:12px}.legend-window.dragging{opacity:.96}.legend-window.dragging .modal-card{box-shadow:0 22px 65px rgba(0,0,0,.32)}
 .session-compare-note{font-size:9px;color:#7b4b0b;background:#fff7eb;border:1px solid #f0d2a6;border-radius:7px;padding:7px;margin:7px 0;line-height:1.45}
 @media(max-width:820px){.compare-control{top:54px;right:8px}.map-runtime-status{top:54px;max-width:calc(100% - 20px)}.legend-window{left:8px!important;right:8px!important;top:70px!important;width:auto;max-height:72vh}.legend-drag-hint{display:none}}
@@ -514,7 +514,7 @@ function renderOpenDataCatalog(data){
     const guide=item.category==='plan'?`<button type="button" class="plan-guide-btn" data-open-action="guide" data-item-id="${escapeHtml(item.id)}">Renk Rehberi</button>`:'';
     const focus=item.category==='plan'?`<button type="button" class="plan-focus-btn" data-open-action="focus" data-item-id="${escapeHtml(item.id)}">Plan Ölçeğine Git</button>`:'';
     const source=item.sourceUrl?`<a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Kaynak Sayfası ↗</a>`:'';
-    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Bu katman eklenmeden önce resmî WMS görüntüsü parsel çevresinde kontrol edilir; görünür içerik tek parça olarak doğrulanır ve tarayıcı önbelleğine alınır. Harita konumu değişmez; yakınlaştırma sırasında tekrar tekrar indirme yapılmaz. Şeffaf veya boş görüntü başarı sayılmaz.</div>':'';
+    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Bu katman eklenmeden önce resmî WMS görüntüsü parsel çevresinde doğrulanır. Görünür içerik keskin harita karoları halinde yüklenir; doğrudan bağlantı çalışmazsa önbellekli yedek bağlantı kullanılır. Harita yakınlığı değişmez ve şeffaf/boş görüntü başarı sayılmaz.</div>':'';
     card.innerHTML=`<div class="open-data-head"><div class="open-data-title">${escapeHtml(item.title)}</div><span class="open-data-kind ${kindClass}">${kindLabel}</span></div><div class="open-data-desc">${escapeHtml(item.description||'Kamuya açık veri kaynağı.')}<br><strong>Sağlayıcı:</strong> ${escapeHtml(item.provider||'Belirtilmedi')}</div>${rayicSummaryHtml(item)}<div class="open-data-fresh">${escapeHtml(openDataFreshness(item))}</div><div class="open-data-actions">${overlayButton}${focus}${guide}${source}</div>${directNote}<div class="open-data-load-status" aria-live="polite"></div>${openDataResourcesHtml(item)}`;
     list.appendChild(card);
   }
@@ -735,8 +735,8 @@ function waitForWmsLayer(item,attempt){
     const styles=String(attempt.layerName).split(',').map(()=>'').join(',');
     const options={
       layers:attempt.layerName,format:'image/png',transparent:true,styles,version:attempt.version,
-      uppercase:true,opacity:item.category==='ortho'?0.86:0.82,attribution:'ULASAV / TUCBS Açık Veri',zIndex:240,
-      updateWhenIdle:false,keepBuffer:4
+      uppercase:true,opacity:item.category==='ortho'?0.82:0.58,attribution:'ULASAV / TUCBS Açık Veri',zIndex:240,pane:'openDataPane',
+      updateWhenIdle:true,updateWhenZooming:false,keepBuffer:3
     };
     if(Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4){
       const [south,west,north,east]=item.wms.bounds;options.bounds=L.latLngBounds([[south,west],[north,east]]);
@@ -804,154 +804,65 @@ function fastWmsAttempts(item,discovery={}){
   return result;
 }
 
-function bufferedWmsRequest(item,attempt){
-  const center=L.CRS.EPSG3857.project(L.latLng(store.parcelCenter.lat,store.parcelCenter.lng));
-  const radiusKm=item.category==='plan'?Math.max(30,Number(item.wms?.probeRadiusKm)||24):Math.max(8,Number(item.wms?.probeRadiusKm)||8);
-  const radius=radiusKm*1000;
-  const projected=[center.x-radius,center.y-radius,center.x+radius,center.y+radius];
-  const url=new URL(item.wms.baseUrl);
-  const width=item.category==='plan'?1600:1200;
-  const params={SERVICE:'WMS',REQUEST:'GetMap',VERSION:attempt.version,LAYERS:attempt.layerName,STYLES:String(attempt.layerName).split(',').map(()=>'').join(','),FORMAT:'image/png',TRANSPARENT:'TRUE',WIDTH:String(width),HEIGHT:String(width),BBOX:projected.join(',')};
-  if(attempt.version==='1.3.0')params.CRS='EPSG:3857';else params.SRS='EPSG:3857';
-  Object.entries(params).forEach(([key,value])=>url.searchParams.set(key,value));
-  const sw=L.CRS.EPSG3857.unproject(L.point(projected[0],projected[1]));
-  const ne=L.CRS.EPSG3857.unproject(L.point(projected[2],projected[3]));
-  return {url:url.toString(),bounds:L.latLngBounds(sw,ne),radiusKm};
+function proxyWmsTileUrl(item,attempt){
+  const key=encodeURIComponent(item.wms?.key||item.id);
+  const layers=encodeURIComponent(attempt.layerName);
+  const version=encodeURIComponent(attempt.version||'1.1.1');
+  return `/api/open-data/wms-tile/${key}/{z}/{x}/{y}.png?layers=${layers}&version=${version}&size=512`;
 }
 
-async function fetchBufferedWmsImage(item,attempt){
-  const request=bufferedWmsRequest(item,attempt);
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),26000);
-  try{
-    const response=await fetch(request.url,{signal:controller.signal,cache:'force-cache',headers:{Accept:'image/png,image/*;q=.9,*/*;q=.5'}});
-    if(!response.ok) throw new Error(`GetMap HTTP ${response.status}`);
-    const type=response.headers.get('content-type')||'';
-    const blob=await response.blob();
-    if(!/image\//i.test(type)&&blob.size<2000) throw new Error('WMS görüntü yerine servis hatası döndürdü.');
-    const image=await imageBitmapFromBlob(blob);
-    const width=Math.max(1,image.width||image.naturalWidth||1600),height=Math.max(1,image.height||image.naturalHeight||1600);
-    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
-    const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(image,0,0,width,height);
-    const analysis=analyzeCanvasVisibility(context,width,height);
-    try{image.close?.();}catch{}
-    if(!analysis.visible) throw new Error('Bu parsel çevresinde görünür plan içeriği alınamadı. Boş görüntü haritaya eklenmedi.');
-    const objectUrl=URL.createObjectURL(blob);
-    const layer=L.imageOverlay(objectUrl,request.bounds,{opacity:item.category==='ortho'?.9:.82,pane:'openDataPane',interactive:false,className:'open-data-static-image'});
-    return {layer,objectUrl,bounds:request.bounds,analysis,radiusKm:request.radiusKm};
-  }finally{clearTimeout(timer);}
+function waitForProxyWmsLayer(item,attempt){
+  return new Promise((resolve,reject)=>{
+    let settled=false,loaded=0,errors=0;
+    const options={
+      pane:'openDataPane',tileSize:256,opacity:item.category==='ortho'?.82:.58,
+      attribution:'ULASAV / TUCBS Açık Veri',keepBuffer:3,updateWhenIdle:true,
+      updateWhenZooming:false,maxZoom:19,crossOrigin:false
+    };
+    if(Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4){
+      const [south,west,north,east]=item.wms.bounds;options.bounds=L.latLngBounds([[south,west],[north,east]]);
+    }
+    const layer=L.tileLayer(proxyWmsTileUrl(item,attempt),options);
+    const finish=(ok,error)=>{
+      if(settled)return;settled=true;clearTimeout(timer);layer.off('tileload',onLoad);layer.off('tileerror',onError);
+      if(ok)resolve(layer);else{try{if(layerOnMap(layer))store.map.removeLayer(layer);}catch{}reject(error||new Error('WMS karo katmanı yüklenemedi.'));}
+    };
+    const onLoad=()=>{loaded++;if(loaded>=1)finish(true);};
+    const onError=()=>{errors++;if(errors>=4)finish(false,new Error('WMS karo servisi görüntü döndürmedi.'));};
+    layer.on('tileload',onLoad);layer.on('tileerror',onError);
+    const timer=setTimeout(()=>finish(false,new Error('WMS karo katmanı zaman aşımına uğradı.')),18000);
+    layer.addTo(store.map);
+  });
 }
 
-async function createBufferedWmsLayer(item,statusNode){
-  if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Resmî katman listesi hazırlanıyor…';}
-  showMapActivity('Açık plan verisi hazırlanıyor · Harita konumu korunuyor','loading');
+async function createSharpWmsLayer(item,statusNode){
+  if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Resmî katman seçiliyor ve keskin karo görünümü hazırlanıyor…';}
+  showMapActivity('Açık plan verisi hazırlanıyor · Harita yakınlığı korunuyor','loading');
   const discovery=await cachedWmsDiscovery(item);
   if(!discovery?.leafNames?.length) throw new Error(`WMS katman listesi alınamadı${discovery?.error?`: ${discovery.error}`:''}.`);
   const attempts=fastWmsAttempts(item,discovery);
   let lastError='Görünür plan içeriği bulunamadı.';
   for(let index=0;index<attempts.length;index++){
     const attempt=attempts[index];
-    const layerCount=String(attempt.layerName).split(',').length;
-    if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent=`Plan görüntüsü tek parça önbelleğe alınıyor (${index+1}/${attempts.length})${layerCount>1?` · ${layerCount} alt katman`:''}…`;}
+    if(statusNode)statusNode.textContent=`Katman doğrulanıyor (${index+1}/${attempts.length})…`;
+    const verification=await verifyWmsAttempt(item,attempt);
+    if(verification.state==='blank'){lastError='Bu parsel çevresinde şeffaf/boş plan görüntüsü döndü.';continue;}
+    if(verification.state!=='visible'){lastError=verification.message||'Katman doğrulanamadı.';continue;}
     try{
-      const result=await fetchBufferedWmsImage(item,attempt);
+      let layer,loadMode='browser-direct';
+      try{
+        layer=await waitForWmsLayer(item,attempt);
+      }catch(directError){
+        if(statusNode)statusNode.textContent='Doğrudan WMS erişimi yanıt vermedi; önbellekli yedek bağlantı deneniyor…';
+        layer=await waitForProxyWmsLayer(item,attempt);
+        loadMode='server-proxy-fallback';
+      }
       item.wms.activeLayerName=attempt.layerName;item.wms.activeVersion=attempt.version;item.wms.visualVerified=true;
       wmsCacheWrite(`k360:wms-choice:${item.wms?.key||item.id}`,{layerName:attempt.layerName,version:attempt.version});
-      return {...result,attempt};
+      return {layer,item,visualVerified:true,attempt,loadMode};
     }catch(error){lastError=humanError(error);}
   }
   throw new Error(lastError);
-}
-
-async function createDirectWmsLayer(item,statusNode){
-  if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Resmî WMS katman listesi okunuyor…';}
-  const discovery=await discoverBrowserWmsLayers(item);
-  if(!discovery.leafNames.length){
-    throw new Error(`WMS katman listesi alınamadı${discovery.error?`: ${discovery.error}`:''}. Boş katman başarılı sayılmadı.`);
-  }
-  const attempts=wmsAttempts(item,discovery);
-  let lastMessage='Görünür plan içeriği bulunamadı.';
-  for(let index=0;index<attempts.length;index++){
-    const attempt=attempts[index];
-    const label=String(attempt.layerName).includes(',')?`${String(attempt.layerName).split(',').length} alt katman birlikte`:`katman ${attempt.layerName}`;
-    if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent=`Görsel içerik doğrulanıyor (${index+1}/${attempts.length}) · ${label}…`;}
-    const verification=await verifyWmsAttempt(item,attempt);
-    if(verification.state==='blank'){lastMessage=`${label} bu parsel çevresinde şeffaf/boş görüntü döndürdü.`;continue;}
-    if(verification.state!=='visible'){lastMessage=verification.message||`${label} doğrulanamadı.`;continue;}
-    try{
-      const layer=await waitForWmsLayer(item,attempt);
-      item.wms.activeLayerName=attempt.layerName;item.wms.activeVersion=attempt.version;
-      item.wms.visualVerified=true;item.wms.verifiedBy=verification.source;item.wms.visibleRatio=verification.visibleRatio||null;
-      return layer;
-    }catch(error){lastMessage=humanError(error);}
-  }
-  throw new Error(`${lastMessage} Hiçbir boş/şeffaf görüntü katman olarak eklenmedi.`);
-}
-
-function expandedMapBounds(bounds,factor=.55){
-  const sw=bounds.getSouthWest(),ne=bounds.getNorthEast();
-  const latPad=(ne.lat-sw.lat)*factor,lngPad=(ne.lng-sw.lng)*factor;
-  return L.latLngBounds([sw.lat-latPad,sw.lng-lngPad],[ne.lat+latPad,ne.lng+lngPad]);
-}
-
-function wmsViewportRequest(item,attempt,bounds){
-  const size=store.map.getSize();
-  const sw=L.CRS.EPSG3857.project(bounds.getSouthWest()),ne=L.CRS.EPSG3857.project(bounds.getNorthEast());
-  const projectedWidth=Math.max(1,Math.abs(ne.x-sw.x)),projectedHeight=Math.max(1,Math.abs(ne.y-sw.y));
-  const width=Math.max(900,Math.min(1800,Math.round(size.x*1.35)));
-  const height=Math.max(600,Math.min(1700,Math.round(width*(projectedHeight/projectedWidth))));
-  const url=new URL(item.wms.baseUrl);
-  const params={SERVICE:'WMS',REQUEST:'GetMap',VERSION:attempt.version,LAYERS:attempt.layerName,STYLES:String(attempt.layerName).split(',').map(()=>'').join(','),FORMAT:'image/png',TRANSPARENT:'TRUE',WIDTH:String(width),HEIGHT:String(height),BBOX:[sw.x,sw.y,ne.x,ne.y].join(',')};
-  if(attempt.version==='1.3.0')params.CRS='EPSG:3857';else params.SRS='EPSG:3857';
-  Object.entries(params).forEach(([key,value])=>url.searchParams.set(key,value));
-  return {url:url.toString(),bounds,width,height};
-}
-
-function createDynamicWmsController(item,attempt,initial){
-  const group=L.layerGroup(),state={overlay:null,objectUrl:null,bounds:initial.bounds,busy:false,pending:false,disposed:false,timer:null};
-  group.addLayer(initial.layer);state.overlay=initial.layer;state.objectUrl=initial.objectUrl;
-  const containsView=()=>state.bounds?.contains?.(store.map.getBounds());
-  const refresh=async(force=false)=>{
-    if(state.disposed||state.busy||!store.visibility.openData||!layerOnMap(group)) return;
-    if(!force&&containsView()) return;
-    state.busy=true;state.overlay?.getElement?.()?.classList.add('pending');
-    try{
-      const request=wmsViewportRequest(item,attempt,expandedMapBounds(store.map.getBounds()));
-      const controller=new AbortController();
-      const timer=setTimeout(()=>controller.abort(),22000);
-      let objectUrl='';
-      try{
-        const response=await fetch(request.url,{signal:controller.signal,cache:'force-cache',headers:{Accept:'image/png,image/*;q=.9,*/*;q=.5'}});
-        if(!response.ok) throw new Error(`GetMap HTTP ${response.status}`);
-        const blob=await response.blob();
-        if(!String(response.headers.get('content-type')||'').includes('image')&&blob.size<2000) throw new Error('WMS görüntü yerine servis hatası döndürdü.');
-        objectUrl=URL.createObjectURL(blob);
-        const overlay=L.imageOverlay(objectUrl,request.bounds,{opacity:item.category==='ortho'?.9:.82,pane:'openDataPane',interactive:false,className:'open-data-static-image open-data-refreshing'});
-        await new Promise((resolve,reject)=>{const img=new Image();img.onload=resolve;img.onerror=()=>reject(new Error('WMS görüntüsü açılamadı.'));img.src=objectUrl;});
-        if(state.disposed){URL.revokeObjectURL(objectUrl);return;}
-        group.addLayer(overlay);
-        const oldOverlay=state.overlay,oldUrl=state.objectUrl;
-        state.overlay=overlay;state.objectUrl=objectUrl;state.bounds=request.bounds;
-        if(oldOverlay)group.removeLayer(oldOverlay);
-        if(oldUrl)URL.revokeObjectURL(oldUrl);
-        bringParcelToFront();
-      }catch(error){if(objectUrl)URL.revokeObjectURL(objectUrl);throw error;}
-      finally{clearTimeout(timer);}
-    }catch(error){console.warn('[WMS görünüm güncelleme]',error?.name==='AbortError'?'WMS görünüm güncellemesi zaman aşımına uğradı.':humanError(error));}
-    finally{state.busy=false;state.overlay?.getElement?.()?.classList.remove('pending');if(state.pending){state.pending=false;schedule(true);}}
-  };
-  const schedule=(force=false)=>{
-    if(state.disposed)return;
-    clearTimeout(state.timer);
-    state.timer=setTimeout(()=>{if(state.busy){state.pending=true;return;}refresh(force);},320);
-  };
-  const dispose=()=>{state.disposed=true;clearTimeout(state.timer);if(state.objectUrl)URL.revokeObjectURL(state.objectUrl);};
-  group._k360Refresh=schedule;group._k360Dispose=dispose;group._k360Coverage=()=>state.bounds;
-  return {layer:group,dispose,refresh:schedule};
-}
-
-function refreshDynamicOpenDataLayers(force=false){
-  for(const row of store.openDataLayers.values()) row.refresh?.(force);
 }
 
 async function toggleOpenDataLayer(itemId,button){
@@ -969,9 +880,7 @@ async function toggleOpenDataLayer(itemId,button){
   try{
     let row;
     if(item.type==='wms'){
-      const buffered=await createBufferedWmsLayer(item,statusNode);
-      const dynamic=createDynamicWmsController(item,buffered.attempt,buffered);
-      row={layer:dynamic.layer,item,visualVerified:true,bounds:buffered.bounds,attempt:buffered.attempt,dispose:dynamic.dispose,refresh:dynamic.refresh};
+      row=await createSharpWmsLayer(item,statusNode);
     }else if(item.type==='geojson'){
       showMapActivity('Açık veri katmanı yükleniyor · Harita konumu korunuyor','loading');
       const geojson=await api(`/open-data/geojson?token=${encodeURIComponent(item.resourceToken)}`,{},30000);
@@ -983,9 +892,9 @@ async function toggleOpenDataLayer(itemId,button){
     card?.classList.add('active');button.textContent='Haritadan Kaldır';button.classList.add('remove');
     if(statusNode){
       statusNode.className='open-data-load-status notice ok';
-      statusNode.innerHTML=item.type==='wms'?'Plan görüntüsü doğrulandı. Harita taşındığında görünür alan arka planda güncellenir; eski görüntü yenisi hazır olana kadar korunur.<div class="scale-note">Parsel sınırı beyaz çerçeve ve yeşil çizgiyle üstte; uzakta kırmızı hedef işaretiyle gösterilir.</div>':'Katman yüklendi; mevcut harita konumu korundu.';
+      statusNode.innerHTML=item.type==='wms'?'Plan katmanı doğrulandı. Görüntü doğrudan keskin WMS karoları halinde yüklenir; doğrudan servis yanıt vermezse önbellekli yedek bağlantı kullanılır. Büyütülmüş tek resim kullanılmaz.<div class="scale-note">Parsel sınırı beyaz çerçeve ve yeşil çizgiyle üstte; uzakta kırmızı hedef işaretiyle gösterilir.</div>':'Katman yüklendi; mevcut harita konumu korundu.';
     }
-    updateOpenDataMapBadge();showMapActivity('Katman hazır · Görünür alan dinamik güncellenir','ok',2600);
+    updateOpenDataMapBadge();showMapActivity('Katman hazır · Keskin karo görünümü etkin','ok',2600);
   }catch(error){
     button.textContent=old;showMapActivity(`Katman yüklenemedi: ${humanError(error)}`,'error',4200);
     if(statusNode){statusNode.className='open-data-load-status notice error';statusNode.textContent=`Katman eklenmedi: ${humanError(error)} Kaynak sayfası bağlantısı kullanılabilir.`;}
@@ -1563,12 +1472,18 @@ function toggleRouteSelection(item,checked,input){
   updateRoutePlanner();
 }
 
-function routeResultRow(route,index){
-  const item=store.routeSelection.get(route.id)||store.poiItems.find(row=>row.id===route.id)||{};
-  const row=document.createElement('div');row.className='route-result-row';
+function routeResultRow(result,index){
+  const route=result?.route||result;
+  const id=result?.id||route?.id;
+  const item=store.routeSelection.get(id)||store.poiItems.find(row=>row.id===id)||{};
+  const row=document.createElement('div');row.className=`route-result-row ${result?.status||''}`;
   const number=document.createElement('span');number.className='route-result-number';number.style.background=ROUTE_COLORS[index%ROUTE_COLORS.length];number.textContent=String(index+1);
   const name=document.createElement('span');name.className='route-result-name';name.textContent=`${CATEGORY_ICONS[item.type]||'📍'} ${item.name||'Seçili nokta'}`;
-  const meta=document.createElement('span');meta.className='route-result-meta';meta.textContent=`${formatDistance(route.distance)} · ${routeDuration(route.duration)}`;
+  const meta=document.createElement('span');meta.className='route-result-meta';
+  if(result?.status==='failed') meta.textContent='Rota alınamadı';
+  else if(result?.status==='pending') meta.textContent='bekliyor…';
+  else meta.textContent=`${formatDistance(route.distance)} · ${routeDuration(route.duration)}`;
+  if(result?.error) row.title=result.error;
   row.append(number,name,meta);return row;
 }
 
@@ -1582,24 +1497,38 @@ async function drawRoadRoutes(){
   const requestId=++store.routeRequestId;
   const button=$('route-draw-btn');button.disabled=true;button.textContent='Rotalar hazırlanıyor…';
   const selected=[...store.routeSelection.values()];
-  if($('route-results')) $('route-results').innerHTML='<div class="notice info">Yol ağı üzerinden rota hesaplanıyor…</div>';
-  setStatus('loading',`${selected.length} yol rotası hesaplanıyor…`);
+  const results=$('route-results');results.innerHTML='';
+  selected.forEach((item,index)=>results.appendChild(routeResultRow({id:item.id,status:'pending'},index)));
+  setStatus('loading',`${selected.length} hedef için yol ağı kontrol ediliyor…`);
   try{
     const data=await api('/route',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
       origin:{lat:store.parcelCenter.lat,lng:store.parcelCenter.lng},
       destinations:selected.map(item=>({id:item.id,lat:item.lat,lng:item.lng}))
-    })},45000);
+    })},90000);
     if(requestId!==store.routeRequestId) return;
     store.routeGroup.clearLayers();store.routeLayers=[];
     const bounds=L.latLngBounds([store.parcelCenter]);
     const routes=Array.isArray(data.routes)?data.routes:[];
-    const results=$('route-results');results.innerHTML='';
-    routes.forEach((route,index)=>{
+    const routeById=new Map(routes.map(route=>[String(route.id),route]));
+    const failedById=new Map((Array.isArray(data.failed)?data.failed:[]).map(row=>[String(row.id),row]));
+    results.innerHTML='';
+    let drawn=0;
+    selected.forEach((item,index)=>{
+      const route=routeById.get(String(item.id));
+      if(!route){
+        const failure=failedById.get(String(item.id))||{id:item.id,error:'Rota servisi geçerli yol döndürmedi.'};
+        results.appendChild(routeResultRow({...failure,status:'failed'},index));
+        return;
+      }
       const color=ROUTE_COLORS[index%ROUTE_COLORS.length],latlngs=routeLatLngs(route.geometry);
-      if(latlngs.length<2) return;
+      if(latlngs.length<2){
+        results.appendChild(routeResultRow({id:item.id,status:'failed',error:'Rota geometrisi geçersiz.'},index));
+        return;
+      }
+      drawn++;
       latlngs.forEach(point=>bounds.extend(point));
-      const halo=L.polyline(latlngs,{pane:'routePane',color:'#fff',weight:8,opacity:.88,lineJoin:'round'});
-      const line=L.polyline(latlngs,{pane:'routePane',color,weight:4,opacity:.96,lineJoin:'round'});
+      const halo=L.polyline(latlngs,{pane:'routePane',color:'#fff',weight:9,opacity:.94,lineJoin:'round'});
+      const line=L.polyline(latlngs,{pane:'routePane',color,weight:4.5,opacity:1,lineJoin:'round'});
       halo.addTo(store.routeGroup);line.addTo(store.routeGroup);
       const destination=latlngs[latlngs.length-1];
       const pin=L.marker(destination,{pane:'routePane',interactive:false,icon:L.divIcon({className:'',html:`<div class="route-number-pin" style="background:${color}">${index+1}</div>`,iconSize:[28,28],iconAnchor:[14,14]})});
@@ -1608,20 +1537,19 @@ async function drawRoadRoutes(){
       const label=L.marker(middle,{pane:'routePane',interactive:false,icon:L.divIcon({className:'',html:`<div class="route-distance-label">${index+1} · ${formatDistance(route.distance)} · ${routeDuration(route.duration)}</div>`,iconSize:null,iconAnchor:[0,18]})});
       label.addTo(store.routeGroup);
       store.routeLayers.push({halo,line,pin,label});
-      results.appendChild(routeResultRow(route,index));
+      results.appendChild(routeResultRow({id:item.id,status:'ready',route},index));
     });
-    if(Array.isArray(data.failed)&&data.failed.length){
-      const warning=document.createElement('div');warning.className='notice warn';warning.textContent=`${data.failed.length} nokta için yol rotası alınamadı; başarılı rotalar gösterildi.`;results.appendChild(warning);
-    }
     putLayer(store.routeGroup,store.visibility.poi);
     setRouteMarkerFocus(true);
     bringParcelToFront();
-    if(bounds.isValid()) store.map.fitBounds(bounds,{padding:[45,45],maxZoom:15});
-    setStatus(routes.length?'ok':'error',routes.length?`${routes.length} yol rotası haritada gösterildi.`:'Yol rotası alınamadı.');
+    if(bounds.isValid()&&drawn) store.map.fitBounds(bounds,{padding:[45,45],maxZoom:15});
+    const total=selected.length;
+    const failed=total-drawn;
+    setStatus(drawn===total?'ok':drawn?'warn':'error',drawn===total?`${drawn}/${total} yol rotası haritada gösterildi.`:`${drawn}/${total} rota çizildi${failed?`; ${failed} hedef için rota alınamadı.`:''}`);
   }catch(error){
     if(requestId!==store.routeRequestId) return;
     setStatus('error',humanError(error));
-    if($('route-results')) $('route-results').innerHTML=`<div class="notice error">${escapeHtml(humanError(error))} Sahte rota çizilmedi.</div>`;
+    results.innerHTML=`<div class="notice error">${escapeHtml(humanError(error))} Sahte rota çizilmedi.</div>`;
   }finally{
     button.disabled=store.routeSelection.size===0;button.textContent='Seçili Rotaları Çiz';updateRoutePlanner();
   }
@@ -1824,68 +1752,36 @@ async function searchPoi(){
   if(!store.parcelCenter){ setStatus('error','Önce parsel sorgulayın.'); return; }
   setLayerVisibility('poi',true);
   clearPoi();
-  const poiRequestId = ++store.poiRequestId;
-  const category = $('poi-category').value;
-  const radius = $('poi-radius').value;
-  $('poi-btn').disabled = true;
-
+  const poiRequestId=++store.poiRequestId;
+  const category=$('poi-category').value;
+  const radius=$('poi-radius').value;
+  $('poi-btn').disabled=true;
+  const visible=category==='all'?PRIORITY_CATEGORIES:[category];
+  const states=Object.fromEntries(visible.map(key=>[key,{state:'searching',count:0}]));
+  renderPoiProgress(states,visible);
+  $('poi-output').innerHTML=`<div class="empty"><div class="big">⏳</div>${category==='all'?'Yakın yerler tek toplu ve önbellekli taramayla aranıyor…':`${CATEGORY_NAMES[category]} aranıyor…`}</div>`;
+  setStatus('loading',category==='all'?'Yakın yerler hızlı toplu taramayla aranıyor…':`${CATEGORY_NAMES[category]} aranıyor…`);
   try{
-    if(category !== 'all'){
-      const states = {[category]:{state:'searching'}};
-      renderPoiProgress(states,[category]);
-      $('poi-output').innerHTML = `<div class="empty"><div class="big">⏳</div>${CATEGORY_NAMES[category]} aranıyor…</div>`;
-      setStatus('loading',`${CATEGORY_NAMES[category]} aranıyor…`);
-      try{
-        const data = await fetchPoiCategory(category,radius);
-        if(poiRequestId !== store.poiRequestId) return;
-        const items = Array.isArray(data.data) ? data.data : [];
-        const failedCategory = Array.isArray(data.failedCategories) && data.failedCategories.includes(category);
-        states[category] = {state:failedCategory ? 'failed' : items.length ? 'found' : 'empty',count:items.length};
-        renderPoiProgress(states,[category]);
-        renderPoiResults(items,{all:false,category,states,data});
-      }catch(error){
-        if(poiRequestId !== store.poiRequestId) return;
-        states[category] = {state:'failed',count:0,error:humanError(error)};
-        renderPoiProgress(states,[category]);
-        renderPoiResults([],{all:false,category,states});
-      }
-      return;
+    const data=await fetchPoiCategory(category,radius);
+    if(poiRequestId!==store.poiRequestId)return;
+    const items=Array.isArray(data.data)?data.data:[];
+    for(const key of visible){
+      const coverage=data.coverage?.[key]||{};
+      const count=items.filter(item=>item.type===key).length;
+      states[key]={state:coverage.status==='failed'?'failed':count?'found':'empty',count};
     }
-
-    const states = Object.fromEntries(PRIORITY_CATEGORIES.map(key => [key,{state:'waiting',count:0}]));
-    const categoryResults = {};
-    renderPoiProgress(states);
-    $('poi-output').innerHTML = `<div class="empty"><div class="big">⏳</div>${PRIORITY_CATEGORIES.length} öncelikli kategori bağımsız olarak taranıyor. Sonuçlar tamamlanınca birlikte listelenecek…</div>`;
-    setStatus('loading','Okul, market, cami, eczane, sağlık, banka, ATM ve sahil ayrı ayrı aranıyor…');
-
-    await mapLimitClient(PRIORITY_CATEGORIES,2,async key => {
-      states[key] = {state:'searching',count:0}; renderPoiProgress(states);
-      try{
-        const data = await fetchPoiCategory(key,radius);
-        if(poiRequestId !== store.poiRequestId) return;
-        const items = Array.isArray(data.data) ? data.data : [];
-        const failedCategory = Array.isArray(data.failedCategories) && data.failedCategories.includes(key);
-        states[key] = {state:failedCategory ? 'failed' : items.length ? 'found' : 'empty',count:items.length};
-        categoryResults[key] = {data,items};
-      }catch(error){
-        if(poiRequestId !== store.poiRequestId) return;
-        states[key] = {state:'failed',count:0,error:humanError(error)};
-        categoryResults[key] = {data:null,items:[],error:humanError(error)};
-      }
-      renderPoiProgress(states);
-    });
-
-    if(poiRequestId !== store.poiRequestId) return;
-    const seen = new Set();
-    const allItems = PRIORITY_CATEGORIES.flatMap(key => categoryResults[key]?.items || []).filter(item => {
-      const dedupe = `${item.type}|${item.id}|${Number(item.lat).toFixed(6)}|${Number(item.lng).toFixed(6)}`;
-      if(seen.has(dedupe)) return false;
-      seen.add(dedupe); return true;
-    });
-    renderPoiResults(allItems,{all:true,states,categoryResults});
+    renderPoiProgress(states,visible);
+    renderPoiResults(items,{all:category==='all',category,states,data});
+    const seconds=Math.max(.1,Number(data.elapsedMs||0)/1000).toFixed(1);
+    setStatus('ok',`${items.length} yakın yer ${seconds} sn içinde listelendi. Aynı bölgedeki tekrar aramalar önbellekten hızlanır.`);
+  }catch(error){
+    if(poiRequestId!==store.poiRequestId)return;
+    visible.forEach(key=>{states[key]={state:'failed',count:0,error:humanError(error)};});
+    renderPoiProgress(states,visible);
+    renderPoiResults([],{all:category==='all',category,states});
   }finally{
-    if(poiRequestId !== store.poiRequestId) return;
-    $('poi-btn').disabled = !store.parcelCenter;
+    if(poiRequestId!==store.poiRequestId)return;
+    $('poi-btn').disabled=!store.parcelCenter;
     updateGooglePoiLink();
   }
 }
@@ -1997,8 +1893,8 @@ async function init(){
   store.comparisonGroup=L.layerGroup({pane:'comparisonPane'});
   putLayer(store.poiGroup,true);putLayer(store.routeGroup,true);putLayer(store.comparisonGroup,true);
   store.map.on('click',queryOpenDataFeatureInfo);
-  const handleMapMove=()=>{updateParcelLocator();bringParcelToFront();refreshDynamicOpenDataLayers(false);};
-  const handleMapZoom=()=>{updateParcelLocator();bringParcelToFront();refreshDynamicOpenDataLayers(true);};
+  const handleMapMove=()=>{updateParcelLocator();bringParcelToFront();};
+  const handleMapZoom=()=>{updateParcelLocator();bringParcelToFront();};
   store.map.on('zoomend',handleMapZoom);
   store.map.on('moveend',handleMapMove);
 

@@ -278,7 +278,7 @@ function directWmsDefinition(config, resolved = null) {
     infoFormats: resolved?.infoFormats || [],
     legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
     verifiedAt: resolved?.verifiedAt || null,
-    loadMode: 'browser-direct'
+    loadMode: 'hybrid-direct-proxy'
   };
 }
 
@@ -521,8 +521,8 @@ async function buildPilotCatalog({ province, district }) {
   }));
   const warnings = [];
 
-  // WMS katmanları Render sunucusuna bağımlı olmadan kullanıcının tarayıcısından
-  // doğrudan yüklenir. ULASAV katalog/CSV keşfi ise sunucudan denenir.
+  // WMS katmanları önce kullanıcının tarayıcısından doğrudan keskin karo olarak yüklenir.
+  // Doğrudan erişim başarısız olursa sunucu önbellekli proxy yedek olarak denenir.
   const discovered = await Promise.race([
     discoverRegionDatasets(province, district),
     new Promise(resolve => setTimeout(() => resolve({
@@ -559,7 +559,7 @@ async function buildPilotCatalog({ province, district }) {
     warnings: [...new Set(warnings)],
     licenseUrl: ULASAV_LICENSE,
     providerUrl: ULASAV_ROOT,
-    wmsLoadMode: 'browser-direct',
+    wmsLoadMode: 'hybrid-direct-proxy',
     supportedRegions: [
       'Kayseri: çevre düzeni planı ve idari sınırlar',
       'Tekirdağ / Çorlu: çevre düzeni planı ve belediye rayiç kayıtları',
@@ -692,6 +692,81 @@ async function wmsFeatureInfo({ key, bbox, width, height, x, y }) {
   }
 }
 
+
+const wmsTileCache = new Map();
+const WMS_TILE_CACHE_LIMIT = 420;
+
+function safeWmsLayerName(value) {
+  const text = String(value || '').trim();
+  if (!text || text.length > 5000 || /[\r\n&?#]/.test(text)) throw new Error('Geçersiz WMS katman adı.');
+  return text;
+}
+
+function tileMercatorBounds(z, x, y) {
+  const zoom = Number(z);
+  const tileX = Number(x);
+  const tileY = Number(y);
+  if (!Number.isInteger(zoom) || zoom < 0 || zoom > 20) throw new Error('Geçersiz WMS yakınlaştırma seviyesi.');
+  const count = 2 ** zoom;
+  if (!Number.isInteger(tileX) || !Number.isInteger(tileY) || tileX < 0 || tileY < 0 || tileX >= count || tileY >= count) {
+    throw new Error('Geçersiz WMS karo koordinatı.');
+  }
+  const world = 20037508.342789244;
+  const span = (world * 2) / count;
+  const minX = -world + tileX * span;
+  const maxX = minX + span;
+  const maxY = world - tileY * span;
+  const minY = maxY - span;
+  return [minX, minY, maxX, maxY];
+}
+
+function rememberWmsTile(key, value) {
+  if (wmsTileCache.has(key)) wmsTileCache.delete(key);
+  wmsTileCache.set(key, { ...value, expiresAt: Date.now() + 20 * 60_000 });
+  while (wmsTileCache.size > WMS_TILE_CACHE_LIMIT) {
+    const oldest = wmsTileCache.keys().next().value;
+    wmsTileCache.delete(oldest);
+  }
+}
+
+async function wmsTile({ key, layerName, version, z, x, y, size = 512 }) {
+  const config = WMS_CONFIGS.find(row => row.key === key);
+  if (!config) throw Object.assign(new Error('Açık veri WMS kaynağı bulunamadı.'), { httpStatus: 404 });
+  const safeLayer = safeWmsLayerName(layerName);
+  const safeVersion = version === '1.3.0' ? '1.3.0' : '1.1.1';
+  const tileSize = Math.max(256, Math.min(512, Number(size) || 512));
+  const cacheKey = `${key}:${safeLayer}:${safeVersion}:${z}:${x}:${y}:${tileSize}`;
+  const cachedTile = wmsTileCache.get(cacheKey);
+  if (cachedTile && cachedTile.expiresAt > Date.now()) {
+    wmsTileCache.delete(cacheKey);
+    wmsTileCache.set(cacheKey, cachedTile);
+    return { buffer: cachedTile.buffer, contentType: cachedTile.contentType, cache: 'HIT' };
+  }
+  if (cachedTile) wmsTileCache.delete(cacheKey);
+
+  const bbox = tileMercatorBounds(z, x, y);
+  const url = new URL(config.baseUrl);
+  const params = {
+    SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: safeVersion,
+    LAYERS: safeLayer, STYLES: safeLayer.split(',').map(() => '').join(','),
+    FORMAT: 'image/png', TRANSPARENT: 'TRUE', WIDTH: String(tileSize), HEIGHT: String(tileSize),
+    BBOX: bbox.join(',')
+  };
+  if (safeVersion === '1.3.0') params.CRS = 'EPSG:3857';
+  else params.SRS = 'EPSG:3857';
+  for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
+
+  const result = await fetchBuffer(url.toString(), {}, 14000, 4_000_000);
+  const isPng = /image\/png/i.test(result.contentType) || result.buffer.slice(1, 4).toString() === 'PNG';
+  if (!isPng) {
+    const text = decodeBuffer(result.buffer).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 500);
+    throw new Error(text || 'WMS karo görüntüsü yerine geçersiz cevap döndürdü.');
+  }
+  const row = { buffer: result.buffer, contentType: 'image/png' };
+  rememberWmsTile(cacheKey, row);
+  return { ...row, cache: 'MISS' };
+}
+
 function configForKey(key) {
   return WMS_CONFIGS.find(row => row.key === key) || null;
 }
@@ -711,5 +786,7 @@ module.exports = {
   wmsProbe,
   fetchGeoJson,
   wmsFeatureInfo,
+  wmsTile,
+  tileMercatorBounds,
   configForKey
 };

@@ -1,23 +1,29 @@
-KADASTRO360 v1.4 AÇIK VERİ PİLOT TESTLERİ
+KADASTRO360 v1.8.0 AÇIK VERİ VE ROTA PİLOT TESTLERİ
 
 YOZGAT / KAYSERİ / SİVAS
 - Gerçek bir parsel sorgulayın.
 - Açık Veri > Açık Katmanları Kontrol Et.
-- Yozgat–Sivas–Kayseri Çevre Düzeni Planı kartı sunucu kontrolü olmasa da görünmelidir.
-- Haritaya Ekle düğmesi renkli WMS katmanını doğrudan tarayıcıdan yüklemelidir.
-- Üstteki Açık Veri kutusuyla katmanı gizleyip yeniden gösterin.
+- Yozgat–Sivas–Kayseri Çevre Düzeni Planı kartı görünmelidir.
+- Haritaya Ekle, mevcut parsel yakınlığını değiştirmeden keskin WMS karolarını yüklemelidir.
+- Yakınlaştırıp uzaklaştırırken büyütülmüş tek resim bulanıklığı oluşmamalıdır.
 
 TEKİRDAĞ / ÇORLU
-- Gerçek Çorlu parseli sorgulayın.
+- Örnek: Önerler Mahallesi 323/2.
 - Trakya Çevre Düzeni Planını ekleyin.
-- Rayiç kaynağı okunabiliyorsa yıl, minimum ve maksimum kayıt gösterilmelidir.
-- Okunamıyorsa fiyat üretilmemeli, Kaynak Sayfası bağlantısı görünmelidir.
+- Parsel sınırı plan katmanının üstünde görünmelidir.
+- Dört yakın yer seçip Seçili Rotaları Çiz düğmesine basın.
+- Her hedef için Hazır veya Rota alınamadı sonucu ayrı görünmelidir; başarısız hedef sessizce atlanmamalıdır.
+- Rayiç kaynağı okunabiliyorsa yıl, minimum ve maksimum kayıt gösterilmelidir; okunamıyorsa fiyat üretilmemelidir.
+
+TEKİRDAĞ / MALKARA
+- Örnek: Camiatik Mahallesi 418/61.
+- Plan katmanını ekleyin ve farklı yakınlaştırma seviyelerinde keskinliği kontrol edin.
+- Uzak görünümde PARSEL hedefi, yakın görünümde parsel sınırı görünmelidir.
 
 KIRIKKALE / YAHŞİHAN
-- Gerçek ve TKGM'de kayıtlı bir Yahşihan parseli sorgulayın.
-- TKGM kaydı bulunmazsa HTTP 404 yerine anlaşılır kontrol mesajı görünmelidir.
+- TKGM'de kayıtlı gerçek bir Yahşihan parseli sorgulayın.
+- Kayıt yoksa anlaşılır TKGM mesajı görünmelidir.
 - Kırıkkale Çevre Düzeni Planı kartı görünmelidir.
-- Haritaya Ekle düğmesi WMS 1.3.0/1.1.1 seçeneklerini doğrudan denemelidir.
 - Yahşihan rayiç verisi okunamıyorsa değer üretilmemelidir.
 
 GİRESUN / GÖRELE
@@ -25,7 +31,13 @@ GİRESUN / GÖRELE
 - Doğu Karadeniz Çevre Düzeni Planını ve Görele Ortofotoyu ayrı ayrı ekleyin.
 - Katmanları Temizle düğmesiyle ikisini birlikte kaldırın.
 
-YAKIN YER GÖRÜNÜRLÜĞÜ
-- Yakın yer araması yapın.
-- Üstteki Yakın Yer kutusuna basınca işaretçiler ve kuş uçuşu çizgisi kaybolmalıdır.
-- Tekrar basınca aynı işaretçiler yeniden görünmelidir.
+YAKIN YER PERFORMANSI
+- Tüm Yerler ile arama yapın.
+- Sonuçlar tek akordeon grubunda görünmelidir.
+- Aynı parselde ikinci arama önbellek sayesinde daha hızlı olmalıdır.
+- Kapalı akordeonda kategori adedi görünmelidir.
+
+AYNI MAHALLE KARŞILAŞTIRMASI
+- Aynı mahallede iki farklı parsel sorgulayın.
+- Önceki parsel turuncu kesik sınırla haritada kalmalıdır.
+- Karşılaştırma düğmesiyle gizlenip yeniden gösterilebilmelidir.

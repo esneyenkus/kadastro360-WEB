@@ -1,27 +1,33 @@
-KADASTRO360 WEB PILOT v1.7.0
+KADASTRO360 WEB PILOT v1.8.0
 
-YAKIN YERLER VE YOL ROTASI
-- Yakın yer kategorileri artık iki ayrı listede tekrarlanmaz.
-- Arama sırasında geçici durum kutuları görünür; sonuç geldiğinde yalnızca kategori akordeonları kalır.
-- Kapalı akordeon başlığında kategori ve sonuç adedi görünür.
-- Her yakın yer satırına yol rotası seçim kutusu eklendi.
-- En fazla 5 nokta seçilebilir.
-- Seçilen noktalar için parsel merkezinden gerçek yol ağı rotaları Kadastro360 haritasında ayrı ayrı çizilir.
-- Her rota numaralandırılır; yol mesafesi ve tahmini sürüş süresi haritada ve özet panelinde gösterilir.
-- Rota görünümünde seçilmemiş yakın yer işaretleri soluklaştırılarak ekran görüntüsü daha okunaklı hale getirilir.
-- Rota servisi cevap vermezse sahte veya düz çizgi yol rotası üretilmez; hata açıkça gösterilir.
+YOL ROTASI
+- Birincil rota sağlayıcısı yanıt vermezse ikinci OSRM sağlayıcısı otomatik denenir.
+- Seçilen 1-5 hedef sırayla ve bağımsız işlenir.
+- Yol ağına eşleşmeyen hedef için genişletilmiş eşleştirme denenir.
+- Her hedefin sonucu Hazır veya Rota alınamadı olarak ayrı gösterilir.
+- Kısmi sonuç sessizce başarı sayılmaz.
+- Dört hedefli yedek sağlayıcı regresyon testi eklendi.
+
+YAKIN YERLER
+- Tüm kategoriler için tarayıcıdan ayrı ayrı 11 istek gönderme kaldırıldı.
+- Kategoriler üç toplu Overpass sorgu grubuna ayrıldı.
+- Kategoriye göre kontrollü azami arama mesafeleri eklendi.
+- Aynı konum için 30 dakikalık önbellek eklendi.
+- 11 kategorinin 5 km içinde bulunduğu senaryoda en fazla üç Overpass isteği gönderildiği test edildi.
 
 AÇIK VERİ / WMS
-- v1.6.0'daki kesik görüntünün nedeni olan sabit tek görüntü sınırı kaldırıldı.
-- İlk doğrulanmış plan görüntüsü hemen gösterilir.
-- Harita taşındığında görünür alan, çevresinde tampon bırakılarak arka planda yenilenir.
-- Yakınlaştırma tamamlandığında yeni çözünürlükte görüntü istenir; eski görüntü yenisi hazır olana kadar ekranda kalır.
-- Böylece haritanın bir bölümünün plansız kalması ve yakınlaştırmada uzun süre bulanık görünmesi azaltılır.
-- Parsel sınırı ve uzak görünümdeki PARSEL hedefi kamu katmanının üstünde kalır.
+- Bulanıklaşan büyük tek resim yöntemi aktif yükleme akışından çıkarıldı.
+- Önce doğrudan gerçek WMS karo katmanı denenir.
+- Doğrudan bağlantı başarısız olursa sunucu önbellekli karo proxy’si yedek olarak kullanılır.
+- 512 piksel kaynak karo, 256 piksel harita karosunda yüksek çözünürlüklü gösterilir.
+- WMS karo önbelleği sınırlı LRU yapısında tutulur.
+- Plan katmanı opaklığı düşürüldü; parsel ve rota çizgileri üstte korunur.
+- Karo BBOX, PNG cevabı ve önbellek davranışı için regresyon testi eklendi.
 
 KORUNAN ÖZELLİKLER
-- TKGM il → ilçe → mahalle → parsel kaynak zinciri ve regresyon koruması
+- TKGM il → ilçe → mahalle → parsel regresyon koruması
 - Aynı mahallede son 10 parselin oturumluk karşılaştırması
-- Taşınabilir, ekranı matlaştırmayan renk rehberi
-- Boş/şeffaf WMS görüntüsünü reddetme
+- Taşınabilir ve ekranı matlaştırmayan renk rehberi
+- Boş/şeffaf WMS görüntüsünü doğrulama
+- Kullanıcı ve yönetici sistemi
 - Örnek, rastgele veya tahmini sonuç üretmeme

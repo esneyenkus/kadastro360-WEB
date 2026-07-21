@@ -1,40 +1,46 @@
-KADASTRO360 WEB PILOT v1.4 — VERİ KAYNAKLARI
+KADASTRO360 WEB PILOT v1.8.0 — VERİ KAYNAKLARI
 
 1. Parsel ve idari birimler
    Kaynak: TKGM MEGSİS web servisleri
    İl, ilçe, mahalle, ada/parsel ve geometri canlı kaynaktan alınır.
-   TKGM 404 döndürürse kayıt bulunamadığı açıkça belirtilir; başka parsel üretilmez.
+   TKGM kayıt döndürmezse başka parsel üretilmez.
 
 2. Arazi eğimi
-   Kaynaklar: terrain.js canlı yükseklik zinciri
+   Kaynak: terrain.js canlı yükseklik zinciri
    Sonuç yaklaşık arazi analizidir; uydurma değer üretilmez.
 
 3. Yakın yerler
    Kaynak: OpenStreetMap / Overpass
+   Kategoriler üç toplu sorgu grubunda aranır. Aynı konum için 30 dakikalık önbellek kullanılır.
    Sonuç yok ile servis hatası ayrı gösterilir. Sahte nokta eklenmez.
-   Harita işaretçileri kullanıcı tarafından topluca gizlenip yeniden gösterilebilir.
 
-4. Açık plan ve harita katmanları
+4. Yol rotaları
+   Kaynak: OSRM ve OpenStreetMap yol ağı
+   Birincil servis yanıt vermezse ikinci servis denenir.
+   Başarısız hedef sessizce atlanmaz; hedef bazında durum gösterilir.
+   Düz kuş uçuşu çizgisi yol rotası olarak sunulmaz.
+
+5. Açık plan ve harita katmanları
    Kaynaklar: ULASAV katalog metadatası ve tucbs-public-api.csb.gov.tr üzerindeki kamuya açık WMS servisleri
-   WMS görüntüleri Render sunucusu üzerinden taşınmaz; kullanıcının tarayıcısı doğrudan kamu servisinden alır.
+   WMS önce kullanıcının tarayıcısından doğrudan keskin karolar halinde yüklenir.
+   Doğrudan erişim başarısız olursa Render sunucusundaki sınırlı önbellekli karo proxy'si yedek olarak kullanılır.
    Pilot WMS katmanları: Kayseri/Sivas/Yozgat, Trakya, Kırıkkale, Doğu Karadeniz çevre düzeni planları ve Görele ortofoto.
-   Katman yüklenemezse sahte renk gösterilmez; resmî kaynak bağlantısı korunur.
+   Katman yüklenemezse sahte renk gösterilmez.
 
-5. İdari sınırlar
+6. İdari sınırlar
    Kaynak: ULASAV Kayseri ilçe ve mahalle sınırı açık veri setleri
    GeoJSON kaynağı bulunursa yüklenir; bulunamazsa veri seti bağlantısı gösterilir.
 
-6. Rayiç kayıtları
+7. Rayiç kayıtları
    Kaynak: ULASAV'da yayımlanan belediye/kamu dosyaları
-   Çorlu ve Yahşihan pilot olarak aranır. Makine okunabilir CSV'de uygun rayiç sütunu bulunursa minimum/maksimum kayıt gösterilir.
-   Veri tarihi, kaynak dosyası ve uyarı metni birlikte sunulur. Uygun veri yoksa değer hesaplanmaz.
+   Çorlu ve Yahşihan pilot olarak aranır. Makine okunabilir CSV'de uygun sütun varsa tarihli minimum/maksimum kayıt gösterilir.
+   Uygun veri yoksa değer hesaplanmaz.
 
-7. Piyasa analizi
+8. Piyasa analizi
    Endeksa bölge bağlantıları hazırlanır; dış siteden fiyat kazınmaz.
 
-8. TUCBS / UCBP
-   Resmî harita görüntüleyici bağlantısı korunur.
-   e-Devlet girişi, yetkili katmanlar ve kapalı kaynaklar TUCBS tarafındadır.
+9. TUCBS / UCBP
+   Resmî görüntüleyici bağlantısı korunur. e-Devlet girişi ve yetkili katmanlar TUCBS tarafındadır.
 
-9. Lisans ve atıf
-   ULASAV kaynak sayfası ve açık veri lisansı kullanıcıya gösterilir. Veri sağlayıcı bağlantıları sabit tutulur.
+10. Lisans ve atıf
+   ULASAV kaynak sayfası, açık veri lisansı ve veri sağlayıcı bağlantıları kullanıcıya gösterilir.

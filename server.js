@@ -6,7 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { analyzeTerrain } = require('./terrain');
 const { AccountStore } = require('./account-store');
-const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo, wmsProbe } = require('./open-data');
+const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo, wmsProbe, wmsTile } = require('./open-data');
 const { TKGMClient, sourcesFromEnvironment } = require('./tkgm-client');
 
 const HOST = process.env.HOST || '0.0.0.0';
@@ -20,7 +20,15 @@ const COOKIE_SECURE = process.env.COOKIE_SECURE !== '0';
 const ROOT = __dirname;
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const DEFAULT_DAILY_QUOTA = Math.max(1, Number(process.env.DEFAULT_DAILY_QUOTA) || 20);
-const ROUTING_BASE_URL = String(process.env.ROUTING_BASE_URL || 'https://router.project-osrm.org').replace(/\/$/, '');
+const ROUTING_BASE_URLS = (() => {
+  const explicitList = String(process.env.ROUTING_BASE_URLS || '').split(',').map(value => value.trim()).filter(Boolean);
+  const explicitOne = String(process.env.ROUTING_BASE_URL || '').trim();
+  const values = explicitList.length ? explicitList : explicitOne ? [explicitOne] : [
+    'https://router.project-osrm.org',
+    'https://routing.openstreetmap.de/routed-car'
+  ];
+  return [...new Set(values.map(value => value.replace(/\/$/, '')))];
+})();
 const accounts = new AccountStore({
   dataDir: DATA_DIR,
   adminUsername: TEST_USERNAME,
@@ -47,17 +55,21 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.7.0'
+  userAgent: 'Kadastro360-Web-Pilot/1.8.0'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
 // Aynı sorguyu bütün sunuculara aynı anda göndermiyoruz. Küçük sorgular sırayla
 // denenir; böylece 504 durumunda ikinci sunucuya geçilir ve ortak servisler gereksiz yüklenmez.
-const OVERPASS_ENDPOINTS = [
-  { name: 'VK Maps Overpass', url: 'https://maps.mail.ru/osm/tools/overpass/api/interpreter' },
-  { name: 'FOSSGIS Overpass', url: 'https://overpass-api.de/api/interpreter' },
-  { name: 'Private.coffee Overpass', url: 'https://overpass.private.coffee/api/interpreter' }
-];
+const OVERPASS_ENDPOINTS = (() => {
+  const explicit = String(process.env.OVERPASS_BASE_URLS || '').split(',').map(value => value.trim()).filter(Boolean);
+  if (explicit.length) return explicit.map((url, index) => ({ name: `Özel Overpass ${index + 1}`, url }));
+  return [
+    { name: 'VK Maps Overpass', url: 'https://maps.mail.ru/osm/tools/overpass/api/interpreter' },
+    { name: 'FOSSGIS Overpass', url: 'https://overpass-api.de/api/interpreter' },
+    { name: 'Private.coffee Overpass', url: 'https://overpass.private.coffee/api/interpreter' }
+  ];
+})();
 
 const overpassHealth = new Map(
   OVERPASS_ENDPOINTS.map((endpoint, index) => [
@@ -167,6 +179,17 @@ function sendJson(res, status, payload) {
     'Referrer-Policy': 'same-origin'
   });
   res.end(body);
+}
+
+function sendBinary(res, status, buffer, contentType, extraHeaders = {}) {
+  res.writeHead(status, {
+    'Content-Type': contentType || 'application/octet-stream',
+    'Content-Length': buffer.length,
+    'Cache-Control': 'public, max-age=900, stale-while-revalidate=3600',
+    'X-Content-Type-Options': 'nosniff',
+    ...extraHeaders
+  });
+  res.end(buffer);
 }
 
 function sendFile(res, filePath, contentType) {
@@ -309,39 +332,69 @@ function routeCacheKey(origin, destination) {
 async function routeOne(origin, destination) {
   return cached(routeCacheKey(origin, destination), 30 * 60_000, async () => {
     const coordinates = `${origin.lng},${origin.lat};${destination.lng},${destination.lat}`;
-    const url = new URL(`${ROUTING_BASE_URL}/route/v1/driving/${coordinates}`);
-    url.searchParams.set('alternatives', 'false');
-    url.searchParams.set('steps', 'false');
-    url.searchParams.set('overview', 'full');
-    url.searchParams.set('geometries', 'geojson');
-    const payload = await fetchJson(url.toString(), {
-      headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.7.0', Accept: 'application/json' }
-    }, 22_000);
-    if (payload?.code !== 'Ok' || !Array.isArray(payload.routes) || !payload.routes[0]?.geometry) {
-      throw new Error(payload?.message || 'Yol rotası servisi geçerli rota döndürmedi.');
+    const errors = [];
+    for (const baseUrl of ROUTING_BASE_URLS) {
+      const providerName = baseUrl.includes('routing.openstreetmap.de') ? 'FOSSGIS OSRM' : baseUrl.includes('project-osrm.org') ? 'Project OSRM' : new URL(baseUrl).host;
+      for (const snapRadius of [null, 1800]) {
+        const url = new URL(`${baseUrl}/route/v1/driving/${coordinates}`);
+        url.searchParams.set('alternatives', 'false');
+        url.searchParams.set('steps', 'false');
+        url.searchParams.set('overview', 'full');
+        url.searchParams.set('geometries', 'geojson');
+        url.searchParams.set('continue_straight', 'false');
+        if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
+        try {
+          const payload = await fetchJson(url.toString(), {
+            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.0', Accept: 'application/json' }
+          }, 9000);
+          if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
+            const route = payload.routes[0];
+            return {
+              id: destination.id,
+              distance: Number(route.distance) || 0,
+              duration: Number(route.duration) || 0,
+              geometry: route.geometry,
+              provider: `${providerName} / OpenStreetMap yol ağı`,
+              snapped: Boolean(snapRadius)
+            };
+          }
+          const message = payload?.message || payload?.code || 'Geçerli rota döndürülmedi.';
+          errors.push(`${providerName}${snapRadius ? ' (geniş yol eşleştirme)' : ''}: ${message}`);
+          if (!/NoSegment|NoRoute/i.test(String(payload?.code || message))) break;
+        } catch (error) {
+          errors.push(`${providerName}: ${error?.message || 'yanıt vermedi'}`);
+          break;
+        }
+      }
     }
-    const route = payload.routes[0];
-    return {
-      id: destination.id,
-      distance: Number(route.distance) || 0,
-      duration: Number(route.duration) || 0,
-      geometry: route.geometry,
-      provider: 'OSRM / OpenStreetMap yol ağı'
-    };
+    throw new Error(errors.join(' | ') || 'Yol rotası servisleri yanıt vermedi.');
   });
 }
 
 async function getRoadRoutes(body) {
   const { origin, destinations } = normalizeRouteRequest(body);
-  const settled = await mapLimit(destinations, 2, async destination => {
-    try { return { ok: true, route: await routeOne(origin, destination) }; }
-    catch (error) { return { ok: false, id: destination.id, error: error?.message || 'Rota alınamadı.' }; }
-  });
+  const routes = [];
+  const failed = [];
+  const results = [];
+  for (const destination of destinations) {
+    try {
+      const route = await routeOne(origin, destination);
+      routes.push(route);
+      results.push({ id: destination.id, status: 'ready', route });
+    } catch (error) {
+      const row = { id: destination.id, error: error?.message || 'Rota alınamadı.' };
+      failed.push(row);
+      results.push({ ...row, status: 'failed' });
+    }
+  }
   return {
     origin,
-    routes: settled.filter(row => row.ok).map(row => row.route),
-    failed: settled.filter(row => !row.ok).map(row => ({ id: row.id, error: row.error })),
-    provider: 'OSRM / OpenStreetMap yol ağı'
+    routes,
+    failed,
+    results,
+    complete: failed.length === 0 && routes.length === destinations.length,
+    provider: 'OSRM / OpenStreetMap yol ağı',
+    providersTried: ROUTING_BASE_URLS.length
   };
 }
 
@@ -761,6 +814,18 @@ async function mapLimit(values, limit, mapper) {
   return results;
 }
 
+const POI_CATEGORY_BATCHES = [
+  ['school', 'market', 'mosque', 'pharmacy', 'hospital'],
+  ['bank', 'atm'],
+  ['beach', 'bus_terminal', 'train_station', 'airport']
+];
+
+const POI_MAX_RADIUS = {
+  school: 10000, market: 10000, mosque: 10000, pharmacy: 10000,
+  hospital: 20000, bank: 10000, atm: 10000,
+  beach: 30000, bus_terminal: 30000, train_station: 30000, airport: 30000
+};
+
 async function queryCategoriesAtRadius(lat, lng, radius, categories) {
   const requested = [...new Set(categories)].filter(key => CATEGORY_QUERIES[key]);
   const elementMap = new Map();
@@ -768,21 +833,24 @@ async function queryCategoriesAtRadius(lat, lng, radius, categories) {
   const providers = new Set();
   const succeededCategories = new Set();
   const failedCategories = new Set();
+  const batches = POI_CATEGORY_BATCHES
+    .map(batch => batch.filter(key => requested.includes(key)))
+    .filter(batch => batch.length);
 
-  // Her kategori bağımsızdır. Bir cami sorgusunun başarılı olması okul, eczane,
-  // banka veya ATM sorgusunu "başarılı" saydırmaz.
-  const categoryResults = await mapLimit(requested, 2, async key => {
-    const core = await runSelectorSetResilient(lat, lng, radius, selectorsForCategories([key], 'core'));
+  const batchResults = await mapLimit(batches, 2, async keys => {
+    const coreSelectors = selectorsForCategories(keys, 'core');
+    const core = await runSelectorSetResilient(lat, lng, radius, coreSelectors);
     const localMap = new Map();
     mergeElementArray(localMap, core.elements);
     const localProviders = new Set(core.providers);
     const localWarnings = [...core.warnings];
+    const found = detectedCategorySet([...localMap.values()]);
+    const fallbackKeys = keys.filter(key => !found.has(key) && (CATEGORY_QUERIES[key].fallback || []).length && radius <= 10000);
     let successfulParts = core.successfulParts;
     let failedParts = core.failedParts;
 
-    const foundCore = detectedCategorySet([...localMap.values()]).has(key);
-    if (!foundCore && (CATEGORY_QUERIES[key].fallback || []).length && radius <= 10000) {
-      const fallback = await runSelectorSetResilient(lat, lng, radius, selectorsForCategories([key], 'fallback'));
+    if (fallbackKeys.length) {
+      const fallback = await runSelectorSetResilient(lat, lng, radius, selectorsForCategories(fallbackKeys, 'fallback'));
       mergeElementArray(localMap, fallback.elements);
       fallback.providers.forEach(provider => localProviders.add(provider));
       localWarnings.push(...fallback.warnings);
@@ -790,22 +858,16 @@ async function queryCategoriesAtRadius(lat, lng, radius, categories) {
       failedParts += fallback.failedParts;
     }
 
-    return {
-      key,
-      elements: [...localMap.values()],
-      providers: [...localProviders],
-      warnings: localWarnings,
-      successfulParts,
-      failedParts
-    };
+    return { keys, elements: [...localMap.values()], providers: [...localProviders], warnings: localWarnings, successfulParts, failedParts };
   });
 
-  for (const result of categoryResults) {
+  for (const result of batchResults) {
     mergeElementArray(elementMap, result.elements);
     result.providers.forEach(provider => providers.add(provider));
-    warnings.push(...result.warnings.map(message => `${CATEGORY_LABELS[result.key]}: ${message}`));
-    if (result.successfulParts > 0) succeededCategories.add(result.key);
-    if (result.successfulParts === 0) failedCategories.add(result.key);
+    const label = result.keys.map(key => CATEGORY_LABELS[key]).join(', ');
+    warnings.push(...result.warnings.map(message => `${label}: ${message}`));
+    if (result.successfulParts > 0) result.keys.forEach(key => succeededCategories.add(key));
+    else result.keys.forEach(key => failedCategories.add(key));
   }
 
   return {
@@ -960,8 +1022,8 @@ function limitBalanced(items, category) {
 
 async function getPoi(lat, lng, radiusMode, category, geometry) {
   const geometryKey = geometry ? JSON.stringify(geometry).slice(0, 2000) : '';
-  const cacheKey = `poi-v68:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${geometryKey}`;
-  return cached(cacheKey, 10 * 60 * 1000, async () => {
+  const cacheKey = `poi-v180:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${geometryKey}`;
+  return cached(cacheKey, 30 * 60 * 1000, async () => {
     const startedAt = Date.now();
     const allCategories = Object.keys(CATEGORY_QUERIES);
     const requestedCategories = category === 'all' ? allCategories : [category];
@@ -996,7 +1058,15 @@ async function getPoi(lat, lng, radiusMode, category, geometry) {
       let pending = [...requestedCategories];
       for (const radius of [5000, 10000, 20000, 30000]) {
         if (!pending.length) break;
-        const result = await queryCategoriesAtRadius(lat, lng, radius, pending);
+        const eligible = pending.filter(key => radius <= (POI_MAX_RADIUS[key] || 10000));
+        for (const key of pending.filter(key => !eligible.includes(key))) {
+          coverage[key] = coverage[key] || { radius: POI_MAX_RADIUS[key] || 10000, status: 'empty' };
+        }
+        if (!eligible.length) {
+          pending = pending.filter(key => !coverage[key]);
+          continue;
+        }
+        const result = await queryCategoriesAtRadius(lat, lng, radius, eligible);
         absorb(result, radius);
 
         const currentItems = [...elementMap.values()]
@@ -1006,14 +1076,13 @@ async function getPoi(lat, lng, radiusMode, category, geometry) {
 
         const nextPending = [];
         for (const key of pending) {
+          const maxRadiusForCategory = POI_MAX_RADIUS[key] || 10000;
           if (found.has(key)) {
             coverage[key] = { radius, status: 'found' };
-          } else if (result.failedCategories.has(key)) {
-            // Servis hatasını daha geniş yarıçaplarda dört kez tekrarlama.
-            // Diğer kategoriler bağımsız olarak devam eder.
+          } else if (eligible.includes(key) && result.failedCategories.has(key)) {
             coverage[key] = { radius, status: 'failed' };
-          } else if (radius === 30000) {
-            coverage[key] = { radius, status: 'empty' };
+          } else if (radius >= maxRadiusForCategory) {
+            coverage[key] = { radius: maxRadiusForCategory, status: 'empty' };
           } else {
             nextPending.push(key);
           }
@@ -1162,7 +1231,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.7.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
@@ -1234,6 +1303,19 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && pathname === '/api/services') {
       return sendJson(res, 200, { updatedAt: new Date().toISOString(), services: serviceHealth });
     }
+    let tileMatch = pathname.match(/^\/api\/open-data\/wms-tile\/([^/]+)\/(\d+)\/(\d+)\/(\d+)\.png$/);
+    if (req.method === 'GET' && tileMatch) {
+      const result = await wmsTile({
+        key: decodeURIComponent(tileMatch[1]),
+        z: Number(tileMatch[2]), x: Number(tileMatch[3]), y: Number(tileMatch[4]),
+        layerName: requestUrl.searchParams.get('layers') || '',
+        version: requestUrl.searchParams.get('version') || '1.1.1',
+        size: Number(requestUrl.searchParams.get('size')) || 512
+      });
+      markService('openData', true, 'Açık veri WMS karosu yüklendi.');
+      return sendBinary(res, 200, result.buffer, result.contentType, { 'X-Kadastro360-Cache': result.cache });
+    }
+
     if (req.method === 'GET' && pathname === '/api/open-data/catalog') {
       const province = String(requestUrl.searchParams.get('province') || '').trim();
       const district = String(requestUrl.searchParams.get('district') || '').trim();
@@ -1411,8 +1493,10 @@ const server = http.createServer(async (req, res) => {
       const body = await readJsonBody(req, 100_000);
       const result = await getRoadRoutes(body);
       const ok = result.routes.length > 0;
-      markService('routing', ok, ok ? `${result.routes.length} yol rotası hesaplandı.` : 'Yol rotası alınamadı.');
-      if (!ok) throw new Error(result.failed[0]?.error || 'Yol rotası alınamadı.');
+      const message = result.complete
+        ? `${result.routes.length}/${result.results.length} yol rotası hesaplandı.`
+        : `${result.routes.length}/${result.results.length} yol rotası hesaplandı; ${result.failed.length} hedef için rota alınamadı.`;
+      markService('routing', ok, message);
       return sendJson(res, 200, result);
     }
 

@@ -19,5 +19,5 @@ services:
         value: 20
       - key: DATA_DIR
         value: /tmp/kadastro360-data
-      - key: ROUTING_BASE_URL
-        value: https://router.project-osrm.org
+      - key: ROUTING_BASE_URLS
+        value: https://router.project-osrm.org,https://routing.openstreetmap.de/routed-car

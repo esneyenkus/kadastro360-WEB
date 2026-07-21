@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.7.0
+KADASTRO360 WEB PILOT v1.8.0
 
 YEREL KURULUM
 1. Node.js 22 kurun.
@@ -9,24 +9,41 @@ YEREL KURULUM
 6. npm start
 
 RENDER GÜNCELLEME
-- ZIP içeriğini GitHub deposunun ana dizinine yükleyin.
-- Eski dosyaların üzerine yazılmasına izin verin.
-- Özellikle server.js, index.html, tkgm-client.js, package.json, package-lock.json ve render.yaml değişmelidir.
-- Render > Blueprint > Manual sync çalıştırın.
-- Dağıtım tamamlanınca /api/health sonucunda version değerinin 1.7.0 olduğunu kontrol edin.
-- TEST_PASSWORD için güçlü ve yeni bir parola belirleyin.
+1. ZIP'i bilgisayarınızda açın.
+2. ZIP içindeki bütün dosyaları mevcut GitHub deponuzun ana dizinine yükleyin.
+3. Eski dosyaların üzerine yazılmasını kabul edin.
+4. GitHub'da Commit changes yapın.
+5. Mevcut Render Blueprint sayfasında Manual Sync çalıştırın.
+6. Yeni bir Blueprint oluşturmayın; aksi halde yeni site adresi oluşur.
+7. Dağıtım tamamlanınca /api/health sonucunda version değerinin 1.8.0 olduğunu kontrol edin.
+
+ÖNEMLİ DOSYALAR
+- server.js
+- index.html
+- open-data.js
+- tkgm-client.js
+- package.json
+- package-lock.json
+- render.yaml
+
+ROTA AYARI
+Render ayarında şu değişken bulunmalıdır:
+ROUTING_BASE_URLS=https://router.project-osrm.org,https://routing.openstreetmap.de/routed-car
+
+GÜVENLİK
+- TEST_PASSWORD için güçlü ve yeni bir parola kullanın.
 - SESSION_SECRET uzun ve rastgele olmalıdır.
+- Sohbette daha önce paylaşılan parolayı canlı sistemde kullanmayın.
 
 VERİ KLASÖRÜ
 - ZIP içinde boş data klasörü bulunmaz.
-- Uygulama ihtiyaç duyduğunda veritabanı klasörünü kendisi oluşturur.
-- Render test ortamında /tmp/kadastro360-data kullanılır; servis yeniden kurulursa geçmiş sıfırlanabilir.
-- Kalıcı kullanıcı/geçmiş için ileride Persistent Disk veya PostgreSQL kullanılmalıdır.
+- Uygulama ihtiyaç duyduğunda klasörü kendisi oluşturur.
+- Render Free ortamında /tmp/kadastro360-data kullanılır; servis yeniden kurulursa geçmiş sıfırlanabilir.
 
 KONTROL
-- npm run check komutu hem statik testleri hem TKGM il → ilçe → mahalle → parsel regresyon testini çalıştırır.
-- Başarılı sonuçta statik/açık veri, TKGM regresyonu ve yol rotası için üç ayrı “doğrulama geçti” mesajı görülür.
-
-YOL ROTASI
-- Pilot varsayılanı: ROUTING_BASE_URL=https://router.project-osrm.org
-- Üretimde bu değer kendi OSRM sunucusuna yönlendirilebilir.
+npm run check aşağıdaki testleri çalıştırır:
+- Statik ve tarayıcı JavaScript sözdizimi
+- TKGM il → ilçe → mahalle → parsel regresyonu
+- Dört hedefli çoklu rota sağlayıcısı
+- Keskin WMS karo ve önbellek
+- Hızlı toplu yakın yer ve önbellek
