@@ -47,7 +47,7 @@ const { PNG } = require('pngjs');
   assert(!/Math\.random\s*\(/.test(allCode), 'Uygulama kodunda rastgele veri üretimi bulunmamalı.');
   assert(!/mockData\s*:\s*true/.test(server + html), 'Mock veri açık olmamalı.');
   assert(server.includes("dataMode: 'live-only'"), 'Canlı veri modu belirtilmemiş.');
-  assert(server.includes("version: '1.8.0'"), 'Sunucu sürümü 1.8.0 değil.');
+  assert(server.includes("version: '1.8.1'"), 'Sunucu sürümü 1.8.1 değil.');
   assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
 
   assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
@@ -79,6 +79,11 @@ const { PNG } = require('pngjs');
   assert(html.includes('parcelHaloPane') && html.includes('bringParcelToFront'), 'Parsel üst görünürlük katmanı eksik.');
   assert(html.includes('id="poi-route-planner"') && html.includes('route-draw-btn') && html.includes('poi-route-checkbox'), 'Seçilebilir yakın yer rota arayüzü eksik.');
   assert(html.includes('drawRoadRoutes') && html.includes("api('/route'") && html.includes('routePane'), 'Harita içi yol rotası çizimi eksik.');
+  assert(html.includes('route-destination-label'), 'Varışta seçilen yer adı etiketi yok.');
+  assert(html.includes('routeLineWeight'), 'Üst üste binen rotaları görünür tutan şerit hesabı yok.');
+  assert(html.includes('routeConnector'), 'Parsel ve gerçek varış koordinatı bağlantı çizgisi yok.');
+  assert(!html.includes('route-number-pin'), 'Eski numaralı varış ikonu kaldırılmamış.');
+  assert(html.includes("['routePane',640]"), 'Rota katmanı parselin üstünde değil.');
   assert(html.includes('Rota alınamadı') && html.includes('${drawn}/${total}'), 'Kısmi rota sonucu hedef bazında gösterilmiyor.');
   assert(html.includes('tek toplu ve önbellekli taramayla'), 'Yakın yer hızlı toplu arama akışı eksik.');
   assert(html.includes('poi-accordion-grid') && html.includes('adet'), 'Tek akordeon kategori listesi eksik.');
@@ -110,7 +115,7 @@ const { PNG } = require('pngjs');
   assert(ysk?.wms?.loadMode === 'hybrid-direct-proxy', 'WMS doğrudan + proxy yedek karo modunda değil.');
   assert(catalog.wmsLoadMode === 'hybrid-direct-proxy', 'Katalog WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.8.0 statik, rota ve açık veri doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.8.1 statik, rota ve açık veri doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

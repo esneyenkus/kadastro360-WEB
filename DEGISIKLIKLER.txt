@@ -1,4 +1,11 @@
-KADASTRO360 WEB PILOT v1.8.0
+KADASTRO360 WEB PILOT v1.8.1
+
+ROTA GÖRÜNÜRLÜĞÜ VE VARIŞ ETİKETİ
+- Varıştaki numaralı ikon kaldırıldı; seçilen yakın yerin tam adı varış koordinatının üzerinde sürekli gösterilir.
+- Rota servisi başlangıç veya bitiş noktasını yola eşlediğinde parsel merkezi ve gerçek POI koordinatı renkli kesik bağlantı çizgisiyle tamamlanır.
+- Ortak yol kesiminde üst üste binen rotalar farklı kalınlıklarda iç içe çizilir; alttaki kırmızı/mavi rota yakınlaşmadan da görünür kalır.
+- Bütün beyaz dış çizgiler renkli çizgilerden önce çizilerek sonraki rotanın önceki rotayı kapatması engellendi.
+- Rota katmanı parsel katmanının üstüne alındı; parsel başlangıcındaki rota parsel dolgusu altında kaybolmaz.
 
 YOL ROTASI
 - Birincil rota sağlayıcısı yanıt vermezse ikinci OSRM sağlayıcısı otomatik denenir.

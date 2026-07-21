@@ -1,4 +1,4 @@
-# Kadastro360 Web Pilot v1.8.0
+# Kadastro360 Web Pilot v1.8.1
 
 Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, düz çizgiyi yol rotası gibi gösterme veya tahmini rayiç üretmez.
 
@@ -13,6 +13,9 @@ Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın
 - Her hedef için ayrı **Hazır / Rota alınamadı** sonucu gösterilir.
 - Başarısız hedef sessizce atlanmaz.
 - Başarılı rotalar gerçek yol geometrisi, mesafe ve tahmini süreyle çizilir.
+- Varış koordinatında numaralı ikon yerine seçilen yakın yerin tam adı sürekli görünür.
+- OSRM’nin yola eşlediği başlangıç/bitiş ile parsel/POI arasındaki kısa fark, yol rotasıyla karışmaması için renkli kesik bağlantı olarak gösterilir.
+- Aynı yol üzerinde üst üste binen rotalar iç içe farklı kalınlıklarda çizilir; alttaki rotalar uzak görünümde kaybolmaz.
 
 Varsayılan sağlayıcılar:
 
@@ -68,7 +71,7 @@ Render dağıtımından sonra şu adres kontrol edilir:
 https://SİTE-ADRESİ/api/health
 ```
 
-Sonuçta `version: 1.8.0` görünmelidir.
+Sonuçta `version: 1.8.1` görünmelidir.
 
 ## Önemli doğruluk notu
 

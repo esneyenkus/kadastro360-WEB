@@ -1,10 +1,14 @@
-KADASTRO360 WEB PILOT v1.8.0 DOĞRULAMA RAPORU
+KADASTRO360 WEB PILOT v1.8.1 DOĞRULAMA RAPORU
 
 TARİH: 22.07.2026
 VERİ MODU: live-only
 MOCK VERİ: kapalı
 
 OTOMATİK TESTLER
+[GEÇTİ] Varış koordinatında eski numaralı ikonun kaldırılması ve tam yer adı etiketinin bulunması
+[GEÇTİ] Üst üste binen rotalar için genişten dara çoklu şerit çizimi
+[GEÇTİ] Parsel merkezi → yola eşlenen başlangıç ve yol sonu → gerçek POI koordinatı bağlantı çizgileri
+[GEÇTİ] Rota katmanının parsel katmanının üstünde tutulması
 [GEÇTİ] Sunucu ve yardımcı JavaScript dosyalarının sözdizimi
 [GEÇTİ] HTML içindeki kullanıcı ve yönetici JavaScript kodlarının ayrıştırılması
 [GEÇTİ] TKGM il → ilçe → mahalle → parsel regresyon testi
