@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.5.2
+KADASTRO360 WEB PILOT v1.6.0
 
 YEREL KURULUM
 1. Node.js 22 kurun.
@@ -13,7 +13,7 @@ RENDER GÜNCELLEME
 - Eski dosyaların üzerine yazılmasına izin verin.
 - Özellikle server.js, index.html, tkgm-client.js, package.json, package-lock.json ve render.yaml değişmelidir.
 - Render > Blueprint > Manual sync çalıştırın.
-- Dağıtım tamamlanınca /api/health sonucunda version değerinin 1.5.2 olduğunu kontrol edin.
+- Dağıtım tamamlanınca /api/health sonucunda version değerinin 1.6.0 olduğunu kontrol edin.
 - TEST_PASSWORD için güçlü ve yeni bir parola belirleyin.
 - SESSION_SECRET uzun ve rastgele olmalıdır.
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kadastro360 — Web Pilot v1.5.2</title>
+<title>Kadastro360 — Web Pilot v1.6.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="endeksa-utils.js"></script>
@@ -65,6 +65,16 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 .plan-guide-btn,.plan-focus-btn{border-color:#b8a8df!important;color:#5932a5!important;background:#faf8ff!important}.plan-focus-btn{border-color:#9eb7e8!important;color:#244f9e!important;background:#f4f7ff!important}
 .legend-intro{font-size:10px;color:var(--muted);line-height:1.55;margin-bottom:10px}.legend-grid{display:grid;gap:6px}.legend-row{display:grid;grid-template-columns:38px minmax(0,1fr);gap:9px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:7px;background:#fff}.legend-sample{width:36px;height:25px;border:1px solid rgba(0,0,0,.22);border-radius:4px;background:#fff;position:relative;overflow:hidden}.legend-row strong{display:block;font-size:10px}.legend-row small{display:block;color:var(--muted);font-size:8px;line-height:1.35;margin-top:2px}.legend-sample.horizontal{background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.7) 0 1px,transparent 1px 5px)}.legend-sample.vertical{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.7) 0 1px,transparent 1px 5px)}.legend-sample.cross{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.52) 0 1px,transparent 1px 6px),repeating-linear-gradient(-45deg,rgba(0,0,0,.52) 0 1px,transparent 1px 6px)}.legend-sample.dots{background-image:radial-gradient(rgba(0,0,0,.55) 1px,transparent 1.4px);background-size:7px 7px}.legend-sample.diagonal{background-image:repeating-linear-gradient(125deg,rgba(0,0,0,.65) 0 2px,transparent 2px 8px)}.legend-sample.red-dots{border:0;background:radial-gradient(circle,#f11 0 4px,transparent 4.5px) left center/12px 12px repeat-x}.legend-sample.road{border:0;background:linear-gradient(180deg,transparent 0 8px,#000 8px 17px,transparent 17px),linear-gradient(180deg,transparent 0 10px,#ffff73 10px 15px,transparent 15px)}.legend-source{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}.legend-source a{color:#315fae;text-decoration:none;font-weight:800}.scale-note{margin-top:7px;padding:7px;border-radius:7px;background:#f4f7ff;color:#244f9e;font-size:9px;line-height:1.45}
 
+
+
+/* v1.6.0 — hızlı tek-görüntü plan önbelleği, parsel hedefi, karşılaştırma ve taşınabilir rehber */
+.map-runtime-status{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1450;display:none;align-items:center;gap:8px;max-width:min(520px,calc(100% - 120px));padding:8px 12px;border-radius:9px;background:rgba(23,33,43,.92);color:#fff;font-size:10px;font-weight:750;box-shadow:0 7px 25px rgba(0,0,0,.22);pointer-events:none}.map-runtime-status.show{display:flex}.map-runtime-status.ok{background:rgba(14,107,81,.94)}.map-runtime-status.error{background:rgba(139,45,34,.94)}.map-runtime-status.loading:before{content:"";width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex:0 0 auto}
+.compare-control{position:absolute;right:12px;top:12px;z-index:1300;display:none;align-items:center;gap:5px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:9px;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,.12)}.compare-control.show{display:flex}.compare-control button{border:0;border-radius:6px;padding:6px 8px;background:#fff;font-size:9px;font-weight:800;cursor:pointer;color:var(--text)}.compare-control .compare-main{background:#fff5e8;color:#8a4c00}.compare-control .compare-main.off{background:#f1f3f5;color:#687583}.compare-control .compare-clear{border-left:1px solid var(--line);border-radius:0 6px 6px 0;color:#8b2d22}
+.parcel-locator-wrapper{background:transparent;border:0}.parcel-locator{--locator-size:34px;width:var(--locator-size);height:var(--locator-size);margin-left:calc(var(--locator-size) / -2);margin-top:calc(var(--locator-size) / -2);border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.96);border:3px solid #e33737;box-shadow:0 0 0 4px rgba(227,55,55,.18),0 5px 18px rgba(0,0,0,.3);transition:width .16s,height .16s,margin .16s,opacity .16s;animation:parcelPulse 1.6s ease-out infinite}.parcel-locator:before{content:"";width:32%;height:32%;border-radius:50%;background:#e33737}.parcel-locator-label{position:absolute;left:50%;top:calc(var(--locator-size) + 5px);transform:translateX(-50%);background:#17212b;color:#fff;border-radius:5px;padding:3px 5px;font:800 8px/1 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.24)}@keyframes parcelPulse{0%{box-shadow:0 0 0 0 rgba(227,55,55,.38),0 5px 18px rgba(0,0,0,.3)}70%{box-shadow:0 0 0 12px rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}100%{box-shadow:0 0 0 0 rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}}
+.open-data-static-image{image-rendering:auto;transition:opacity .15s ease}.leaflet-openData-pane{mix-blend-mode:normal}.leaflet-parcelHalo-pane,.leaflet-parcel-pane,.leaflet-locator-pane{pointer-events:none}.leaflet-comparison-pane{pointer-events:auto}
+.legend-window{position:fixed;right:20px;top:86px;z-index:5100;width:min(400px,calc(100vw - 28px));max-height:min(78vh,720px);display:none}.legend-window.open{display:block}.legend-window .modal-card{width:100%;max-height:min(78vh,720px);overflow:auto;border:1px solid #cfd8e1;border-radius:12px;background:#fff;box-shadow:0 16px 50px rgba(0,0,0,.25)}.legend-window .modal-head{position:sticky;top:0;z-index:2;background:#fff;cursor:move;user-select:none;touch-action:none}.legend-drag-hint{margin-left:auto;margin-right:8px;font-size:8px;color:var(--muted);font-weight:700}.legend-window .modal-body{padding:12px}.legend-window.dragging{opacity:.96}.legend-window.dragging .modal-card{box-shadow:0 22px 65px rgba(0,0,0,.32)}
+.session-compare-note{font-size:9px;color:#7b4b0b;background:#fff7eb;border:1px solid #f0d2a6;border-radius:7px;padding:7px;margin:7px 0;line-height:1.45}
+@media(max-width:820px){.compare-control{top:54px;right:8px}.map-runtime-status{top:54px;max-width:calc(100% - 20px)}.legend-window{left:8px!important;right:8px!important;top:70px!important;width:auto;max-height:72vh}.legend-drag-hint{display:none}}
 
 </style>
 </head>
@@ -201,6 +211,11 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
     <div id="map" class="map"></div>
     <div class="loading-overlay" id="loading"><div class="spinner"></div></div>
     <div class="map-badge">Harita: OpenStreetMap · Veriler: canlı servisler · Sahte sonuç yok</div>
+    <div class="map-runtime-status" id="map-runtime-status" aria-live="polite"></div>
+    <div class="compare-control" id="compare-control">
+      <button type="button" class="compare-main" id="compare-toggle">Karşılaştırma: 0</button>
+      <button type="button" class="compare-clear" id="compare-clear">Temizle</button>
+    </div>
   </main>
 </div>
 <div class="modal" id="tucbs-modal" role="dialog" aria-modal="true" aria-labelledby="tucbs-title">
@@ -211,8 +226,8 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
     <div class="modal-actions"><button id="copy-summary">Parsel özetini kopyala</button><a class="go" id="tucbs-open" href="https://ucbp.tucbs.gov.tr/harita-goruntuleyici" target="_blank" rel="noopener noreferrer">TUCBS’yi Aç ↗</a></div>
   </div></div>
 </div>
-<div class="modal" id="legend-modal" role="dialog" aria-modal="true" aria-labelledby="legend-title">
-  <div class="modal-card"><div class="modal-head"><h2 id="legend-title">Çevre Düzeni Planı Renk Rehberi</h2><button class="modal-close" id="legend-close">×</button></div><div class="modal-body">
+<div class="legend-window" id="legend-window" role="dialog" aria-modal="false" aria-labelledby="legend-title">
+  <div class="modal-card"><div class="modal-head" id="legend-drag-handle"><h2 id="legend-title">Çevre Düzeni Planı Renk Rehberi</h2><span class="legend-drag-hint">Sürükleyerek taşı</span><button class="modal-close" id="legend-close">×</button></div><div class="modal-body">
     <div class="legend-intro" id="legend-context">Genel çevre düzeni planı gösterimleri.</div>
     <div class="notice warn"><strong>Önemli:</strong> Bu, 22.01.2026 tarihli resmî EK-1c gösterimlerinden hazırlanmış genel bir rehberdir. Aktif plan daha eski veya değişiklik görmüşse renk ve taramalar farklı olabilir. Kesin yorumda ilgili planın güncel paftası ve resmî lejantı esas alınır.</div>
     <div class="legend-grid">
@@ -249,10 +264,12 @@ const CATEGORY_NAMES = {school:'Okul',market:'Market',mosque:'Cami',bank:'Banka'
 const CATEGORY_LABELS = {all:'yakındaki okul market cami eczane hastane banka ATM sahil otogar tren garı havaalanı',school:'okul',market:'market',mosque:'cami',bank:'banka',atm:'ATM',beach:'sahil plaj',pharmacy:'eczane',hospital:'hastane sağlık merkezi',bus_terminal:'otogar otobüs terminali',train_station:'tren garı tren istasyonu',airport:'havaalanı havalimanı'};
 const store = {
   il:{items:[],selected:null}, ilce:{items:[],selected:null}, mah:{items:[],selected:null},
-  map:null, parcelLayer:null, parcelFeature:null, parcelCenter:null,
+  map:null, parcelLayer:null, parcelHaloLayer:null, parcelFeature:null, parcelCenter:null,
+  parcelLocator:null, parcelFocusZoom:null, comparisonGroup:null, comparisonVisible:true, comparisonItems:[],
   poiGroup:null, poiMarkers:new Map(), selectedLine:null, selectedLabel:null,
   poiItems:[], poiSearchMeta:null, requestId:0, poiRequestId:0, account:null, services:null,
   openDataCatalog:null, openDataLayers:new Map(), openDataRequestId:0, openDataInfoBusy:false,
+  wmsDiscoveryCache:new Map(), mapActivityTimer:null,
   visibility:{parcel:true,terrain:true,poi:true,tucbs:true,openData:true}
 };
 
@@ -312,7 +329,7 @@ function updateLayerControl(key){
 }
 function applyLayerVisibility(key){
   const visible=Boolean(store.visibility[key]);
-  if(key==='parcel') putLayer(store.parcelLayer,visible);
+  if(key==='parcel'){ putLayer(store.parcelHaloLayer,visible); putLayer(store.parcelLayer,visible); updateParcelLocator(); }
   if(key==='terrain') $('terrain-card')?.classList.toggle('panel-hidden',!visible);
   if(key==='poi'){
     putLayer(store.poiGroup,visible);
@@ -324,7 +341,7 @@ function applyLayerVisibility(key){
     for(const {layer} of store.openDataLayers.values()) putLayer(layer,visible);
     updateOpenDataMapBadge();
   }
-  if(visible&&key==='parcel'&&store.parcelLayer&&layerOnMap(store.parcelLayer)) store.parcelLayer.bringToFront();
+  if(visible&&key==='parcel') bringParcelToFront();
   updateLayerControl(key);
 }
 function toggleLayerVisibility(key){
@@ -415,7 +432,7 @@ function updateOpenDataMapBadge(){
   badge?.classList.toggle('open-data-active',visible);
   if(badge){
     if(!count) badge.textContent='Harita: OpenStreetMap · Veriler: canlı servisler · Sahte sonuç yok';
-    else if(visible) badge.textContent=`${count} doğrulanmış kamu katmanı açık · Parsel sınırı görünür`;
+    else if(visible) badge.textContent=`${count} kamu katmanı açık · Parsel hedefi ve sınırı görünür`;
     else badge.textContent=`${count} açık kamu katmanı seçili · şu anda gizli`;
   }
   $('open-data-clear').disabled=count===0;
@@ -423,8 +440,10 @@ function updateOpenDataMapBadge(){
 }
 
 function clearOpenDataLayers(){
-  for(const {layer} of store.openDataLayers.values()){
-    try{ if(layerOnMap(layer)) store.map.removeLayer(layer); }catch{}
+  for(const row of store.openDataLayers.values()){
+    try{ if(layerOnMap(row.layer)) store.map.removeLayer(row.layer); }catch{}
+    try{ row.dispose?.(); }catch{}
+    try{ if(row.objectUrl) URL.revokeObjectURL(row.objectUrl); }catch{}
   }
   store.openDataLayers.clear();
   document.querySelectorAll('.open-data-card').forEach(card=>card.classList.remove('active'));
@@ -481,7 +500,7 @@ function renderOpenDataCatalog(data){
     const guide=item.category==='plan'?`<button type="button" class="plan-guide-btn" data-open-action="guide" data-item-id="${escapeHtml(item.id)}">Renk Rehberi</button>`:'';
     const focus=item.category==='plan'?`<button type="button" class="plan-focus-btn" data-open-action="focus" data-item-id="${escapeHtml(item.id)}">Plan Ölçeğine Git</button>`:'';
     const source=item.sourceUrl?`<a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Kaynak Sayfası ↗</a>`:'';
-    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Bu katman eklenmeden önce resmî WMS görüntüsü parsel çevresinde kontrol edilir. Şeffaf veya boş görüntü başarı sayılmaz; yalnızca görünür içerik doğrulanırsa haritaya eklenir.</div>':'';
+    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Bu katman eklenmeden önce resmî WMS görüntüsü parsel çevresinde kontrol edilir; görünür içerik tek parça olarak doğrulanır ve tarayıcı önbelleğine alınır. Harita konumu değişmez; yakınlaştırma sırasında tekrar tekrar indirme yapılmaz. Şeffaf veya boş görüntü başarı sayılmaz.</div>':'';
     card.innerHTML=`<div class="open-data-head"><div class="open-data-title">${escapeHtml(item.title)}</div><span class="open-data-kind ${kindClass}">${kindLabel}</span></div><div class="open-data-desc">${escapeHtml(item.description||'Kamuya açık veri kaynağı.')}<br><strong>Sağlayıcı:</strong> ${escapeHtml(item.provider||'Belirtilmedi')}</div>${rayicSummaryHtml(item)}<div class="open-data-fresh">${escapeHtml(openDataFreshness(item))}</div><div class="open-data-actions">${overlayButton}${focus}${guide}${source}</div>${directNote}<div class="open-data-load-status" aria-live="polite"></div>${openDataResourcesHtml(item)}`;
     list.appendChild(card);
   }
@@ -517,9 +536,9 @@ async function loadOpenDataCatalog(){
 function openLegendGuide(itemId){
   const item=store.openDataCatalog?.items?.find(row=>row.id===itemId);
   $('legend-context').innerHTML=item?`<strong>${escapeHtml(item.title)}</strong> için genel çevre düzeni planı renk ve tarama rehberi.`:'Genel çevre düzeni planı renk ve tarama rehberi.';
-  $('legend-modal').classList.add('open');
+  $('legend-window').classList.add('open');
 }
-function closeLegendGuide(){ $('legend-modal').classList.remove('open'); }
+function closeLegendGuide(){ $('legend-window').classList.remove('open'); }
 
 function redrawOpenDataLayer(itemId){
   const row=store.openDataLayers.get(itemId);
@@ -530,22 +549,22 @@ function redrawOpenDataLayer(itemId){
 function focusOpenDataPlan(itemIdOrItem,announce=false){
   const item=typeof itemIdOrItem==='string'?store.openDataCatalog?.items?.find(row=>row.id===itemIdOrItem):itemIdOrItem;
   if(!item||item.category!=='plan'||!store.parcelCenter||!store.map) return Promise.resolve(false);
-  const target=Number(item.wms?.recommendedZoom)||10;
+  const active=store.openDataLayers.get(item.id);
   store.map.stop();
   store.map.invalidateSize(false);
-  store.map.setView(L.latLng(store.parcelCenter.lat,store.parcelCenter.lng),target,{animate:false});
-  return new Promise(resolve=>{
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      store.map.invalidateSize(false);
-      redrawOpenDataLayer(item.id);
-      if(announce){
-        const status=document.querySelector(`.open-data-card[data-item-id="${CSS.escape(item.id)}"] .open-data-load-status`);
-        if(status){status.className='open-data-load-status notice info';status.textContent=`Plan görünümü yenilendi · yakınlaştırma ${target}. Katman açıksa yeniden çizildi.`;}
-        setStatus(`Harita plan ölçeğine getirildi (yakınlaştırma ${target}) ve katman yenilendi.`,'ok');
-      }
-      resolve(true);
-    }));
-  });
+  if(active?.bounds?.isValid?.()){
+    store.map.fitBounds(active.bounds,{padding:[42,42],maxZoom:Number(item.wms?.recommendedZoom)||10,animate:true,duration:.45});
+  }else{
+    const target=Number(item.wms?.recommendedZoom)||10;
+    store.map.setView(L.latLng(store.parcelCenter.lat,store.parcelCenter.lng),target,{animate:true});
+  }
+  setTimeout(()=>{bringParcelToFront();updateParcelLocator();},500);
+  if(announce){
+    const status=document.querySelector(`.open-data-card[data-item-id="${CSS.escape(item.id)}"] .open-data-load-status`);
+    if(status){status.className='open-data-load-status notice info';status.textContent='Plan görünümüne geçildi. Kırmızı hedef işareti parselin yerini gösterir; yakınlaştıkça küçülür.';}
+    showMapActivity('Plan görünümüne geçildi · Parsel hedefi aktif','ok');
+  }
+  return Promise.resolve(true);
 }
 
 function directLayerChildren(node,name){
@@ -721,6 +740,115 @@ function waitForWmsLayer(item,attempt){
   });
 }
 
+function showMapActivity(text,state='loading',duration=0){
+  const node=$('map-runtime-status');
+  if(!node) return;
+  clearTimeout(store.mapActivityTimer);
+  node.textContent=text;
+  node.className=`map-runtime-status show ${state}`;
+  if(duration>0) store.mapActivityTimer=setTimeout(()=>{node.className='map-runtime-status';},duration);
+}
+
+function wmsCacheRead(key){
+  try{
+    const raw=localStorage.getItem(key);if(!raw)return null;
+    const parsed=JSON.parse(raw);if(!parsed?.savedAt||Date.now()-parsed.savedAt>24*60*60*1000)return null;
+    return parsed.value;
+  }catch{return null;}
+}
+function wmsCacheWrite(key,value){try{localStorage.setItem(key,JSON.stringify({savedAt:Date.now(),value}));}catch{}}
+
+async function cachedWmsDiscovery(item){
+  const key=`k360:wms-discovery:${item.wms?.key||item.id}`;
+  if(store.wmsDiscoveryCache.has(key)) return store.wmsDiscoveryCache.get(key);
+  const saved=wmsCacheRead(key);
+  if(saved?.leafNames?.length){store.wmsDiscoveryCache.set(key,saved);return saved;}
+  const fresh=await discoverBrowserWmsLayers(item);
+  if(fresh?.leafNames?.length) wmsCacheWrite(key,fresh);
+  store.wmsDiscoveryCache.set(key,fresh);
+  return fresh;
+}
+
+function fastWmsAttempts(item,discovery={}){
+  const choice=wmsCacheRead(`k360:wms-choice:${item.wms?.key||item.id}`);
+  const layers=[
+    choice?.layerName,
+    ...(discovery.compositeCandidates||[]).slice(0,1),
+    item.wms?.activeLayerName,
+    item.wms?.layerName,
+    ...(item.wms?.layerCandidates||[]),
+    ...(discovery.leafNames||[]).slice(0,3)
+  ].filter(Boolean);
+  const versions=[choice?.version,'1.1.1',discovery.version,...(item.wms?.versionCandidates||[]),item.wms?.version,'1.3.0'].filter(Boolean);
+  const result=[];
+  for(const layerName of [...new Set(layers)]){
+    for(const version of [...new Set(versions)]){
+      result.push({layerName,version});
+      if(result.length>=8)return result;
+    }
+  }
+  return result;
+}
+
+function bufferedWmsRequest(item,attempt){
+  const center=L.CRS.EPSG3857.project(L.latLng(store.parcelCenter.lat,store.parcelCenter.lng));
+  const radiusKm=item.category==='plan'?Math.max(30,Number(item.wms?.probeRadiusKm)||24):Math.max(8,Number(item.wms?.probeRadiusKm)||8);
+  const radius=radiusKm*1000;
+  const projected=[center.x-radius,center.y-radius,center.x+radius,center.y+radius];
+  const url=new URL(item.wms.baseUrl);
+  const width=item.category==='plan'?1600:1200;
+  const params={SERVICE:'WMS',REQUEST:'GetMap',VERSION:attempt.version,LAYERS:attempt.layerName,STYLES:String(attempt.layerName).split(',').map(()=>'').join(','),FORMAT:'image/png',TRANSPARENT:'TRUE',WIDTH:String(width),HEIGHT:String(width),BBOX:projected.join(',')};
+  if(attempt.version==='1.3.0')params.CRS='EPSG:3857';else params.SRS='EPSG:3857';
+  Object.entries(params).forEach(([key,value])=>url.searchParams.set(key,value));
+  const sw=L.CRS.EPSG3857.unproject(L.point(projected[0],projected[1]));
+  const ne=L.CRS.EPSG3857.unproject(L.point(projected[2],projected[3]));
+  return {url:url.toString(),bounds:L.latLngBounds(sw,ne),radiusKm};
+}
+
+async function fetchBufferedWmsImage(item,attempt){
+  const request=bufferedWmsRequest(item,attempt);
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),26000);
+  try{
+    const response=await fetch(request.url,{signal:controller.signal,cache:'force-cache',headers:{Accept:'image/png,image/*;q=.9,*/*;q=.5'}});
+    if(!response.ok) throw new Error(`GetMap HTTP ${response.status}`);
+    const type=response.headers.get('content-type')||'';
+    const blob=await response.blob();
+    if(!/image\//i.test(type)&&blob.size<2000) throw new Error('WMS görüntü yerine servis hatası döndürdü.');
+    const image=await imageBitmapFromBlob(blob);
+    const width=Math.max(1,image.width||image.naturalWidth||1600),height=Math.max(1,image.height||image.naturalHeight||1600);
+    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+    const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(image,0,0,width,height);
+    const analysis=analyzeCanvasVisibility(context,width,height);
+    try{image.close?.();}catch{}
+    if(!analysis.visible) throw new Error('Bu parsel çevresinde görünür plan içeriği alınamadı. Boş görüntü haritaya eklenmedi.');
+    const objectUrl=URL.createObjectURL(blob);
+    const layer=L.imageOverlay(objectUrl,request.bounds,{opacity:item.category==='ortho'?.9:.82,pane:'openDataPane',interactive:false,className:'open-data-static-image'});
+    return {layer,objectUrl,bounds:request.bounds,analysis,radiusKm:request.radiusKm};
+  }finally{clearTimeout(timer);}
+}
+
+async function createBufferedWmsLayer(item,statusNode){
+  if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Resmî katman listesi hazırlanıyor…';}
+  showMapActivity('Açık plan verisi hazırlanıyor · Harita konumu korunuyor','loading');
+  const discovery=await cachedWmsDiscovery(item);
+  if(!discovery?.leafNames?.length) throw new Error(`WMS katman listesi alınamadı${discovery?.error?`: ${discovery.error}`:''}.`);
+  const attempts=fastWmsAttempts(item,discovery);
+  let lastError='Görünür plan içeriği bulunamadı.';
+  for(let index=0;index<attempts.length;index++){
+    const attempt=attempts[index];
+    const layerCount=String(attempt.layerName).split(',').length;
+    if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent=`Plan görüntüsü tek parça önbelleğe alınıyor (${index+1}/${attempts.length})${layerCount>1?` · ${layerCount} alt katman`:''}…`;}
+    try{
+      const result=await fetchBufferedWmsImage(item,attempt);
+      item.wms.activeLayerName=attempt.layerName;item.wms.activeVersion=attempt.version;item.wms.visualVerified=true;
+      wmsCacheWrite(`k360:wms-choice:${item.wms?.key||item.id}`,{layerName:attempt.layerName,version:attempt.version});
+      return {...result,attempt};
+    }catch(error){lastError=humanError(error);}
+  }
+  throw new Error(lastError);
+}
+
 async function createDirectWmsLayer(item,statusNode){
   if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Resmî WMS katman listesi okunuyor…';}
   const discovery=await discoverBrowserWmsLayers(item);
@@ -751,33 +879,34 @@ async function toggleOpenDataLayer(itemId,button){
   const existing=store.openDataLayers.get(itemId),card=button.closest('.open-data-card'),statusNode=card?.querySelector('.open-data-load-status');
   if(existing){
     if(layerOnMap(existing.layer))store.map.removeLayer(existing.layer);
+    try{existing.dispose?.();}catch{}
+    try{if(existing.objectUrl)URL.revokeObjectURL(existing.objectUrl);}catch{}
     store.openDataLayers.delete(itemId);card?.classList.remove('active');button.textContent='Haritaya Ekle';button.classList.remove('remove');
     if(statusNode){statusNode.textContent='Katman haritadan kaldırıldı.';statusNode.className='open-data-load-status notice info';}
-    updateOpenDataMapBadge();return;
+    updateOpenDataMapBadge();showMapActivity('Açık veri katmanı kaldırıldı','ok',1800);return;
   }
-  button.disabled=true;const old=button.textContent;button.textContent='Doğrulanıyor…';
+  button.disabled=true;const old=button.textContent;button.textContent='Hazırlanıyor…';
   try{
-    let layer;
+    let row;
     if(item.type==='wms'){
-      if(item.category==='plan'){
-        if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Plan görünümü hazırlanıyor…';}
-        await focusOpenDataPlan(item,false);
-      }
-      layer=await createDirectWmsLayer(item,statusNode);
+      const buffered=await createBufferedWmsLayer(item,statusNode);
+      row={layer:buffered.layer,item,visualVerified:true,objectUrl:buffered.objectUrl,bounds:buffered.bounds,attempt:buffered.attempt};
     }else if(item.type==='geojson'){
+      showMapActivity('Açık veri katmanı yükleniyor · Harita konumu korunuyor','loading');
       const geojson=await api(`/open-data/geojson?token=${encodeURIComponent(item.resourceToken)}`,{},30000);
-      layer=L.geoJSON(geojson,{style:item.style||{color:'#7a3ff2',weight:2,fillOpacity:.04},onEachFeature:(feature,featureLayer)=>{const props=feature.properties||{};const rows=Object.entries(props).filter(([,value])=>value!==null&&value!==undefined&&String(value).trim()!=='').slice(0,10);if(rows.length)featureLayer.bindPopup(`<div class="open-data-popup"><strong>${escapeHtml(item.title)}</strong><table>${rows.map(([key,value])=>`<tr><td>${escapeHtml(key)}</td><td>${escapeHtml(String(value))}</td></tr>`).join('')}</table></div>`);}});
+      const layer=L.geoJSON(geojson,{pane:'openDataPane',style:item.style||{color:'#7a3ff2',weight:2,fillOpacity:.04},onEachFeature:(feature,featureLayer)=>{const props=feature.properties||{};const rows=Object.entries(props).filter(([,value])=>value!==null&&value!==undefined&&String(value).trim()!=='').slice(0,10);if(rows.length)featureLayer.bindPopup(`<div class="open-data-popup"><strong>${escapeHtml(item.title)}</strong><table>${rows.map(([key,value])=>`<tr><td>${escapeHtml(key)}</td><td>${escapeHtml(String(value))}</td></tr>`).join('')}</table></div>`);}});
+      row={layer,item,visualVerified:true,bounds:layer.getBounds?.()};
     }else return;
-    store.openDataLayers.set(itemId,{layer,item,visualVerified:item.type!=='wms'||item.wms.visualVerified===true});
-    setLayerVisibility('openData',true);putLayer(layer,true);redrawOpenDataLayer(itemId);
+    store.openDataLayers.set(itemId,row);
+    setLayerVisibility('openData',true);putLayer(row.layer,true);bringParcelToFront();updateParcelLocator();
     card?.classList.add('active');button.textContent='Haritadan Kaldır';button.classList.add('remove');
     if(statusNode){
       statusNode.className='open-data-load-status notice ok';
-      statusNode.innerHTML=item.type==='wms'?(item.category==='plan'?`Görünür plan içeriği doğrulandı ve haritaya eklendi.<div class="scale-note">WMS ${escapeHtml(item.wms.activeVersion)} · ${String(item.wms.activeLayerName).includes(',')?`${String(item.wms.activeLayerName).split(',').length} alt katman birlikte`:`katman ${escapeHtml(item.wms.activeLayerName)}`} · Parsel sınırı üstte tutulur.</div>`:`Katman görsel olarak doğrulandı ve yüklendi.`):'Katman yüklendi.';
+      statusNode.innerHTML=item.type==='wms'?'Plan görüntüsü tek seferde önbelleğe alındı. Haritayı yakınlaştırıp uzaklaştırırken yeniden indirme yapılmaz; mevcut konum korunur.<div class="scale-note">Parsel sınırı beyaz çerçeve ve yeşil çizgiyle üstte; uzakta kırmızı hedef işaretiyle gösterilir.</div>':'Katman yüklendi; mevcut harita konumu korundu.';
     }
-    updateOpenDataMapBadge();
+    updateOpenDataMapBadge();showMapActivity('Katman hazır · Yakınlaştırma artık anlık','ok',2600);
   }catch(error){
-    button.textContent=old;
+    button.textContent=old;showMapActivity(`Katman yüklenemedi: ${humanError(error)}`,'error',4200);
     if(statusNode){statusNode.className='open-data-load-status notice error';statusNode.textContent=`Katman eklenmedi: ${humanError(error)} Kaynak sayfası bağlantısı kullanılabilir.`;}
   }finally{button.disabled=false;}
 }
@@ -972,6 +1101,8 @@ async function selectCombo(key, item){
   $(`input-${key}`).value = item.name;
   $(`drop-${key}`).classList.remove('open');
   resetResult();
+  if(key === 'il' || key === 'ilce') clearComparisonView();
+  if(key === 'mah') renderNeighborhoodComparisons();
 
   if(key === 'il'){
     clearDownstream('ilce');
@@ -1026,6 +1157,9 @@ function resetResult(){
   store.poiRequestId++;
   $('parcel-empty').innerHTML = '<div class="big">🗺️</div>İl, ilçe ve mahalleyi seçin.<br>Ada ve parsel numarasını girip sorgulayın.';
   if(store.parcelLayer){ store.map.removeLayer(store.parcelLayer); store.parcelLayer = null; }
+  if(store.parcelHaloLayer){ store.map.removeLayer(store.parcelHaloLayer); store.parcelHaloLayer = null; }
+  if(store.parcelLocator){ store.map.removeLayer(store.parcelLocator); store.parcelLocator = null; }
+  store.parcelFocusZoom = null;
   store.parcelFeature = null; store.parcelCenter = null;
   $('parcel-result').hidden = true; $('parcel-empty').hidden = false;
   $('parcel-info').innerHTML = '';
@@ -1196,13 +1330,16 @@ async function searchParcel(){
     if(!feature?.geometry) throw new Error('Parsel bulunamadı veya geometri dönmedi.');
 
     store.parcelFeature = feature;
-    store.parcelLayer = L.geoJSON(feature,{style:{color:'#168a68',weight:3,fillColor:'#30a983',fillOpacity:.18}});
+    store.parcelHaloLayer = L.geoJSON(feature,{pane:'parcelHaloPane',interactive:false,style:{color:'#ffffff',weight:8,opacity:.96,fillOpacity:0}});
+    store.parcelLayer = L.geoJSON(feature,{pane:'parcelPane',style:{color:'#08785a',weight:3.5,opacity:1,fillColor:'#30a983',fillOpacity:.20}});
     setLayerVisibility('parcel',true);
     const bounds = store.parcelLayer.getBounds();
     if(!bounds.isValid()) throw new Error('Parsel koordinatı geçersiz.');
     store.parcelCenter = bounds.getCenter();
     setProcess('parcel','ok');
     store.map.fitBounds(bounds,{padding:[45,45],maxZoom:18});
+    store.parcelFocusZoom=store.map.getZoom();
+    ensureParcelLocator();
 
     renderParcelInfo(feature);
     $('parcel-empty').hidden = true; $('parcel-result').hidden = false;
@@ -1214,8 +1351,11 @@ async function searchParcel(){
     $('center-link').href = `https://www.google.com/maps?q=${store.parcelCenter.lat},${store.parcelCenter.lng}`;
     $('center-link').classList.remove('disabled');
     updateGooglePoiLink();
+    rememberParcelForComparison(feature,ada,parsel);
+    renderNeighborhoodComparisons(`${ada}/${parsel}`);
+    requestAnimationFrame(()=>{store.parcelFocusZoom=store.map.getZoom();bringParcelToFront();updateParcelLocator();});
 
-    setStatus('ok','Parsel bulundu. Yakın yer araması hazır.');
+    setStatus('ok','Parsel bulundu. Aynı mahalledeki önceki sorgular karşılaştırma katmanında korunur.');
     showPane('parcel-pane');
     loadElevation(feature,requestId);
     loadAccount();
@@ -1536,16 +1676,115 @@ async function searchPoi(){
   }
 }
 
+function bringParcelToFront(){
+  try{if(store.parcelHaloLayer&&store.visibility.parcel&&layerOnMap(store.parcelHaloLayer))store.parcelHaloLayer.bringToFront();}catch{}
+  try{if(store.parcelLayer&&store.visibility.parcel&&layerOnMap(store.parcelLayer))store.parcelLayer.bringToFront();}catch{}
+  try{if(store.parcelLocator&&store.visibility.parcel&&layerOnMap(store.parcelLocator))store.parcelLocator.setZIndexOffset?.(1200);}catch{}
+}
+
+function ensureParcelLocator(){
+  if(!store.map||!store.parcelCenter)return;
+  if(store.parcelLocator){try{store.map.removeLayer(store.parcelLocator);}catch{}}
+  store.parcelLocator=L.marker(store.parcelCenter,{pane:'locatorPane',interactive:false,keyboard:false,icon:L.divIcon({className:'parcel-locator-wrapper',html:'<div class="parcel-locator"><span class="parcel-locator-label">PARSEL</span></div>',iconSize:[0,0],iconAnchor:[0,0]})});
+  updateParcelLocator();
+}
+
+function updateParcelLocator(){
+  if(!store.parcelLocator||!store.map||!store.parcelCenter||!store.visibility.parcel)return;
+  const zoom=store.map.getZoom();
+  const focus=Number(store.parcelFocusZoom)||18;
+  const distance=focus-zoom;
+  if(distance<=1){putLayer(store.parcelLocator,false);return;}
+  putLayer(store.parcelLocator,true);
+  const size=Math.max(15,Math.min(44,15+(distance-2)*4.5));
+  const element=store.parcelLocator.getElement?.()?.querySelector('.parcel-locator');
+  if(element){element.style.setProperty('--locator-size',`${size}px`);element.style.opacity=String(Math.max(.72,Math.min(1,.72+distance*.04)));}
+}
+
+function neighborhoodSessionKey(){
+  const mah=store.mah.selected;if(!mah)return null;
+  return `k360:parcel-cache:${mah.source||'tkgm'}:${mah.id}`;
+}
+function readNeighborhoodCache(){
+  const key=neighborhoodSessionKey();if(!key)return [];
+  try{const value=JSON.parse(sessionStorage.getItem(key)||'[]');return Array.isArray(value)?value:[];}catch{return [];}
+}
+function writeNeighborhoodCache(items){
+  const key=neighborhoodSessionKey();if(!key)return;
+  try{sessionStorage.setItem(key,JSON.stringify(items.slice(0,10)));}catch{}
+}
+function rememberParcelForComparison(feature,ada,parsel){
+  const key=neighborhoodSessionKey();if(!key||!feature?.geometry)return;
+  const identity=`${String(ada).trim()}/${String(parsel).trim()}`;
+  const items=readNeighborhoodCache().filter(item=>item.identity!==identity);
+  items.unshift({identity,ada:String(ada),parsel:String(parsel),geometry:feature.geometry,center:store.parcelCenter?{lat:store.parcelCenter.lat,lng:store.parcelCenter.lng}:null,savedAt:Date.now()});
+  writeNeighborhoodCache(items);
+}
+function clearComparisonView(clearCache=false){
+  store.comparisonGroup?.clearLayers();store.comparisonItems=[];
+  if(clearCache){const key=neighborhoodSessionKey();try{if(key)sessionStorage.removeItem(key);}catch{}}
+  updateComparisonControl();
+}
+function renderNeighborhoodComparisons(currentIdentity=''){
+  if(!store.comparisonGroup)return;
+  store.comparisonGroup.clearLayers();
+  const items=readNeighborhoodCache().filter(item=>item?.geometry&&item.identity!==currentIdentity).slice(0,9);
+  store.comparisonItems=items;
+  for(const item of items){
+    const layer=L.geoJSON({type:'Feature',geometry:item.geometry,properties:{}},{pane:'comparisonPane',style:{color:'#f08a18',weight:2.4,opacity:.96,dashArray:'7 5',fillColor:'#ffb85a',fillOpacity:.06}});
+    layer.bindTooltip(`Önceki sorgu · Ada ${escapeHtml(item.ada)} / Parsel ${escapeHtml(item.parsel)}`,{sticky:true,direction:'top'});
+    layer.on('click',()=>{const bounds=layer.getBounds();if(bounds.isValid())store.map.fitBounds(bounds,{padding:[55,55],maxZoom:18});});
+    store.comparisonGroup.addLayer(layer);
+  }
+  if(store.comparisonVisible)putLayer(store.comparisonGroup,true);else putLayer(store.comparisonGroup,false);
+  updateComparisonControl();bringParcelToFront();
+}
+function updateComparisonControl(){
+  const control=$('compare-control'),button=$('compare-toggle');if(!control||!button)return;
+  const count=store.comparisonItems.length;
+  control.classList.toggle('show',count>0);
+  button.textContent=`Karşılaştırma: ${count}`;
+  button.classList.toggle('off',!store.comparisonVisible);
+  button.title=store.comparisonVisible?'Önceki aynı-mahalle parsellerini gizle':'Önceki aynı-mahalle parsellerini göster';
+}
+function toggleComparisonView(){
+  store.comparisonVisible=!store.comparisonVisible;
+  putLayer(store.comparisonGroup,store.comparisonVisible);
+  updateComparisonControl();
+}
+function initDraggableLegend(){
+  const panel=$('legend-window'),handle=$('legend-drag-handle');if(!panel||!handle)return;
+  try{const saved=JSON.parse(localStorage.getItem('k360:legend-position')||'null');if(saved&&Number.isFinite(saved.left)&&Number.isFinite(saved.top)){panel.style.left=`${saved.left}px`;panel.style.top=`${saved.top}px`;panel.style.right='auto';}}catch{}
+  let drag=null;
+  handle.addEventListener('pointerdown',event=>{
+    if(event.target.closest('button,a'))return;
+    const rect=panel.getBoundingClientRect();drag={x:event.clientX-rect.left,y:event.clientY-rect.top};panel.classList.add('dragging');handle.setPointerCapture?.(event.pointerId);event.preventDefault();
+  });
+  handle.addEventListener('pointermove',event=>{
+    if(!drag)return;
+    const left=Math.max(6,Math.min(window.innerWidth-panel.offsetWidth-6,event.clientX-drag.x));
+    const top=Math.max(6,Math.min(window.innerHeight-60,event.clientY-drag.y));
+    panel.style.left=`${left}px`;panel.style.top=`${top}px`;panel.style.right='auto';
+  });
+  const stop=()=>{if(!drag)return;drag=null;panel.classList.remove('dragging');const rect=panel.getBoundingClientRect();try{localStorage.setItem('k360:legend-position',JSON.stringify({left:rect.left,top:rect.top}));}catch{}};
+  handle.addEventListener('pointerup',stop);handle.addEventListener('pointercancel',stop);
+}
+
 function escapeHtml(text){
   return String(text || '').replace(/[&<>'"]/g,char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 }
 
 async function init(){
   store.map = L.map('map',{zoomControl:true}).setView([39.0,35.0],6);
+  for(const [name,zIndex] of [['openDataPane',330],['comparisonPane',510],['parcelHaloPane',620],['parcelPane',630],['locatorPane',645]]){const pane=store.map.createPane(name);pane.style.zIndex=String(zIndex);}
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:20,attribution:'© OpenStreetMap contributors'}).addTo(store.map);
   store.poiGroup = L.layerGroup();
-  putLayer(store.poiGroup,true);
+  store.comparisonGroup=L.layerGroup({pane:'comparisonPane'});
+  putLayer(store.poiGroup,true);putLayer(store.comparisonGroup,true);
   store.map.on('click',queryOpenDataFeatureInfo);
+  const handleMapViewChange=()=>{updateParcelLocator();bringParcelToFront();};
+  store.map.on('zoomend',handleMapViewChange);
+  store.map.on('moveend',handleMapViewChange);
 
   document.querySelectorAll('.service-chip[data-layer-toggle]').forEach(chip=>chip.addEventListener('click',()=>toggleLayerVisibility(chip.dataset.layerToggle)));
   Object.keys(store.visibility).forEach(updateLayerControl);
@@ -1562,7 +1801,9 @@ async function init(){
   $('tucbs-close').addEventListener('click',closeTucbsModal);
   $('tucbs-modal').addEventListener('click',event=>{if(event.target===$('tucbs-modal'))closeTucbsModal();});
   $('legend-close').addEventListener('click',closeLegendGuide);
-  $('legend-modal').addEventListener('click',event=>{if(event.target===$('legend-modal'))closeLegendGuide();});
+  initDraggableLegend();
+  $('compare-toggle').addEventListener('click',toggleComparisonView);
+  $('compare-clear').addEventListener('click',()=>clearComparisonView(true));
   $('copy-coords').addEventListener('click',()=>copyText($('tucbs-coords').value,$('copy-coords')));
   $('copy-summary').addEventListener('click',()=>copyText(tucbsSummary(),$('copy-summary')));
   $('map-toggle').addEventListener('click',()=>{const wrap=$('map-wrap');wrap.classList.toggle('collapsed');$('map-toggle').textContent=wrap.classList.contains('collapsed')?'Haritayı Aç':'Haritayı Küçült';setTimeout(()=>store.map?.invalidateSize(),100);});

@@ -1,21 +1,12 @@
-KADASTRO360 WEB PILOT v1.5.2
+KADASTRO360 WEB PILOT v1.6.0
 
-TKGM REGRESYON DÜZELTMESİ
-- İl seçildikten sonra ilçe yüklenirken görülen ham HTTP 404 hatası giderildi.
-- Gerçek ilId / ilceId / mahalleId alanları fid ve objectid alanlarından önce seçilir.
-- TKGM v3.1, v3 ve v2 yedekleri artık aynı istekte yarışmaz; kaynak sırası sabit ve tutarlıdır.
-- Seçilen ilin kaynak bilgisi ilçeye, ilçenin kaynak bilgisi mahalleye, mahallenin kaynak bilgisi parsel sorgusuna taşınır.
-- Eski TKGM servislerindeki çift slash idari yolları güvenli yedek olarak desteklenir.
-- Yeni POST uçları eklendi: /api/idari/ilceler, /api/idari/mahalleler, /api/parsel-sorgu.
-- Eski GET uçları geriye uyumluluk için korunur.
-- İl → ilçe → mahalle → parsel akışı mock TKGM sunucusuyla uçtan uca test edilir.
-
-PAKET TEMİZLİĞİ
-- Boş data klasörü ZIP paketinden çıkarıldı.
-- Render geçici veritabanı yolu /tmp/kadastro360-data olarak ayarlandı.
-- package-lock.json yalnızca registry.npmjs.org adresini kullanır.
-- Node.js 22.16.0 sabitlenmiştir.
-
-AÇIK VERİ
-- v1.5 açık veri, WMS görünürlük doğrulaması, Plan Ölçeğine Git ve uygulama içi renk rehberi korunmuştur.
-- Sahte, rastgele veya tahmini parsel, eğim, yakın yer, katman ya da rayiç verisi üretilmez.
+- Açık plan WMS katmanları artık çok sayıda karo yerine tek, yüksek çözünürlüklü ve doğrulanmış görüntü olarak önbelleğe alınır.
+- Haritaya Ekle mevcut merkez ve yakınlaştırmayı değiştirmez.
+- Yakınlaştırma/uzaklaştırma sırasında açık plan verisi yeniden indirilmez; bekleme ve donmuş hissi azaltılır.
+- Plan Ölçeğine Git yalnızca kullanıcı tıklarsa çalışır.
+- Parsel, beyaz dış çerçeve ve yeşil sınırla kamu katmanlarının üstünde tutulur.
+- Uzak görünümde animasyonlu kırmızı PARSEL hedefi görünür; yaklaştıkça küçülür ve ilk parsel yakınlığında kaybolur.
+- Aynı mahallede sorgulanan son 10 parsel oturumluk önbellekte tutulur ve turuncu kesik çizgiyle karşılaştırılır.
+- Karşılaştırma katmanı harita üzerinden açılıp kapatılabilir ve temizlenebilir.
+- Renk rehberi artık ekranı matlaştırmaz; bağımsız pencere olarak fareyle taşınabilir.
+- Sahte, tahmini veya boş WMS verisi gösterilmez.

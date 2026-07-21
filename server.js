@@ -45,7 +45,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.5.2'
+  userAgent: 'Kadastro360-Web-Pilot/1.6.0'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -1096,7 +1096,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.5.2', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.6.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {

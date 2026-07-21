@@ -1,8 +1,8 @@
 {
   "name": "kadastro360-web-pilot",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "private": true,
-  "description": "Kadastro360 canlı veri web pilotu; TKGM il-ilçe-mahalle regresyon düzeltmesi ve doğrulanmış ULASAV/TUCBS açık katmanları",
+  "description": "Kadastro360 canlı veri web pilotu; hızlı tek-görüntü açık plan önbelleği, parsel hedefi ve aynı-mahalle karşılaştırması",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -1,24 +1,29 @@
-# Kadastro360 Web Pilot v1.5.2
+# Kadastro360 Web Pilot v1.6.0
 
 Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, sahte açık katman veya tahmini rayiç üretmez.
 
 
-## v1.5.2 TKGM il → ilçe düzeltmesi
+## v1.6.0 harita performansı ve karşılaştırma
 
-İl seçildikten sonra görülen `HTTP 404` hatası iki ayrı nedenle oluşabiliyordu:
+- Çevre düzeni planı, çok sayıda WMS karosu yerine tek ve yüksek çözünürlüklü görüntü olarak doğrulanıp tarayıcı önbelleğine alınır.
+- **Haritaya Ekle** düğmesi parsel merkezini veya yakınlaştırma seviyesini değiştirmez.
+- Yakınlaştırma ve uzaklaştırmada plan verisi yeniden indirilmez; önbellekteki görüntü anında ölçeklenir.
+- **Plan Ölçeğine Git** yalnızca kullanıcı istediğinde çalışır.
+- Parsel beyaz dış çerçeve ve yeşil sınırla kamu katmanının üstünde tutulur.
+- Harita uzaklaştırıldığında kırmızı, animasyonlu **PARSEL** hedefi çıkar; yakınlaştıkça küçülür ve ilk sorgu yakınlığında kaybolur.
+- Aynı mahallede sorgulanan son 10 parsel tarayıcı oturumu boyunca tutulur ve turuncu kesik çizgiyle karşılaştırılır.
+- Karşılaştırma katmanı harita üzerindeki küçük kontrolden gizlenebilir veya temizlenebilir.
+- Renk rehberi artık ekranı karartmaz; bağımsız pencere olarak fareyle taşınır.
 
-- TKGM yanıtında gerçek `ilId / ilceId / mahalleId` yerine `fid` veya `objectid` alanı seçilebiliyordu.
-- v3.1 ve eski TKGM servisleri eşzamanlı kullanıldığı için bir kaynaktan alınan kimlik başka kaynağa gönderilebiliyordu.
+## TKGM il → ilçe regresyon koruması
 
-v1.5.2 ile:
+- Gerçek `ilId / ilceId / mahalleId` alanları önceliklidir.
+- İl, ilçe, mahalle ve parsel aynı TKGM kaynak zincirinde tutulur.
+- Eski servis yolları yalnızca kontrollü yedek olarak denenir.
+- Ham `HTTP 404` yerine açıklayıcı kullanıcı mesajı gösterilir.
+- İl → ilçe → mahalle → parsel akışı otomatik regresyon testinden geçirilir.
 
-- seviyeye özgü gerçek TKGM kimliği öncelikli seçilir,
-- il, ilçe, mahalle ve parsel aynı TKGM kaynak zincirinde tutulur,
-- eski servislerde görülen çift eğik çizgili idari uçlar yalnızca yedek olarak denenir,
-- arayüz ham `HTTP 404` yerine açıklayıcı servis mesajı gösterir,
-- il → ilçe → mahalle → parsel akışı yerel sahte TKGM sunucusuyla uçtan uca regresyon testinden geçirilir.
-
-Paket içinde boş `data` klasörü yoktur. Veritabanı klasörü uygulama çalışırken otomatik oluşturulur; Render test ortamında `/tmp/kadastro360-data` kullanılır.
+Paket içinde boş `data` klasörü yoktur. Veritabanı klasörü uygulama çalışırken otomatik oluşturulur.
 
 ## v1.5 açık veri düzeltmesi
 
