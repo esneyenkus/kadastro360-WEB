@@ -17,9 +17,11 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
 
 (async () => {
   const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-  assert(html.includes('externalWmsSnapshotUrl') && html.includes('waitForExternalSnapshotLayer'), 'Doğrudan tarayıcı ImageOverlay akışı eksik.');
-  assert(html.includes("'browser-external-snapshot'") && html.includes("'server-cached-snapshot'"), 'Hibrit sabit görüntü modları eksik.');
+  assert(html.includes('externalWmsViewportUrl') && html.includes('createPersistentViewportWmsLayer'), 'Kesintisiz tarayıcı ekran ImageOverlay akışı eksik.');
+  assert(html.includes("'browser-viewport'") && html.includes("'server-viewport-cache'"), 'Hibrit ekran görüntüsü modları eksik.');
+  assert(html.includes('overviewWmsViewport') && html.includes('loadOverviewInBackground'), 'Bölgesel genel görünüm katmanı eksik.');
   assert(html.includes("loadMode:'browser-tile-emergency'"), 'Acil WMS karo yedeği eksik.');
+  assert(html.includes('legend-preview-modal') && html.includes('openLegendPreview'), 'Lejant büyütme penceresi eksik.');
 
   const png = new PNG({ width: 256, height: 256 });
   for (let i = 0; i < png.data.length; i += 4) {
@@ -74,7 +76,7 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
     config.baseUrl = original;
     await close(mock);
   }
-  console.log('Kadastro360 WMS hibrit sabit görüntü, karo yedeği, lejant ve önbellek testi geçti.');
+  console.log('Kadastro360 WMS kesintisiz ekran görünümü, bölgesel genel görünüm, karo yedeği, lejant ve önbellek testi geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

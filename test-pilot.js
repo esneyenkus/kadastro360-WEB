@@ -55,7 +55,7 @@ const { PNG } = require('pngjs');
   assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
   assert(server.includes('ADMIN_PANEL_PIN') && server.includes('validAdminSession') && server.includes("pathname === '/yonetim-giris'"), 'İkinci yönetici doğrulaması eksik.');
   assert(admin.includes('Gelen erişim talepleri') && admin.includes('/admin/access-requests'), 'Erişim talepleri yönetici ekranında gösterilmiyor.');
-  assert(server.includes("version: '1.8.9'"), 'Sunucu sürümü 1.8.9 değil.');
+  assert(server.includes("version: '1.9.0'"), 'Sunucu sürümü 1.9.0 değil.');
   assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
 
   assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
@@ -74,17 +74,18 @@ const { PNG } = require('pngjs');
   assert(html.includes('probeWmsInBrowser') && html.includes('/open-data/wms-probe'), 'WMS görsel doğrulaması eksik.');
   assert(html.includes('Şeffaf/boş WMS görüntüsü başarılı sayılmaz'), 'Boş WMS güvenlik uyarısı eksik.');
   assert(!html.includes('Servisi Aç ↗'), 'Teknik WMS XML bağlantısı kullanıcı ekranında görünmemeli.');
-  assert(html.includes('tek önbellekli görüntü') && html.includes('katman sabit kalır'), 'Sabit WMS görüntü açıklaması eksik.');
+  assert(html.includes('görünür harita alanını tamamen kaplayan tek görüntü') && html.includes('eski görüntü korunur'), 'Kesintisiz görünüm WMS açıklaması eksik.');
   assert(html.includes('id="legend-window"') && html.includes('Renk Rehberi') && html.includes('initDraggableLegend'), 'Taşınabilir renk rehberi eksik.');
+  assert(html.includes('legend-preview-modal') && html.includes('openLegendPreview') && html.includes('openOfficialLegendPreview'), 'Tıklanabilir büyütülmüş renk rehberi önizlemesi eksik.');
   assert(html.includes('legend-official-image') && html.includes('/api/open-data/wms-legend/'), 'Aktif WMS resmî lejant görüntüsü eksik.');
   assert(html.includes('focusOpenDataPlan') && html.includes('Plan Ölçeğine Git'), 'Plan ölçeği görünüm düzeltmesi eksik.');
   assert(html.includes('22.01.2026') && html.includes('RGB 255/250/38') && html.includes('Endüstriyel gelişme bölgesi') && html.includes('Enerji depolama alanı') && html.includes('Mesire alanı'), 'Tam resmî 2026 ÇDP renk rehberi eksik.');
   assert(!html.includes('Renk Lejantı ↗'), 'Teknik GetLegendGraphic bağlantısı kullanıcı ekranında görünmemeli.');
 
-  assert(html.includes('createSharpWmsLayer') && html.includes('fetchWmsSnapshotLayer') && html.includes('/api/open-data/wms-snapshot/'), 'Sabit tek-görüntü WMS yüklemesi eksik.');
-  assert(html.includes('knownWmsAttempts') && html.includes('firstSnapshotSuccess') && html.includes('snapshotSize'), 'Hızlı sabit WMS yükleme akışı eksik.');
-  assert(html.includes('waitForExternalSnapshotLayer') && html.includes('externalWmsSnapshotUrl') && html.includes('browser-external-snapshot'), 'Tarayıcıdan doğrudan sabit WMS yedeği eksik.');
-  assert(html.includes('raceSnapshotSources') && html.includes('server-cached-snapshot') && html.includes('browser-tile-emergency'), 'Hibrit WMS geri dönüş zinciri eksik.');
+  assert(html.includes('createPersistentViewportWmsLayer') && html.includes('currentWmsViewport') && html.includes('/api/open-data/wms-snapshot/'), 'Kesintisiz ekran WMS yüklemesi eksik.');
+  assert(html.includes('knownWmsAttempts') && html.includes('firstViewportSuccess') && html.includes('overviewWmsViewport'), 'Hızlı ekran görünümü WMS akışı eksik.');
+  assert(html.includes('externalWmsViewportUrl') && html.includes('waitForImageOverlay') && html.includes('browser-viewport'), 'Tarayıcıdan doğrudan ekran WMS yüklemesi eksik.');
+  assert(html.includes('raceViewportSources') && html.includes('server-viewport-cache') && html.includes('browser-tile-emergency'), 'Kesintisiz WMS geri dönüş zinciri eksik.');
   assert(html.includes('parcel-locator') && html.includes('updateParcelLocator'), 'Parsel hedef animasyonu eksik.');
   assert(html.includes('sessionStorage') && html.includes('renderNeighborhoodComparisons'), 'Aynı mahalle geçici karşılaştırma önbelleği eksik.');
   assert(html.includes('parcelHaloPane') && html.includes('bringParcelToFront'), 'Parsel üst görünürlük katmanı eksik.');
@@ -125,10 +126,10 @@ const { PNG } = require('pngjs');
   assert(Date.now() - catalogStarted < 1000, 'Hızlı açık veri kataloğu dış kaynakları beklememeli.');
   const ysk = catalog.items.find(item => item.id === 'cdp-ysk');
   assert(ysk?.type === 'wms', 'Yozgat WMS kaynağı listelenmedi.');
-  assert(ysk?.wms?.loadMode === 'stable-single-image-with-cache', 'WMS sabit tek-görüntü modunda değil.');
-  assert(catalog.wmsLoadMode === 'stable-single-image-with-cache' && catalog.catalogMode === 'quick', 'Katalog sabit WMS yükleme modu eksik.');
+  assert(ysk?.wms?.loadMode === 'persistent-viewport-with-overview', 'WMS kesintisiz ekran görünümü modunda değil.');
+  assert(catalog.wmsLoadMode === 'persistent-viewport-with-overview' && catalog.catalogMode === 'quick', 'Katalog kesintisiz WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.8.9 hibrit sabit katman, tam lejant, tanıtım ve rota doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.9.0 kesintisiz ekran katmanı, büyütülebilir tam lejant, tanıtım ve rota doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

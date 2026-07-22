@@ -1,3 +1,13 @@
+v1.9.0
+- Sabit kare/parsel çevresi görüntüsü kaldırıldı; katman görünür harita alanının tamamını kaplayan ekran-bazlı tek görüntü olarak yüklenir.
+- Zoom ve pan sırasında mevcut görüntü ekranda korunur; yeni WMS görüntüsü tamamen yüklenmeden eski görüntü kaldırılmaz.
+- Plan kapsamının tamamı için düşük çözünürlüklü bölgesel genel görünüm arka planda yüklenir ve ayrıntılı görüntünün altında kalır.
+- Ayrıntılı görüntü yalnızca mevcut ekran alanı için 420 ms gecikmeli tek istekle yenilenir; gereksiz hareket istekleri azaltılır.
+- Tarayıcı doğrudan WMS görüntüsü ile Render önbellekli görüntü yolu yarışır; ikisi de başarısız olursa hafif WMS karo yedeği kullanılır.
+- Yenileme başarısız olduğunda çalışan katman kaldırılmaz; kullanıcıya mevcut görüntünün korunduğu açıkça bildirilir.
+- Renk rehberindeki her gösterim satırı tıklanabilir/büyütülebilir hale getirildi.
+- Aktif resmî WMS lejantı da tıklanarak büyük önizlemede açılır; çarpı veya arka alana tıklamayla listeye dönülür.
+
 v1.8.9
 - v1.8.8'de yalnızca Render sunucusu üzerinden alınan sabit WMS görüntüsü, Render'ın resmî WMS adresine bağlanamadığı durumda tamamen hata veriyordu.
 - Plan görüntüsü için hibrit yükleme zinciri eklendi: tarayıcıdan doğrudan tek ImageOverlay + Render önbellekli tek görüntü birlikte denenir.

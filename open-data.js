@@ -153,7 +153,7 @@ async function fetchBuffer(url, options = {}, timeoutMs = 10000, maxBytes = 8_00
       ...options,
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Kadastro360-Web-Pilot/1.8.9 (+stable-open-data-snapshot)',
+        'User-Agent': 'Kadastro360-Web-Pilot/1.9.0 (+stable-open-data-snapshot)',
         Accept: '*/*',
         ...(options.headers || {})
       }
@@ -293,7 +293,7 @@ function directWmsDefinition(config, resolved = null) {
     infoFormats: resolved?.infoFormats || [],
     legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
     verifiedAt: resolved?.verifiedAt || null,
-    loadMode: 'stable-single-image-with-cache'
+    loadMode: 'persistent-viewport-with-overview'
   };
 }
 
@@ -578,7 +578,7 @@ async function buildPilotCatalog({ province, district, detailed = false }) {
     licenseUrl: ULASAV_LICENSE,
     providerUrl: ULASAV_ROOT,
     catalogMode: detailed ? 'detailed' : 'quick',
-    wmsLoadMode: 'stable-single-image-with-cache',
+    wmsLoadMode: 'persistent-viewport-with-overview',
     supportedRegions: [
       'Kayseri: çevre düzeni planı ve idari sınırlar',
       'Tekirdağ / Çorlu: çevre düzeni planı ve belediye rayiç kayıtları',

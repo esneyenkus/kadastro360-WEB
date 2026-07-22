@@ -1,8 +1,8 @@
 {
   "name": "kadastro360-web-pilot",
-  "version": "1.8.9",
+  "version": "1.9.0",
   "private": true,
-  "description": "Kadastro360 canlı veri web pilotu; tarayıcı-doğrudan ve Render önbellekli hibrit sabit WMS katmanı, otomatik hazır plan yükleme ve tam/dinamik renk lejantı",
+  "description": "Kadastro360 canlı veri web pilotu; kesintisiz ekran kapsamlı WMS katmanı, bölgesel genel görünüm, büyütülebilir renk rehberi ve yönetimli pilot erişim",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
