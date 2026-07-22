@@ -56,7 +56,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.8.4'
+  userAgent: 'Kadastro360-Web-Pilot/1.8.5'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -454,7 +454,7 @@ async function routeOne(origin, destination) {
         if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
         try {
           const payload = await fetchJson(url.toString(), {
-            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.4', Accept: 'application/json' }
+            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.5', Accept: 'application/json' }
           }, 9000);
           if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
             const route = payload.routes[0];
@@ -688,7 +688,7 @@ function detectionsForTags(tags = {}) {
   if (amenity === 'atm') add('atm', 'Yüksek', 'amenity=atm');
   else if (tags.atm === 'yes' || tags.cash_withdrawal === 'yes' || tags.vending === 'cash') {
     add('atm', 'Yüksek', tags.atm === 'yes' ? 'atm=yes' : (tags.cash_withdrawal === 'yes' ? 'cash_withdrawal=yes' : 'vending=cash'));
-  } else if (new RegExp(ATM_BRAND_PATTERN, 'i').test(text) || new RegExp(ATM_BRAND_PATTERN, 'i').test(brandText)) {
+  } else if (/\b(atm|bankamatik|paramatik|bank24|parafpara)\b/.test(text) || /\b(atm|bankamatik|paramatik|bank24|parafpara)\b/.test(brandText)) {
     add('atm', 'Orta', 'Ad/marka ATM olarak eşleşti');
   }
 
@@ -1163,7 +1163,7 @@ async function getDistrictSearchAnchor(adminContext = {}) {
       headers: {
         Accept: 'application/json',
         'Accept-Language': 'tr-TR,tr;q=0.9',
-        'User-Agent': 'Kadastro360-Web-Pilot/1.8.4 (kadastro360.com.tr)'
+        'User-Agent': 'Kadastro360-Web-Pilot/1.8.5 (kadastro360.com.tr)'
       }
     }, 9000);
     if (!Array.isArray(rows) || !rows.length) return null;
@@ -1273,7 +1273,7 @@ function limitBalanced(items, category) {
 async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {}) {
   const context = normalizeAdminContext(adminContext);
   const geometryKey = geometry ? JSON.stringify(geometry).slice(0, 2000) : '';
-  const cacheKey = `poi-v184:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
+  const cacheKey = `poi-v185:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
   return cached(cacheKey, 30 * 60 * 1000, async () => {
     const startedAt = Date.now();
     const allCategories = Object.keys(CATEGORY_QUERIES);
@@ -1544,7 +1544,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.4', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.5', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {

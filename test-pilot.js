@@ -47,7 +47,9 @@ const { PNG } = require('pngjs');
   assert(!/Math\.random\s*\(/.test(allCode), 'Uygulama kodunda rastgele veri üretimi bulunmamalı.');
   assert(!/mockData\s*:\s*true/.test(server + html), 'Mock veri açık olmamalı.');
   assert(server.includes("dataMode: 'live-only'"), 'Canlı veri modu belirtilmemiş.');
-  assert(server.includes("version: '1.8.3'"), 'Sunucu sürümü 1.8.3 değil.');
+  assert(server.includes('function marketingPage(') && server.includes("pathname === '/app'"), 'Tanıtım ana sayfası ve /app ayrımı eksik.');
+  assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
+  assert(server.includes("version: '1.8.5'"), 'Sunucu sürümü 1.8.5 değil.');
   assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
 
   assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
@@ -115,7 +117,7 @@ const { PNG } = require('pngjs');
   assert(ysk?.wms?.loadMode === 'hybrid-direct-proxy', 'WMS doğrudan + proxy yedek karo modunda değil.');
   assert(catalog.wmsLoadMode === 'hybrid-direct-proxy', 'Katalog WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.8.3 statik, rota ve açık veri doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.8.5 statik, tanıtım, rota ve açık veri doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

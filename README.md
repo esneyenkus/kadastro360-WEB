@@ -1,8 +1,8 @@
-# Kadastro360 Web Pilot v1.8.3
+# Kadastro360 Web Pilot v1.8.5
 
 Kadastro360; TKGM parsel sorgusu, arazi eğimi, gerçek yakın yer kayıtları, yol rotaları ve açık kamu katmanlarını tek ekranda birleştiren canlı veri web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, düz çizgiyi yol rotası gibi gösterme veya tahmini rayiç üretmez.
 
-## v1.8.3 ile gelen ana düzeltmeler
+## v1.8.5 ile gelen ana düzeltmeler
 
 ### 1. İlçe merkezini esas alan yakın yer araması
 
@@ -89,7 +89,7 @@ Render dağıtımından sonra şu adres kontrol edilir:
 https://SİTE-ADRESİ/api/health
 ```
 
-Sonuçta `version: 1.8.3` görünmelidir.
+Sonuçta `version: 1.8.5` görünmelidir.
 
 ## Önemli doğruluk notu
 

@@ -1,4 +1,4 @@
-v1.8.4
+v1.8.5
 - Ana alan adı için doğrudan giriş formu yerine tanıtım/karşılama ekranı eklendi.
 - Sağ panelde üye girişi ve pilot erişim talep formu oluşturuldu.
 - /app yolu ile uygulama ekranı korundu; giriş yapan kullanıcı doğrudan uygulamaya alınır.
@@ -8,6 +8,7 @@ v1.8.4
 - Aynı türde ilçe merkezinde sonuç varken uzak/uygunsuz farklı ilçe sonuçları baskılandı.
 - Uzak ve ilgisiz banka/ATM sapmalarını azaltmak için aykırı sonuç süzmesi eklendi.
 - Yakın rota varış etiketlerinde çakışmayı azaltan yeni yerleşim algoritması eklendi.
+- Render build testlerinde kalan eski 1.8.3 sürüm beklentileri güncellendi; npm run check tam olarak geçirildi.
 
 KADASTRO360 WEB PILOT v1.8.3
 
