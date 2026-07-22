@@ -1,12 +1,15 @@
-v1.9.0
-- Sabit kare/parsel çevresi görüntüsü kaldırıldı; katman görünür harita alanının tamamını kaplayan ekran-bazlı tek görüntü olarak yüklenir.
-- Zoom ve pan sırasında mevcut görüntü ekranda korunur; yeni WMS görüntüsü tamamen yüklenmeden eski görüntü kaldırılmaz.
-- Plan kapsamının tamamı için düşük çözünürlüklü bölgesel genel görünüm arka planda yüklenir ve ayrıntılı görüntünün altında kalır.
-- Ayrıntılı görüntü yalnızca mevcut ekran alanı için 420 ms gecikmeli tek istekle yenilenir; gereksiz hareket istekleri azaltılır.
-- Tarayıcı doğrudan WMS görüntüsü ile Render önbellekli görüntü yolu yarışır; ikisi de başarısız olursa hafif WMS karo yedeği kullanılır.
-- Yenileme başarısız olduğunda çalışan katman kaldırılmaz; kullanıcıya mevcut görüntünün korunduğu açıkça bildirilir.
-- Renk rehberindeki her gösterim satırı tıklanabilir/büyütülebilir hale getirildi.
-- Aktif resmî WMS lejantı da tıklanarak büyük önizlemede açılır; çarpı veya arka alana tıklamayla listeye dönülür.
+v1.9.1
+- WMS katmanında her zoom/pan hareketinde yeni görüntü isteme kaldırıldı.
+- Plan katmanı parsel merkezli yaklaşık 80 km genişliğinde tek sabit pilot görüntüsü olarak yüklenir; yakınlaştırma ve uzaklaştırmada katman kaybolmaz veya yarım kalmaz.
+- Hazır katman adı görüntü döndürse bile boş/şeffaf PNG artık başarılı sayılmaz.
+- Tarayıcı ve Render doğrulamasından ilk görünür sonuç geldiğinde diğer yavaş kontrol beklenmeden devam edilir.
+- Hazır katman boşsa GetCapabilities katman listesi bir kez alınır; görünür birleşik/alt katman seçilip tarayıcıda 24 saat saklanır.
+- Yozgat–Sivas–Kayseri gibi `0` grup katmanının boş dönebildiği servisler için gerçek görünür alt katman seçimi genelleştirildi.
+- Yakın yer akıllı araması 5 km ile başlayan dört aşama yerine 10 → 20 → 30 km akışına geçirildi.
+- İlçe merkezi çözümlemesi parsel taramasıyla paralel başlatılır; ilçe fallback taraması 12 → 30 km olmak üzere iki aşamaya indirildi.
+- İlçe merkezi fallback yalnızca banka, ATM, eczane, sağlık, otogar, tren garı ve havaalanı gibi kritik türlerde çalışır.
+- Overpass istek sayısı, yedek sunucu sayısı ve ağır sorgu bölme derinliği sınırlandı; uzun süre “aranıyor” durumunda kalma azaltıldı.
+- Renk rehberindeki tıklanabilir büyük önizleme ve tüm lejant kategorileri korundu.
 
 v1.8.9
 - v1.8.8'de yalnızca Render sunucusu üzerinden alınan sabit WMS görüntüsü, Render'ın resmî WMS adresine bağlanamadığı durumda tamamen hata veriyordu.

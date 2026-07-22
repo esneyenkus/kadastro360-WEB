@@ -153,7 +153,7 @@ async function fetchBuffer(url, options = {}, timeoutMs = 10000, maxBytes = 8_00
       ...options,
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Kadastro360-Web-Pilot/1.9.0 (+stable-open-data-snapshot)',
+        'User-Agent': 'Kadastro360-Web-Pilot/1.9.1 (+stable-open-data-snapshot)',
         Accept: '*/*',
         ...(options.headers || {})
       }
@@ -288,12 +288,14 @@ function directWmsDefinition(config, resolved = null) {
     supportsFeatureInfo: config.category === 'plan',
     recommendedZoom: config.category === 'plan' ? 10 : null,
     probeRadiusKm: config.category === 'plan' ? 24 : 8,
-    snapshotRadiusKm: config.category === 'plan' ? 14 : 5,
+    snapshotRadiusKm: config.category === 'plan' ? 40 : 8,
     snapshotSize: config.category === 'plan' ? 1024 : 768,
+    stableRadiusKm: config.category === 'plan' ? 40 : 8,
+    stableSize: config.category === 'plan' ? 1024 : 768,
     infoFormats: resolved?.infoFormats || [],
     legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
     verifiedAt: resolved?.verifiedAt || null,
-    loadMode: 'persistent-viewport-with-overview'
+    loadMode: 'stable-pilot-snapshot'
   };
 }
 
@@ -578,7 +580,7 @@ async function buildPilotCatalog({ province, district, detailed = false }) {
     licenseUrl: ULASAV_LICENSE,
     providerUrl: ULASAV_ROOT,
     catalogMode: detailed ? 'detailed' : 'quick',
-    wmsLoadMode: 'persistent-viewport-with-overview',
+    wmsLoadMode: 'stable-pilot-snapshot',
     supportedRegions: [
       'Kayseri: çevre düzeni planı ve idari sınırlar',
       'Tekirdağ / Çorlu: çevre düzeni planı ve belediye rayiç kayıtları',
@@ -682,7 +684,7 @@ async function wmsSnapshot({ key, layerName, version, latitude, longitude, radiu
   const lat = Number(latitude);
   const lng = Number(longitude);
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('Geçersiz parsel koordinatı.');
-  const safeRadiusKm = Math.max(3, Math.min(40, Number(radiusKm) || 14));
+  const safeRadiusKm = Math.max(3, Math.min(50, Number(radiusKm) || 40));
   const safeSize = Math.max(512, Math.min(1536, Number(size) || 1024));
   const cacheKey = `wms-snapshot:${key}:${safeLayer}:${safeVersion}:${lat.toFixed(4)}:${lng.toFixed(4)}:${safeRadiusKm}:${safeSize}`;
   return cached(cacheKey, 30 * 60_000, async () => {

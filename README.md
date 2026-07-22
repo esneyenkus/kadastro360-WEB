@@ -1,15 +1,16 @@
-# Kadastro360 Web Pilot v1.9.0
+# Kadastro360 Web Pilot v1.9.1
 
 Kadastro360; TKGM parsel sorgusu, arazi eğimi, gerçek yakın yer kayıtları, yol rotaları ve açık kamu katmanlarını tek ekranda birleştiren canlı veri web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, düz çizgiyi yol rotası gibi gösterme veya tahmini rayiç üretmez.
 
-## v1.9.0 ile gelen ana düzeltmeler
+## v1.9.1 ile gelen ana düzeltmeler
 
-- Açık plan katmanı artık görünür harita alanının tamamını tek WMS görüntüsüyle kaplar.
-- Zoom veya harita hareketinde mevcut görüntü kaldırılmaz; yeni görünüm arka planda hazırlanıp tamamen yüklendikten sonra değiştirilir.
-- Planın bölgesel düşük çözünürlüklü genel görünümü altta tutulur; ayrıntılı görünüm yalnızca ekrandaki alan için yenilenir.
-- Hazır plan, hızlı katalog düğmesiyle otomatik eklenir; son çare olarak hafif WMS karo modu korunur.
-- Renk rehberindeki her satır tıklanarak büyütülebilir; resmî WMS lejantı da ayrı büyük önizlemede açılır.
-- Renk rehberi aktif WMS lejantını ve güncel EK-1c genel gösterim listesini birlikte sunar.
+- Açık plan katmanı parsel merkezli yaklaşık 80 km genişliğinde tek sabit WMS görüntüsü olarak yüklenir.
+- Zoom veya harita hareketinde yeni WMS isteği gönderilmez; katman yarım kalmaz ve bekleme mesajı sürekli açık kalmaz.
+- İlk katman adı boş/şeffaf görüntü döndürürse başarılı sayılmaz; resmî GetCapabilities listesinden görünür alt veya birleşik katman seçilir.
+- Tarayıcı doğrulaması görünür sonucu bulduğu anda Render kontrolünü beklemeden katman açılır.
+- Bulunan doğru katman adı tarayıcıda saklanır; aynı plan kaynağının sonraki açılışı daha kısa sürer.
+- Yakın yer akışı 10 → 20 → 30 km olarak sadeleştirildi; ilçe merkezli kritik kategori taraması parsel aramasıyla paralel başlar.
+- Renk rehberindeki her satır ve resmî WMS lejantı tıklanarak büyük önizlemede açılabilir.
 
 ### 1. Korumalı yönetici girişi ve erişim talepleri
 
@@ -36,9 +37,9 @@ Kadastro360; TKGM parsel sorgusu, arazi eğimi, gerçek yakın yer kayıtları, 
 Kırsal bir parselde yalnızca parsel çevresini genişletmek, komşu ilçedeki bir bankayı seçip gerçek ilçe merkezindeki banka ve ATM'leri kaçırabiliyordu. Yeni akışta:
 
 - Seçilen **il ve ilçe bilgisi** yakın yer API'sine gönderilir.
-- Her kategori önce parsel çevresinde 5 → 10 → 20 → 30 km kademeli taranır.
+- Her kategori önce 10 km çevrede toplu aranır; eksik türler gerektiğinde 20 ve 30 km’ye genişletilir.
 - Sonuç yoksa, en yakın sonuç 15 km'den uzaktaysa veya kayıt açıkça başka ilçeye aitse seçilen ilçe merkezi ayrıca çözülür.
-- İlçe merkezi çevresi 5 → 12 → 20 → 30 km kademeleriyle gerçek OpenStreetMap/Overpass kayıtları üzerinden taranır.
+- İlçe merkezi çevresi kritik kategoriler için 12 km, sonuç yoksa 30 km olmak üzere iki aşamada taranır.
 - Aynı ilçeye ait kayıtlar komşu ilçe kayıtlarından önce sıralanır.
 - Aynı ilçede uygun kayıt bulunduğunda açıkça başka ilçeye ait banka/ATM gibi sonuçlar listeden çıkarılır.
 - ATM etiketi eksik olsa bile adında **ATM, Bankamatik, Paramatik, Bank24 veya ParafPara** geçen gerçek kayıtlar yedek eşleşme olarak değerlendirilebilir.
@@ -116,7 +117,7 @@ Render dağıtımından sonra şu adres kontrol edilir:
 https://SİTE-ADRESİ/api/health
 ```
 
-Sonuçta `version: 1.9.0` görünmelidir.
+Sonuçta `version: 1.9.1` görünmelidir.
 
 ## Önemli doğruluk notu
 

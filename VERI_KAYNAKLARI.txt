@@ -11,7 +11,7 @@ KADASTRO360 WEB PILOT v1.8.3 — VERİ KAYNAKLARI
 
 3. Yakın yerler
    Birincil kaynak: OpenStreetMap / Overpass
-   Kategoriler toplu sorgu gruplarında aranır. Parsel çevresi kategori bazında 5 → 10 → 20 → 30 km genişletilebilir.
+   Kategoriler toplu sorgu gruplarında aranır. Parsel çevresi kategori bazında 10 → 20 → 30 km genişletilebilir.
    Aynı konum için 30 dakikalık önbellek kullanılır.
    Sonuç yok ile servis hatası ayrı gösterilir. Sahte nokta eklenmez.
 

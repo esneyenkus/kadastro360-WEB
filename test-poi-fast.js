@@ -50,7 +50,7 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
   try {
     const result = await getPoi(41, 27, 'auto', 'all', null);
     assert.strictEqual(result.items.length, 11, 'Toplu yakın yer taraması 11 kategoriyi döndürmedi.');
-    assert.deepStrictEqual(result.searchedRadii, [5000], 'Bütün kategoriler 5 km içinde bulunduğunda gereksiz geniş tarama yapılmamalı.');
+    assert.deepStrictEqual(result.searchedRadii, [10000], 'Bütün kategoriler 10 km içinde bulunduğunda gereksiz geniş tarama yapılmamalı.');
     assert(requests <= 3, `Yakın yer taraması çok fazla Overpass isteği gönderdi: ${requests}`);
     const before = requests;
     const cached = await getPoi(41, 27, 'auto', 'all', null);

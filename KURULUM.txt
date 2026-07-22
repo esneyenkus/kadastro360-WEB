@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.9.0
+KADASTRO360 WEB PILOT v1.9.1
 
 YEREL KURULUM
 1. Node.js 22 kurun.
@@ -15,7 +15,7 @@ RENDER GÜNCELLEME
 4. GitHub'da Commit changes yapın.
 5. Mevcut Render servisinde Auto-Deploy'u bekleyin veya Manual Deploy → Deploy latest commit kullanın.
 6. Yeni servis/Blueprint oluşturmayın; DNS ve domain ayarlarını değiştirmeyin.
-7. Dağıtım tamamlanınca `/api/health` sonucunda version değerinin 1.9.0 olduğunu kontrol edin.
+7. Dağıtım tamamlanınca `/api/health` sonucunda version değerinin 1.9.1 olduğunu kontrol edin.
 
 YÖNETİCİ GÜVENLİĞİ — ZORUNLU YENİ AYAR
 Render → servis → Environment bölümünde yeni değişken oluşturun:
