@@ -56,7 +56,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.8.3'
+  userAgent: 'Kadastro360-Web-Pilot/1.8.4'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -141,10 +141,118 @@ function sendHtml(res, status, html, extraHeaders = {}) {
   res.end(body);
 }
 
-function loginPage(message = '') {
-  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kadastro360 Giriş</title>
-  <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#eef3f6;font-family:Arial,sans-serif;color:#17242c}.box{width:min(390px,calc(100% - 32px));background:white;padding:30px;border-radius:18px;box-shadow:0 18px 60px #1b394322}.brand{font-size:30px;font-weight:800;margin-bottom:4px}.sub{color:#60727d;margin-bottom:24px}label{display:block;font-weight:700;margin:14px 0 6px}input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #bccbd2;border-radius:10px;font-size:16px}button{width:100%;margin-top:20px;padding:14px;border:0;border-radius:10px;background:#126b62;color:white;font-size:16px;font-weight:800;cursor:pointer}.msg{background:#fff0f0;color:#a12626;padding:10px;border-radius:9px;margin-bottom:12px}.note{font-size:12px;color:#71818a;margin-top:18px;text-align:center}</style></head><body><main class="box"><div class="brand">Kadastro360</div><div class="sub">Gerçek veri web pilotu · İsteğe bağlı ULASAV/TUCBS açık katmanları</div>${message ? `<div class="msg">${escapeHtml(message)}</div>` : ''}<form method="post" action="/login"><label>Kullanıcı adı</label><input name="username" autocomplete="username" required><label>Parola</label><input name="password" type="password" autocomplete="current-password" required><button type="submit">Giriş yap</button></form><div class="note">Bu pilot yalnızca canlı veri kaynaklarını kullanır; örnek veya sanal sonuç üretmez.</div></main></body></html>`;
+function marketingPage({ loginMessage = '', requestMessage = '', requestOk = false, user = null } = {}) {
+  const safeLogin = loginMessage ? `<div class="msg error">${escapeHtml(loginMessage)}</div>` : '';
+  const safeRequest = requestMessage ? `<div class="msg ${requestOk ? 'success' : 'error'}">${escapeHtml(requestMessage)}</div>` : '';
+  const userPanel = user ? `
+    <div class="session-box">
+      <div>
+        <div class="mini-label">Oturum</div>
+        <strong>${escapeHtml(user.username)}</strong>
+      </div>
+      <div class="session-actions">
+        <a class="mini-btn primary" href="/app">Uygulamayı Aç</a>
+        <a class="mini-btn" href="/logout">Çıkış</a>
+      </div>
+    </div>` : '';
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kadastro360</title>
+  <style>
+    :root{--bg:#eef3f6;--text:#16222d;--muted:#5d6c76;--line:#d8e0e7;--brand:#0e6b51;--brand2:#2d7ff9;--card:#ffffff;--soft:#f6f8fa;--shadow:0 26px 70px rgba(10,38,55,.14)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(180deg,#eef3f6 0%,#f8fbfc 100%);color:var(--text);font-family:Arial,sans-serif}
+    a{text-decoration:none;color:inherit}.page{min-height:100vh;padding:22px}.shell{max-width:1280px;margin:0 auto}.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}.brand{font-size:30px;font-weight:900;letter-spacing:-.02em}.brand-sub{font-size:12px;color:var(--muted);margin-top:4px}.top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.top-pill{padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12px;font-weight:700;color:#365064}.top-link{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:800}.top-link.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+    .hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(360px,.95fr);gap:22px;align-items:start}.card{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}.hero-main{padding:28px 28px 24px}.eyebrow{display:inline-flex;gap:8px;align-items:center;padding:7px 12px;border-radius:999px;background:#ecf7f3;color:var(--brand);font-weight:800;font-size:12px}.hero-main h1{font-size:46px;line-height:1.03;margin:16px 0 14px;letter-spacing:-.03em}.hero-main p{font-size:16px;line-height:1.72;color:var(--muted);margin:0}.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0 14px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 18px;border-radius:14px;font-size:14px;font-weight:800;border:1px solid var(--line);background:#fff;cursor:pointer}.btn.primary{background:linear-gradient(135deg,var(--brand),#118d69);border-color:transparent;color:#fff}.btn.secondary{background:#fff;color:#244f9e;border-color:#b8c8ec}.hero-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--soft)}.stat strong{display:block;font-size:24px;margin-bottom:5px}.stat span{display:block;color:var(--muted);font-size:12px;line-height:1.45}
+    .showcase{margin-top:22px;display:grid;grid-template-columns:1.05fr .95fr;gap:14px}.map-shot,.side-shot{border:1px solid var(--line);border-radius:20px;background:#fff;overflow:hidden}.map-shot{padding:14px}.map-surface{height:260px;border-radius:16px;position:relative;background:linear-gradient(135deg,#e6efe8,#f5f3eb 55%,#dde9f8);overflow:hidden}.map-surface:before,.map-surface:after{content:"";position:absolute;inset:auto auto 0 0;background:rgba(255,255,255,.7)}.road{position:absolute;border-radius:999px;background:#d16a4d;opacity:.9}.road.one{width:120%;height:12px;left:-10%;top:44%;transform:rotate(-10deg)}.road.two{width:70%;height:9px;left:20%;top:18%;transform:rotate(34deg);background:#8aab5f}.road.three{width:80%;height:10px;left:10%;top:72%;transform:rotate(18deg);background:#8b8fd5}.parcel{position:absolute;left:39%;top:46%;width:86px;height:64px;border:4px solid #e03d3d;background:rgba(255,255,255,.4);transform:rotate(-12deg);box-shadow:0 8px 22px rgba(0,0,0,.08)}.poi{position:absolute;width:14px;height:14px;border-radius:50%;background:#2463eb;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.2)}.poi.p1{left:63%;top:24%}.poi.p2{left:70%;top:32%}.poi.p3{left:24%;top:76%}.route{position:absolute;border-radius:999px}.route.r1{left:45%;top:37%;width:26%;height:0;border-top:7px solid #2463eb;transform:rotate(-18deg)}.route.r2{left:43%;top:48%;width:29%;height:0;border-top:7px dashed #8a4fe8;transform:rotate(16deg)}.route.r3{left:40%;top:49%;width:17%;height:0;border-top:7px solid #11a56a;transform:rotate(105deg)}.map-footer{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.map-chip{padding:10px;border-radius:12px;background:#f7f9fb;border:1px solid var(--line);font-size:11px;font-weight:800;text-align:center}.side-shot{padding:14px;display:grid;gap:12px}.side-box{border:1px solid var(--line);border-radius:16px;padding:14px;background:linear-gradient(180deg,#fff,#fbfcfd)}.side-box h3{margin:0 0 8px;font-size:14px}.side-box p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}.mini-steps{display:grid;gap:8px}.mini-step{display:flex;gap:10px;align-items:flex-start}.mini-badge{flex:0 0 26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#eaf0ff;color:#244f9e;font-weight:900;font-size:12px}.mini-step div{font-size:12px;line-height:1.5;color:var(--muted)}
+    .auth{padding:20px;position:sticky;top:18px}.auth h2{margin:0 0 4px;font-size:24px}.auth-sub{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 18px}.msg{padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5;margin-bottom:12px}.msg.error{background:#fff3f3;color:#a12626;border:1px solid #f0c3c3}.msg.success{background:#eefaf5;color:#0e6b51;border:1px solid #b8e0cf}.auth-grid{display:grid;gap:14px}.auth-box{border:1px solid var(--line);border-radius:18px;padding:16px;background:var(--soft)}.auth-box h3{margin:0 0 6px;font-size:16px}.auth-box p{margin:0 0 14px;color:var(--muted);font-size:12px;line-height:1.6}.field{display:grid;gap:6px;margin-bottom:11px}.field label{font-size:12px;font-weight:800;color:#264050}.field input,.field textarea{width:100%;border:1px solid #c9d4dd;border-radius:12px;padding:12px 13px;font-size:14px;background:#fff;color:var(--text)}.field textarea{min-height:92px;resize:vertical}.submit{width:100%;border:0;border-radius:12px;padding:13px 14px;background:linear-gradient(135deg,var(--brand2),#245fd5);color:#fff;font-size:14px;font-weight:900;cursor:pointer}.submit.secondary{background:linear-gradient(135deg,var(--brand),#118d69)}.helper{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px}.session-box{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid #c8ddd4;background:#eef9f4;border-radius:14px;margin-bottom:14px}.mini-label{font-size:11px;color:var(--muted);margin-bottom:4px}.session-actions{display:flex;gap:8px;flex-wrap:wrap}.mini-btn{padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:12px;font-weight:800}.mini-btn.primary{background:#0e6b51;border-color:#0e6b51;color:#fff}
+    .info-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.info-card{padding:18px;border-radius:20px;border:1px solid var(--line);background:#fff;box-shadow:0 14px 35px rgba(10,38,55,.07)}.info-card h3{margin:0 0 8px;font-size:18px}.info-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.75}.info-card ul{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.7}
+    .footer-note{margin:20px 0 0;color:var(--muted);font-size:12px;line-height:1.65;text-align:center}
+    @media (max-width:1100px){.hero{grid-template-columns:1fr}.auth{position:static}.showcase,.info-strip,.hero-grid{grid-template-columns:1fr}.map-footer{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:700px){.page{padding:14px}.hero-main{padding:20px}.brand{font-size:24px}.hero-main h1{font-size:34px}.cta-row{flex-direction:column}.btn{width:100%}.topbar{flex-direction:column;align-items:flex-start}.map-surface{height:210px}}
+  </style></head><body><div class="page"><div class="shell">
+    <div class="topbar">
+      <div><div class="brand">Kadastro360</div><div class="brand-sub">Parsel sorgusu, eğim analizi, yakın yerler ve açık kamu katmanları tek ekranda.</div></div>
+      <div class="top-actions">
+        <div class="top-pill">Canlı veri · TKGM + OSM + açık veri</div>
+        <a class="top-link" href="#erişim">Pilot erişim</a>
+        ${user ? `<a class="top-link primary" href="/app">Uygulamayı aç</a>` : `<a class="top-link primary" href="#giris">Üye girişi</a>`}
+      </div>
+    </div>
+    <div class="hero">
+      <section class="card hero-main">
+        <div class="eyebrow">Kadastro360 Web Pilot</div>
+        <h1>Parsel bilgisini, eğimi ve yakın çevreyi tek bakışta yönetin.</h1>
+        <p>Kadastro360; il → ilçe → mahalle → ada → parsel sorgusunu, canlı parsel konumunu, gerçek eğim analizini, yakın okul-market-cami-eczane-banka-ATM-hastane-otogar-tren garı-havaalanı sonuçlarını ve açık kamu katmanlarını tek bir arayüzde toplar.</p>
+        <div class="cta-row">
+          ${user ? `<a class="btn primary" href="/app">Uygulamaya gir</a>` : `<a class="btn primary" href="#giris">Pilot hesaba giriş yap</a>`}
+          <a class="btn secondary" href="#nasil">Nasıl çalışır?</a>
+        </div>
+        <div class="hero-grid">
+          <div class="stat"><strong>81 İl</strong><span>TKGM odaklı canlı parsel akışı ve tüm sorgu zinciri.</span></div>
+          <div class="stat"><strong>Gerçek Yakın Yer</strong><span>Sahte sonuç üretmeden canlı OSM/Overpass taraması.</span></div>
+          <div class="stat"><strong>Rota + Eğim</strong><span>Seçilen noktaya yol rotası ve arazinin eğim özeti.</span></div>
+        </div>
+        <div class="showcase">
+          <div class="map-shot">
+            <div class="map-surface">
+              <div class="road one"></div><div class="road two"></div><div class="road three"></div>
+              <div class="parcel"></div>
+              <div class="poi p1"></div><div class="poi p2"></div><div class="poi p3"></div>
+              <div class="route r1"></div><div class="route r2"></div><div class="route r3"></div>
+            </div>
+            <div class="map-footer">
+              <div class="map-chip">Parsel</div><div class="map-chip">Eğim</div><div class="map-chip">Yakın Yer</div><div class="map-chip">Açık Veri</div>
+            </div>
+          </div>
+          <div class="side-shot">
+            <div class="side-box" id="nasil"><h3>Nasıl çalışır?</h3><p>Önce parsel bulunur, ardından harita merkezlenir. Sonrasında gerçek yakın yerler canlı servislerden toplanır, seçilen noktalara yol rotası çizilir ve açık veri katmanları tek tıkla görüntülenir.</p></div>
+            <div class="side-box"><div class="mini-steps">
+              <div class="mini-step"><div class="mini-badge">1</div><div><strong>Parsel sorgusu</strong><br>İl, ilçe, mahalle, ada ve parsel bilgisiyle ara.</div></div>
+              <div class="mini-step"><div class="mini-badge">2</div><div><strong>Eğim ve çevre analizi</strong><br>Parselin topografik yapısını ve çevresindeki önemli noktaları gör.</div></div>
+              <div class="mini-step"><div class="mini-badge">3</div><div><strong>Rota ve karar desteği</strong><br>Seçtiğin yakın yerlere rota çiz ve açık katmanlarla konumu güçlendir.</div></div>
+            </div></div>
+          </div>
+        </div>
+      </section>
+      <aside class="card auth" id="giris">
+        <h2>Hızlı erişim</h2>
+        <p class="auth-sub">Pilot kullanıcılar giriş yapabilir. Yeni test kullanıcıları ise aşağıdaki formdan erişim talebi bırakabilir.</p>
+        ${userPanel}
+        ${safeLogin}
+        ${safeRequest}
+        <div class="auth-grid">
+          <section class="auth-box">
+            <h3>Üye girişi</h3>
+            <p>Tanımlı pilot hesabınız varsa doğrudan Kadastro360 uygulamasına geçin.</p>
+            <form method="post" action="/login">
+              <div class="field"><label>Kullanıcı adı</label><input name="username" autocomplete="username" required></div>
+              <div class="field"><label>Parola</label><input name="password" type="password" autocomplete="current-password" required></div>
+              <button class="submit" type="submit">Giriş yap</button>
+            </form>
+            <div class="helper">Bu pilot yalnızca canlı veri kaynakları kullanır; örnek veya sanal yakın yer verisi üretmez.</div>
+          </section>
+          <section class="auth-box" id="erişim">
+            <h3>Üye ol / pilot erişim talebi</h3>
+            <p>Test kullanıcılarına hesap açmak için temel bilgilerinizi bırakın. Talebiniz yönetici ekranında saklanır.</p>
+            <form method="post" action="/request-access">
+              <div class="field"><label>Ad soyad</label><input name="fullName" required></div>
+              <div class="field"><label>Kurum / şirket</label><input name="company"></div>
+              <div class="field"><label>E-posta</label><input name="email" type="email" required></div>
+              <div class="field"><label>Telefon</label><input name="phone"></div>
+              <div class="field"><label>Kısa not</label><textarea name="note" placeholder="Kullanım amacınızı veya test ihtiyacınızı yazabilirsiniz."></textarea></div>
+              <button class="submit secondary" type="submit">Erişim talebi gönder</button>
+            </form>
+          </section>
+        </div>
+      </aside>
+    </div>
+    <section class="info-strip">
+      <article class="info-card"><h3>Ne işe yarar?</h3><p>Arsa, tarla veya parsel kararlarını verirken konumu sadece haritada göstermek yerine çevresel erişimi, eğimi ve resmi/açık veri katmanlarını tek yerde görmenizi sağlar.</p></article>
+      <article class="info-card"><h3>Neler var?</h3><ul><li>TKGM tabanlı parsel akışı</li><li>Yakın okul, market, cami, eczane, banka, ATM, hastane</li><li>Otogar, tren garı/istasyonu, havaalanı</li><li>Yol rotası ve mesafe/süre bilgisi</li><li>Açık kamu katmanları ve plan odaklı görünüm</li></ul></article>
+      <article class="info-card"><h3>Neden Kadastro360?</h3><p>Hedef; emlak ve arazi kararında birden fazla ekran, dağınık servis ve yavaş iş akışı yerine tek bir çalışma yüzeyi sunmaktır. Pilot sürüm düzenli olarak gerçek kullanım geri bildirimleriyle geliştirilmektedir.</p></article>
+    </section>
+    <div class="footer-note">Kadastro360 Web Pilot · Canlı veri odaklı test yayını. Uygulamaya giriş yapan kullanıcılar kendi hesap kotası dahilinde sorgu yapabilir.</div>
+  </div></div></body></html>`;
 }
+
 
 function readFormBody(req, limit = 50_000) {
   return new Promise((resolve, reject) => {
@@ -346,7 +454,7 @@ async function routeOne(origin, destination) {
         if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
         try {
           const payload = await fetchJson(url.toString(), {
-            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.3', Accept: 'application/json' }
+            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.4', Accept: 'application/json' }
           }, 9000);
           if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
             const route = payload.routes[0];
@@ -404,6 +512,8 @@ const CATEGORY_LABELS = {
   beach: 'Sahil / Plaj', pharmacy: 'Eczane', hospital: 'Hastane / Sağlık',
   bus_terminal: 'Otogar', train_station: 'Tren Garı / İstasyonu', airport: 'Havaalanı'
 };
+const BANK_BRAND_PATTERN = '(ziraat|ziraat bankasi|ziraat bankası|vakifbank|vakıfbank|vakif katilim|vakıf katılım|halkbank|halk bankasi|halk bankası|akbank|garanti|garanti bbva|teb|qnb|qnb finansbank|denizbank|ing|yapi kredi|yapı kredi|is bankasi|iş bankası|sekerbank|şekerbank|kuveyt turk|kuveyt türk|turkiye finans|türkiye finans|albaraka|ptt)';
+const ATM_BRAND_PATTERN = '(atm|bankamatik|paramatik|bank24|parafpara|ziraat|vakifbank|vakıfbank|halkbank|akbank|garanti|teb|qnb|denizbank|ing|yapi kredi|yapı kredi|is bankasi|iş bankası|sekerbank|şekerbank|kuveyt turk|kuveyt türk|turkiye finans|türkiye finans|albaraka|ptt)';
 
 /*
  * Sadece name alanına güvenilmez. Türkiye'deki eksik OSM kayıtlarında sık görülen
@@ -439,7 +549,9 @@ const CATEGORY_QUERIES = {
       'nwr["amenity"="bank"]'
     ],
     fallback: [
-      'nwr["name"~"(bankası|bankasi|banka|bank$)",i]["amenity"]'
+      `nwr["name"~"${BANK_BRAND_PATTERN}",i]`,
+      `nwr["brand"~"${BANK_BRAND_PATTERN}",i]`,
+      'nwr["name"~"(bankası|bankasi|banka|bank$)",i]'
     ]
   },
   atm: {
@@ -450,6 +562,8 @@ const CATEGORY_QUERIES = {
       'nwr["vending"="cash"]'
     ],
     fallback: [
+      `nwr["name"~"${ATM_BRAND_PATTERN}",i]`,
+      `nwr["brand"~"${ATM_BRAND_PATTERN}",i]`,
       'nwr["name"~"(atm|bankamatik|paramatik|bank24|parafpara)",i]'
     ]
   },
@@ -538,6 +652,7 @@ function detectionsForTags(tags = {}) {
   const railway = tags.railway;
   const aeroway = tags.aeroway;
   const text = normalizeSearchText([tags['name:tr'], tags.name, tags.official_name, tags.short_name].filter(Boolean).join(' '));
+  const brandText = normalizeSearchText([tags.brand, tags.operator, tags.network].filter(Boolean).join(' '));
   const results = [];
   const add = (type, confidence, reason) => {
     if (!results.some(item => item.type === type)) results.push({ type, confidence, reason });
@@ -566,15 +681,15 @@ function detectionsForTags(tags = {}) {
   }
 
   if (amenity === 'bank') add('bank', 'Yüksek', 'amenity=bank');
-  else if (/\b(banka|bankasi|bank|bankasi)\b/.test(text) && amenity) {
-    add('bank', 'Orta', 'Ad banka olarak eşleşti');
+  else if (new RegExp(BANK_BRAND_PATTERN, 'i').test(text) || new RegExp(BANK_BRAND_PATTERN, 'i').test(brandText) || /\b(banka|bankasi|bank)\b/.test(text)) {
+    add('bank', amenity ? 'Orta' : 'Kontrol önerilir', amenity ? 'Ad banka olarak eşleşti' : 'Ad/marka banka olarak eşleşti');
   }
 
   if (amenity === 'atm') add('atm', 'Yüksek', 'amenity=atm');
   else if (tags.atm === 'yes' || tags.cash_withdrawal === 'yes' || tags.vending === 'cash') {
     add('atm', 'Yüksek', tags.atm === 'yes' ? 'atm=yes' : (tags.cash_withdrawal === 'yes' ? 'cash_withdrawal=yes' : 'vending=cash'));
-  } else if (/\b(atm|bankamatik|paramatik|bank24|parafpara)\b/.test(text)) {
-    add('atm', 'Orta', 'Ad ATM/bankamatik olarak eşleşti');
+  } else if (new RegExp(ATM_BRAND_PATTERN, 'i').test(text) || new RegExp(ATM_BRAND_PATTERN, 'i').test(brandText)) {
+    add('atm', 'Orta', 'Ad/marka ATM olarak eşleşti');
   }
 
   if (tags.natural === 'beach' || tags.leisure === 'beach_resort' || tags.place === 'beach') {
@@ -853,7 +968,7 @@ async function queryCategoriesAtRadius(lat, lng, radius, categories) {
     const localProviders = new Set(core.providers);
     const localWarnings = [...core.warnings];
     const found = detectedCategorySet([...localMap.values()]);
-    const fallbackKeys = keys.filter(key => !found.has(key) && (CATEGORY_QUERIES[key].fallback || []).length && radius <= 10000);
+    const fallbackKeys = keys.filter(key => !found.has(key) && (CATEGORY_QUERIES[key].fallback || []).length && (radius <= 10000 || ['bank', 'atm'].includes(key)));
     let successfulParts = core.successfulParts;
     let failedParts = core.failedParts;
 
@@ -1048,7 +1163,7 @@ async function getDistrictSearchAnchor(adminContext = {}) {
       headers: {
         Accept: 'application/json',
         'Accept-Language': 'tr-TR,tr;q=0.9',
-        'User-Agent': 'Kadastro360-Web-Pilot/1.8.3 (kadastro360.com.tr)'
+        'User-Agent': 'Kadastro360-Web-Pilot/1.8.4 (kadastro360.com.tr)'
       }
     }, 9000);
     if (!Array.isArray(rows) || !rows.length) return null;
@@ -1158,7 +1273,7 @@ function limitBalanced(items, category) {
 async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {}) {
   const context = normalizeAdminContext(adminContext);
   const geometryKey = geometry ? JSON.stringify(geometry).slice(0, 2000) : '';
-  const cacheKey = `poi-v183:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
+  const cacheKey = `poi-v184:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
   return cached(cacheKey, 30 * 60 * 1000, async () => {
     const startedAt = Date.now();
     const allCategories = Object.keys(CATEGORY_QUERIES);
@@ -1237,6 +1352,7 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
         .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all', context));
       districtFallbackCategories = requestedCategories.filter(key => {
         const rows = parcelItems.filter(item => item.type === key);
+        if (['bank', 'atm'].includes(key)) return true;
         if (!rows.length) return true;
         const nearest = [...rows].sort(comparePoi)[0];
         return nearest.districtMatch === false || nearest.centerDistance > 15000;
@@ -1246,7 +1362,7 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
           districtAnchor = await getDistrictSearchAnchor(context);
           if (districtAnchor) {
             let pendingDistrict = [...districtFallbackCategories];
-            for (const radius of [5000, 12000]) {
+            for (const radius of [5000, 12000, 20000, 30000]) {
               if (!pendingDistrict.length) break;
               const result = await queryCategoriesAtRadius(districtAnchor.lat, districtAnchor.lng, radius, pendingDistrict);
               absorb(result, radius, 'district-center');
@@ -1280,8 +1396,24 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
       })
       .sort(comparePoi);
 
-    const districtMatchedTypes = new Set(items.filter(item => item.districtMatch === true).map(item => item.type));
-    items = items.filter(item => !districtMatchedTypes.has(item.type) || item.districtMatch !== false);
+    const preferredTypeState = new Map();
+    for (const item of items) {
+      const row = preferredTypeState.get(item.type) || { hasDistrictCenter: false, hasDistrictTrue: false };
+      if (item.searchScope === 'district-center') row.hasDistrictCenter = true;
+      if (item.districtMatch === true) row.hasDistrictTrue = true;
+      preferredTypeState.set(item.type, row);
+    }
+    items = items.filter(item => {
+      const state = preferredTypeState.get(item.type) || {};
+      if (state.hasDistrictCenter) {
+        return item.searchScope === 'district-center' || item.districtMatch === true;
+      }
+      if (state.hasDistrictTrue) return item.districtMatch !== false;
+      if (['bank', 'atm'].includes(item.type) && item.centerDistance > 40000 && item.districtMatch !== true && item.searchScope !== 'district-center') {
+        return false;
+      }
+      return true;
+    });
     const discoveredCounts = categoryCounts(items);
     items = limitBalanced(items, category);
     const shownCounts = categoryCounts(items);
@@ -1412,18 +1544,47 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.3', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.4', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
       return sendHtml(res, 503, '<h1>Kadastro360 kurulumu tamamlanmadı</h1><p>Sunucuda TEST_PASSWORD ve SESSION_SECRET ayarlanmalıdır.</p>');
     }
 
+    const sessionUser = validSession(req);
+
+    if (req.method === 'GET' && pathname === '/') {
+      return sendHtml(res, 200, marketingPage({ user: sessionUser ? accounts.publicUser(sessionUser) : null }));
+    }
+
     if (req.method === 'GET' && pathname === '/login') {
-      if (validSession(req)) {
-        res.writeHead(302, { Location: '/' }); return res.end();
+      if (sessionUser) {
+        res.writeHead(302, { Location: '/app' }); return res.end();
       }
-      return sendHtml(res, 200, loginPage());
+      return sendHtml(res, 200, marketingPage());
+    }
+
+    if (req.method === 'POST' && pathname === '/request-access') {
+      try {
+        const form = await readFormBody(req);
+        accounts.createAccessRequest({
+          fullName: form.get('fullName') || '',
+          company: form.get('company') || '',
+          email: form.get('email') || '',
+          phone: form.get('phone') || '',
+          note: form.get('note') || ''
+        });
+        return sendHtml(res, 200, marketingPage({
+          user: sessionUser ? accounts.publicUser(sessionUser) : null,
+          requestOk: true,
+          requestMessage: 'Erişim talebiniz alındı. Uygun görülen test kullanıcılarına hesap açılacaktır.'
+        }));
+      } catch (error) {
+        return sendHtml(res, 400, marketingPage({
+          user: sessionUser ? accounts.publicUser(sessionUser) : null,
+          requestMessage: error.message || 'Erişim talebi kaydedilemedi.'
+        }));
+      }
     }
 
     if (req.method === 'POST' && pathname === '/login') {
@@ -1431,18 +1592,18 @@ const server = http.createServer(async (req, res) => {
       const username = form.get('username') || '';
       const password = form.get('password') || '';
       if (loginBlocked(req, username)) {
-        return sendHtml(res, 429, loginPage('Çok fazla başarısız giriş yapıldı. 15 dakika sonra tekrar deneyin.'));
+        return sendHtml(res, 429, marketingPage({ loginMessage: 'Çok fazla başarısız giriş yapıldı. 15 dakika sonra tekrar deneyin.' }));
       }
       const user = accounts.authenticate(username, password);
       if (!user) {
         recordLoginFailure(req, username);
-        return sendHtml(res, 401, loginPage('Kullanıcı adı, parola veya hesap süresi geçersiz.'));
+        return sendHtml(res, 401, marketingPage({ loginMessage: 'Kullanıcı adı, parola veya hesap süresi geçersiz.' }));
       }
       clearLoginFailures(req, username);
       const expiresAt = Date.now() + SESSION_MAX_AGE_SECONDS * 1000;
       const token = signSession(user.username, expiresAt);
       res.writeHead(302, {
-        Location: '/',
+        Location: '/app',
         'Set-Cookie': `kadastro360_session=${encodeURIComponent(token)}; Path=/; Max-Age=${SESSION_MAX_AGE_SECONDS}; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Lax`
       });
       return res.end();
@@ -1450,18 +1611,17 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && pathname === '/logout') {
       res.writeHead(302, {
-        Location: '/login',
+        Location: '/',
         'Set-Cookie': `kadastro360_session=; Path=/; Max-Age=0; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Lax`
       });
       return res.end();
     }
 
-    const sessionUser = validSession(req);
     if (!sessionUser) {
       if (pathname.startsWith('/api/')) return sendJson(res, 401, { error: 'Oturum gerekli.' });
-      res.writeHead(302, { Location: '/login' }); return res.end();
+      res.writeHead(302, { Location: '/' }); return res.end();
     }
-    if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html')) {
+    if (req.method === 'GET' && (pathname === '/app' || pathname === '/index.html')) {
       return sendFile(res, path.join(ROOT, 'index.html'), 'text/html; charset=utf-8');
     }
     if (req.method === 'GET' && pathname === '/endeksa-utils.js') {
