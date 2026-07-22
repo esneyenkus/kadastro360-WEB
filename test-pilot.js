@@ -36,7 +36,9 @@ const { PNG } = require('pngjs');
     /pathname === '\/api\/open-data\/geojson'/,
     /pathname === '\/api\/open-data\/wms-info'/,
     /pathname === '\/api\/open-data\/wms-probe'/,
-    /wms-tile/
+    /wms-tile/,
+    /wms-snapshot/,
+    /wms-legend/
   ]) assert(pattern.test(server), `Eksik rota: ${pattern}`);
 
   const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(code => code.trim());
@@ -53,7 +55,7 @@ const { PNG } = require('pngjs');
   assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
   assert(server.includes('ADMIN_PANEL_PIN') && server.includes('validAdminSession') && server.includes("pathname === '/yonetim-giris'"), 'İkinci yönetici doğrulaması eksik.');
   assert(admin.includes('Gelen erişim talepleri') && admin.includes('/admin/access-requests'), 'Erişim talepleri yönetici ekranında gösterilmiyor.');
-  assert(server.includes("version: '1.8.7'"), 'Sunucu sürümü 1.8.7 değil.');
+  assert(server.includes("version: '1.8.8'"), 'Sunucu sürümü 1.8.8 değil.');
   assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
 
   assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
@@ -72,14 +74,15 @@ const { PNG } = require('pngjs');
   assert(html.includes('probeWmsInBrowser') && html.includes('/open-data/wms-probe'), 'WMS görsel doğrulaması eksik.');
   assert(html.includes('Şeffaf/boş WMS görüntüsü başarılı sayılmaz'), 'Boş WMS güvenlik uyarısı eksik.');
   assert(!html.includes('Servisi Aç ↗'), 'Teknik WMS XML bağlantısı kullanıcı ekranında görünmemeli.');
-  assert(html.includes('Hazır katman adı önce doğrudan') && html.includes('görünürlük kontrolü paralel yapılır'), 'Hızlı WMS yükleme açıklaması eksik.');
+  assert(html.includes('tek önbellekli görüntü') && html.includes('katman sabit kalır'), 'Sabit WMS görüntü açıklaması eksik.');
   assert(html.includes('id="legend-window"') && html.includes('Renk Rehberi') && html.includes('initDraggableLegend'), 'Taşınabilir renk rehberi eksik.');
+  assert(html.includes('legend-official-image') && html.includes('/api/open-data/wms-legend/'), 'Aktif WMS resmî lejant görüntüsü eksik.');
   assert(html.includes('focusOpenDataPlan') && html.includes('Plan Ölçeğine Git'), 'Plan ölçeği görünüm düzeltmesi eksik.');
-  assert(html.includes('22.01.2026') && html.includes('RGB 255/250/38'), 'Resmî 2026 ÇDP renk rehberi eksik.');
+  assert(html.includes('22.01.2026') && html.includes('RGB 255/250/38') && html.includes('Endüstriyel gelişme bölgesi') && html.includes('Enerji depolama alanı') && html.includes('Mesire alanı'), 'Tam resmî 2026 ÇDP renk rehberi eksik.');
   assert(!html.includes('Renk Lejantı ↗'), 'Teknik GetLegendGraphic bağlantısı kullanıcı ekranında görünmemeli.');
 
-  assert(html.includes('createSharpWmsLayer') && html.includes('waitForWmsLayer') && html.includes('proxyWmsTileUrl') && html.includes('/api/open-data/wms-tile/'), 'Keskin doğrudan WMS ve proxy yedek yüklemesi eksik.');
-  assert(html.includes('knownWmsAttempts') && html.includes('loadVerifiedWmsAttempt') && html.includes('size=256'), 'Hızlı ve hafif WMS yükleme akışı eksik.');
+  assert(html.includes('createSharpWmsLayer') && html.includes('fetchWmsSnapshotLayer') && html.includes('/api/open-data/wms-snapshot/'), 'Sabit tek-görüntü WMS yüklemesi eksik.');
+  assert(html.includes('knownWmsAttempts') && html.includes('firstSnapshotSuccess') && html.includes('snapshotSize'), 'Hızlı sabit WMS yükleme akışı eksik.');
   assert(html.includes('parcel-locator') && html.includes('updateParcelLocator'), 'Parsel hedef animasyonu eksik.');
   assert(html.includes('sessionStorage') && html.includes('renderNeighborhoodComparisons'), 'Aynı mahalle geçici karşılaştırma önbelleği eksik.');
   assert(html.includes('parcelHaloPane') && html.includes('bringParcelToFront'), 'Parsel üst görünürlük katmanı eksik.');
@@ -96,7 +99,7 @@ const { PNG } = require('pngjs');
 
   assert(admin.includes('Yeni kullanıcı') && account.includes('CREATE TABLE IF NOT EXISTS users'), 'Kullanıcı yönetimi eksik.');
   assert(html.includes('örnek, sanal veya tahmini parsel/yakın yer sonucu üretmez'), 'Canlı veri ilkesi görünmüyor.');
-  assert(html.includes('Katmanlar otomatik yüklenmez') && html.includes('Hazır Katmanları Getir') && html.includes('Ek Kaynakları Tara'), 'Hızlı/ayrıntılı açık katman arayüzü eksik.');
+  assert(html.includes('Hazır plan tek tıkla otomatik açılır') && html.includes('autoLoadReadyOpenData') && html.includes('Ek Kaynakları Tara'), 'Otomatik hazır plan ve ayrıntılı açık katman arayüzü eksik.');
   assert(html.includes('en son') && html.includes('veri sağlayıcısının güncel kaydını kontrol edin'), 'Veri güncelliği uyarısı eksik.');
 
   const wms = parseWmsCapabilities('<WMS_Capabilities version="1.3.0"><Capability><Layer><Title>Kök</Title><Layer><Name>plan:cdp</Name><Title>Plan Katmanı</Title></Layer></Layer></Capability></WMS_Capabilities>');
@@ -120,10 +123,10 @@ const { PNG } = require('pngjs');
   assert(Date.now() - catalogStarted < 1000, 'Hızlı açık veri kataloğu dış kaynakları beklememeli.');
   const ysk = catalog.items.find(item => item.id === 'cdp-ysk');
   assert(ysk?.type === 'wms', 'Yozgat WMS kaynağı listelenmedi.');
-  assert(ysk?.wms?.loadMode === 'fast-known-layer-with-proxy-fallback', 'WMS hızlı hazır katman + proxy yedek modunda değil.');
-  assert(catalog.wmsLoadMode === 'fast-known-layer-with-proxy-fallback' && catalog.catalogMode === 'quick', 'Katalog hızlı WMS yükleme modu eksik.');
+  assert(ysk?.wms?.loadMode === 'stable-single-image-with-cache', 'WMS sabit tek-görüntü modunda değil.');
+  assert(catalog.wmsLoadMode === 'stable-single-image-with-cache' && catalog.catalogMode === 'quick', 'Katalog sabit WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.8.7 statik, tanıtım, rota ve açık veri doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.8.8 sabit katman, tam lejant, tanıtım ve rota doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

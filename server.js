@@ -6,7 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { analyzeTerrain } = require('./terrain');
 const { AccountStore } = require('./account-store');
-const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo, wmsProbe, wmsTile } = require('./open-data');
+const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo, wmsProbe, wmsSnapshot, wmsLegend, wmsTile } = require('./open-data');
 const { TKGMClient, sourcesFromEnvironment } = require('./tkgm-client');
 
 const HOST = process.env.HOST || '0.0.0.0';
@@ -58,7 +58,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.8.7'
+  userAgent: 'Kadastro360-Web-Pilot/1.8.8'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -490,7 +490,7 @@ async function routeOne(origin, destination) {
         if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
         try {
           const payload = await fetchJson(url.toString(), {
-            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.7', Accept: 'application/json' }
+            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.8', Accept: 'application/json' }
           }, 9000);
           if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
             const route = payload.routes[0];
@@ -1199,7 +1199,7 @@ async function getDistrictSearchAnchor(adminContext = {}) {
       headers: {
         Accept: 'application/json',
         'Accept-Language': 'tr-TR,tr;q=0.9',
-        'User-Agent': 'Kadastro360-Web-Pilot/1.8.7 (kadastro360.com.tr)'
+        'User-Agent': 'Kadastro360-Web-Pilot/1.8.8 (kadastro360.com.tr)'
       }
     }, 9000);
     if (!Array.isArray(rows) || !rows.length) return null;
@@ -1595,7 +1595,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.7', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.8', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
@@ -1744,6 +1744,35 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && pathname === '/api/services') {
       return sendJson(res, 200, { updatedAt: new Date().toISOString(), services: serviceHealth });
     }
+    let snapshotMatch = pathname.match(/^\/api\/open-data\/wms-snapshot\/([^/]+)\.png$/);
+    if (req.method === 'GET' && snapshotMatch) {
+      const result = await wmsSnapshot({
+        key: decodeURIComponent(snapshotMatch[1]),
+        layerName: requestUrl.searchParams.get('layers') || '',
+        version: requestUrl.searchParams.get('version') || '1.1.1',
+        latitude: Number(requestUrl.searchParams.get('lat')),
+        longitude: Number(requestUrl.searchParams.get('lng')),
+        radiusKm: Number(requestUrl.searchParams.get('radiusKm')) || 14,
+        size: Number(requestUrl.searchParams.get('size')) || 1024
+      });
+      markService('openData', true, 'Açık veri sabit plan görüntüsü yüklendi.');
+      return sendBinary(res, 200, result.buffer, result.contentType, {
+        'X-Kadastro360-Cache': result.cache,
+        'X-Kadastro360-Layer': encodeURIComponent(result.layerName),
+        'X-Kadastro360-Version': result.version
+      });
+    }
+
+    let legendMatch = pathname.match(/^\/api\/open-data\/wms-legend\/([^/]+)\.png$/);
+    if (req.method === 'GET' && legendMatch) {
+      const result = await wmsLegend({
+        key: decodeURIComponent(legendMatch[1]),
+        layerName: requestUrl.searchParams.get('layers') || '',
+        version: requestUrl.searchParams.get('version') || '1.1.1'
+      });
+      return sendBinary(res, 200, result.buffer, result.contentType, { 'X-Kadastro360-Cache': result.cache });
+    }
+
     let tileMatch = pathname.match(/^\/api\/open-data\/wms-tile\/([^/]+)\/(\d+)\/(\d+)\/(\d+)\.png$/);
     if (req.method === 'GET' && tileMatch) {
       const result = await wmsTile({
@@ -1762,7 +1791,7 @@ const server = http.createServer(async (req, res) => {
       const district = String(requestUrl.searchParams.get('district') || '').trim();
       if (!province) return sendJson(res, 400, { error: 'Açık veri kontrolü için il gereklidir.' });
       const result = await buildPilotCatalog({ province, district, detailed: requestUrl.searchParams.get('mode') === 'detailed' });
-      markService('openData', true, `${province}${district ? ` / ${district}` : ''} için kaynak listesi hazırlandı. WMS katmanları kullanıcının tarayıcısından doğrudan yüklenir.`);
+      markService('openData', true, `${province}${district ? ` / ${district}` : ''} için kaynak listesi hazırlandı. Eşleşen WMS planı parsel çevresinde tek sabit görüntü olarak yüklenir.`);
       return sendJson(res, 200, result);
     }
     if (req.method === 'GET' && pathname === '/api/open-data/geojson') {

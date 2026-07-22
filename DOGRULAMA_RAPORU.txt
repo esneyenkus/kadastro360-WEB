@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.8.7 DOĞRULAMA RAPORU
+KADASTRO360 WEB PILOT v1.8.8 DOĞRULAMA RAPORU
 
 TARİH: 22.07.2026
 VERİ MODU: live-only
@@ -49,3 +49,11 @@ Bu çalışma ortamında gerçek TKGM, Nominatim, Overpass, OSRM ve WMS uçları
 4. Açıkça Balya gibi farklı ilçeye ait uzak banka, Gönen sonucu varken listede görünmemelidir.
 5. Birbirine yakın 3-5 hedef seçin; varış etiketleri birbirini kapatmamalıdır.
 6. Ortak yol kullanan rotalarda renkler dönüşümlü görünmelidir.
+
+
+v1.8.8 EK KONTROLLER
+- Sabit tek-görüntü WMS uç noktası ve önbellek kontrolü.
+- Dinamik WMS lejant uç noktası.
+- Hazır planın otomatik yüklenmesi.
+- Zoom sırasında karo yenilemeden sabit ImageOverlay kullanımı.
+- Tam EK-1c genel renk/gösterim listesi.

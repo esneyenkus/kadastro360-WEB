@@ -3,7 +3,7 @@
 const assert = require('assert');
 const http = require('http');
 const { PNG } = require('pngjs');
-const { WMS_CONFIGS, wmsTile, tileMercatorBounds } = require('./open-data');
+const { WMS_CONFIGS, wmsTile, wmsSnapshot, wmsLegend, tileMercatorBounds } = require('./open-data');
 
 function listen(server) {
   return new Promise((resolve, reject) => {
@@ -45,11 +45,29 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
     assert.strictEqual(requests.length, 1, 'Önbellek WMS kaynağına ikinci kez istek gönderdi.');
     assert(/REQUEST=GetMap/i.test(requests[0]) && /WIDTH=256/i.test(requests[0]) && /BBOX=/i.test(requests[0]), 'WMS karo parametreleri eksik.');
     await assert.rejects(() => wmsTile({ key: 'cdp-ysk', layerName: '0&bad=1', version: '1.1.1', z: 8, x: 148, y: 96 }), /Geçersiz/);
+
+    const beforeSnapshot = requests.length;
+    const snapshot = await wmsSnapshot({
+      key: 'cdp-ysk', layerName: '0', version: '1.1.1',
+      latitude: 39.7, longitude: 35.2, radiusKm: 14, size: 1024
+    });
+    assert.strictEqual(snapshot.contentType, 'image/png');
+    assert.strictEqual(snapshot.analysis.visible, true, 'Sabit WMS plan görüntüsü görünür olmalı.');
+    assert.strictEqual(requests.length, beforeSnapshot + 1, 'Sabit WMS görüntüsü tek kaynak isteğiyle alınmalı.');
+    assert(/REQUEST=GetMap/i.test(requests.at(-1)) && /WIDTH=1024/i.test(requests.at(-1)), 'Sabit WMS görüntü parametreleri eksik.');
+    await wmsSnapshot({ key: 'cdp-ysk', layerName: '0', version: '1.1.1', latitude: 39.7, longitude: 35.2, radiusKm: 14, size: 1024 });
+    assert.strictEqual(requests.length, beforeSnapshot + 1, 'Sabit WMS görüntüsü önbellekten gelmedi.');
+
+    const beforeLegend = requests.length;
+    const legend = await wmsLegend({ key: 'cdp-ysk', layerName: '0', version: '1.1.1' });
+    assert.strictEqual(legend.contentType, 'image/png');
+    assert.strictEqual(requests.length, beforeLegend + 1, 'WMS lejantı tek kaynak isteğiyle alınmalı.');
+    assert(/REQUEST=GetLegendGraphic/i.test(requests.at(-1)), 'WMS lejant isteği eksik.');
   } finally {
     config.baseUrl = original;
     await close(mock);
   }
-  console.log('Kadastro360 keskin WMS karo ve önbellek testi geçti.');
+  console.log('Kadastro360 WMS karo, sabit görüntü, lejant ve önbellek testi geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

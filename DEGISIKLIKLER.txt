@@ -1,3 +1,13 @@
+v1.8.8
+- Çevre düzeni planı WMS katmanı, çok sayıda karo yerine parsel çevresini kapsayan tek sabit ve önbellekli PNG görüntüsü olarak yüklenir.
+- Zoom in/out ve harita hareketinde yeni WMS karo istekleri üretilmediği için katmanın kaybolması ve tarayıcının kasılması azaltıldı.
+- Hazır Katmanları Getir düğmesi eşleşen plan katmanını otomatik olarak haritaya ekler.
+- Bilinen katman adı ve WMS sürümleri paralel denenir; yalnızca başarısızlıkta GetCapabilities bir kez kontrol edilir.
+- Sunucu tarafına önbellekli /api/open-data/wms-snapshot ve /api/open-data/wms-legend uçları eklendi.
+- Renk Rehberi, aktif WMS servisinin resmî lejantını dinamik olarak gösterir.
+- 22.01.2026 EK-1c genel gösterimlerinin yerleşim, çalışma, tarım, sosyal altyapı, enerji, ulaşım ve kıyı kategorileri eksiksiz genel listeye eklendi.
+- Pafta ızgarası, geniş camgöbeği koridor, kalın kırmızı çizgi ve mavi sembol gibi plan-özel işaretler için kesin anlamın aktif resmî lejanttan doğrulanması uyarısı eklendi.
+
 v1.8.7
 - Gelen pilot erişim talepleri yönetici panelinde listelenir hale getirildi.
 - Talep durumları Yeni / İncelendi / Onaylandı / Reddedildi olarak yönetilebilir.

@@ -153,7 +153,7 @@ async function fetchBuffer(url, options = {}, timeoutMs = 10000, maxBytes = 8_00
       ...options,
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Kadastro360-Web-Pilot/1.5 (+verified-open-data-integration)',
+        'User-Agent': 'Kadastro360-Web-Pilot/1.8.8 (+stable-open-data-snapshot)',
         Accept: '*/*',
         ...(options.headers || {})
       }
@@ -275,10 +275,12 @@ function directWmsDefinition(config, resolved = null) {
     supportsFeatureInfo: config.category === 'plan',
     recommendedZoom: config.category === 'plan' ? 10 : null,
     probeRadiusKm: config.category === 'plan' ? 24 : 8,
+    snapshotRadiusKm: config.category === 'plan' ? 14 : 5,
+    snapshotSize: config.category === 'plan' ? 1024 : 768,
     infoFormats: resolved?.infoFormats || [],
     legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
     verifiedAt: resolved?.verifiedAt || null,
-    loadMode: 'fast-known-layer-with-proxy-fallback'
+    loadMode: 'stable-single-image-with-cache'
   };
 }
 
@@ -563,7 +565,7 @@ async function buildPilotCatalog({ province, district, detailed = false }) {
     licenseUrl: ULASAV_LICENSE,
     providerUrl: ULASAV_ROOT,
     catalogMode: detailed ? 'detailed' : 'quick',
-    wmsLoadMode: 'fast-known-layer-with-proxy-fallback',
+    wmsLoadMode: 'stable-single-image-with-cache',
     supportedRegions: [
       'Kayseri: çevre düzeni planı ve idari sınırlar',
       'Tekirdağ / Çorlu: çevre düzeni planı ve belediye rayiç kayıtları',
@@ -648,6 +650,75 @@ async function wmsProbe({ key, layerName, version, latitude, longitude, radiusKm
   return { ...analysis, layerName: String(layerName), version: version === '1.3.0' ? '1.3.0' : '1.1.1', checkedAt: new Date().toISOString() };
 }
 
+
+
+function validateWmsImage(buffer, contentType, label = 'WMS görüntüsü') {
+  const isPng = /image\/png/i.test(String(contentType || '')) || buffer.slice(1, 4).toString() === 'PNG';
+  if (!isPng) {
+    const detail = decodeBuffer(buffer).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 700);
+    throw new Error(detail || `${label} yerine geçersiz cevap döndü.`);
+  }
+  return analyzePngVisibility(buffer);
+}
+
+async function wmsSnapshot({ key, layerName, version, latitude, longitude, radiusKm = 14, size = 1024 }) {
+  const config = WMS_CONFIGS.find(row => row.key === key);
+  if (!config) throw Object.assign(new Error('Açık veri WMS kaynağı bulunamadı.'), { httpStatus: 404 });
+  const safeLayer = safeWmsLayerName(layerName);
+  const safeVersion = version === '1.3.0' ? '1.3.0' : '1.1.1';
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('Geçersiz parsel koordinatı.');
+  const safeRadiusKm = Math.max(3, Math.min(40, Number(radiusKm) || 14));
+  const safeSize = Math.max(512, Math.min(1536, Number(size) || 1024));
+  const cacheKey = `wms-snapshot:${key}:${safeLayer}:${safeVersion}:${lat.toFixed(4)}:${lng.toFixed(4)}:${safeRadiusKm}:${safeSize}`;
+  return cached(cacheKey, 30 * 60_000, async () => {
+    const url = wmsMapUrl(config, {
+      layerName: safeLayer,
+      version: safeVersion,
+      latitude: lat,
+      longitude: lng,
+      radiusKm: safeRadiusKm,
+      width: safeSize,
+      height: safeSize
+    });
+    const result = await fetchBuffer(url, {}, 18000, 12_000_000);
+    const analysis = validateWmsImage(result.buffer, result.contentType, 'WMS sabit plan görüntüsü');
+    if (!analysis.visible) {
+      throw Object.assign(new Error('Bu parsel çevresinde katman görüntüsü boş veya şeffaf döndü.'), { httpStatus: 422 });
+    }
+    return {
+      buffer: result.buffer,
+      contentType: 'image/png',
+      cache: 'MISS',
+      analysis,
+      radiusKm: safeRadiusKm,
+      size: safeSize,
+      layerName: safeLayer,
+      version: safeVersion
+    };
+  });
+}
+
+async function wmsLegend({ key, layerName, version = '1.1.1' }) {
+  const config = WMS_CONFIGS.find(row => row.key === key);
+  if (!config) throw Object.assign(new Error('Açık veri WMS kaynağı bulunamadı.'), { httpStatus: 404 });
+  const safeLayer = safeWmsLayerName(layerName);
+  const safeVersion = version === '1.3.0' ? '1.3.0' : '1.1.1';
+  const cacheKey = `wms-legend:${key}:${safeLayer}:${safeVersion}`;
+  return cached(cacheKey, 6 * 60 * 60_000, async () => {
+    const url = new URL(config.baseUrl);
+    const params = {
+      SERVICE: 'WMS', REQUEST: 'GetLegendGraphic', VERSION: safeVersion,
+      FORMAT: 'image/png', LAYER: safeLayer, TRANSPARENT: 'TRUE'
+    };
+    for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
+    const result = await fetchBuffer(url.toString(), {}, 16000, 12_000_000);
+    const analysis = validateWmsImage(result.buffer, result.contentType, 'WMS lejantı');
+    if (!analysis.visible) throw Object.assign(new Error('Katman servisi görünür bir lejant görseli döndürmedi.'), { httpStatus: 404 });
+    return { buffer: result.buffer, contentType: 'image/png', cache: 'MISS', layerName: safeLayer, version: safeVersion };
+  });
+}
 
 function safeResource(token) {
   const row = resourceTokens.get(String(token || ''));
@@ -790,6 +861,8 @@ module.exports = {
   wmsProbe,
   fetchGeoJson,
   wmsFeatureInfo,
+  wmsSnapshot,
+  wmsLegend,
   wmsTile,
   tileMercatorBounds,
   configForKey
