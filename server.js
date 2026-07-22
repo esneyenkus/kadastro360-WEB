@@ -55,7 +55,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.8.1'
+  userAgent: 'Kadastro360-Web-Pilot/1.8.2'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -345,7 +345,7 @@ async function routeOne(origin, destination) {
         if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
         try {
           const payload = await fetchJson(url.toString(), {
-            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.1', Accept: 'application/json' }
+            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.2', Accept: 'application/json' }
           }, 9000);
           if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
             const route = payload.routes[0];
@@ -820,9 +820,12 @@ const POI_CATEGORY_BATCHES = [
   ['beach', 'bus_terminal', 'train_station', 'airport']
 ];
 
+// Kırsal parsellerde okul, market, eczane, banka ve ATM çoğu zaman ilçe
+// merkezinde 10 km'den daha uzakta kalır. Akıllı arama bu türleri erken
+// 'yok' saymaz; sonuç bulunmayan her kategori 30 km'ye kadar bağımsız genişler.
 const POI_MAX_RADIUS = {
-  school: 10000, market: 10000, mosque: 10000, pharmacy: 10000,
-  hospital: 20000, bank: 10000, atm: 10000,
+  school: 30000, market: 30000, mosque: 30000, pharmacy: 30000,
+  hospital: 30000, bank: 30000, atm: 30000,
   beach: 30000, bus_terminal: 30000, train_station: 30000, airport: 30000
 };
 
@@ -1022,7 +1025,7 @@ function limitBalanced(items, category) {
 
 async function getPoi(lat, lng, radiusMode, category, geometry) {
   const geometryKey = geometry ? JSON.stringify(geometry).slice(0, 2000) : '';
-  const cacheKey = `poi-v180:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${geometryKey}`;
+  const cacheKey = `poi-v182:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${geometryKey}`;
   return cached(cacheKey, 30 * 60 * 1000, async () => {
     const startedAt = Date.now();
     const allCategories = Object.keys(CATEGORY_QUERIES);
@@ -1231,7 +1234,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.1', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.2', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {

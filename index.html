@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kadastro360 — Web Pilot v1.8.1</title>
+<title>Kadastro360 — Web Pilot v1.8.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="endeksa-utils.js"></script>
@@ -69,7 +69,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 
 
 
-/* v1.8.1 — seçilebilir yol rotaları, tek akordeon yakın yer listesi ve dinamik açık veri kapsamı */
+/* v1.8.2 — seçilebilir yol rotaları, tek akordeon yakın yer listesi ve dinamik açık veri kapsamı */
 .map-runtime-status{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1450;display:none;align-items:center;gap:8px;max-width:min(520px,calc(100% - 120px));padding:8px 12px;border-radius:9px;background:rgba(23,33,43,.92);color:#fff;font-size:10px;font-weight:750;box-shadow:0 7px 25px rgba(0,0,0,.22);pointer-events:none}.map-runtime-status.show{display:flex}.map-runtime-status.ok{background:rgba(14,107,81,.94)}.map-runtime-status.error{background:rgba(139,45,34,.94)}.map-runtime-status.loading:before{content:"";width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex:0 0 auto}
 .compare-control{position:absolute;right:12px;top:12px;z-index:1300;display:none;align-items:center;gap:5px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:9px;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,.12)}.compare-control.show{display:flex}.compare-control button{border:0;border-radius:6px;padding:6px 8px;background:#fff;font-size:9px;font-weight:800;cursor:pointer;color:var(--text)}.compare-control .compare-main{background:#fff5e8;color:#8a4c00}.compare-control .compare-main.off{background:#f1f3f5;color:#687583}.compare-control .compare-clear{border-left:1px solid var(--line);border-radius:0 6px 6px 0;color:#8b2d22}
 .parcel-locator-wrapper{background:transparent;border:0}.parcel-locator{--locator-size:34px;width:var(--locator-size);height:var(--locator-size);margin-left:calc(var(--locator-size) / -2);margin-top:calc(var(--locator-size) / -2);border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.96);border:3px solid #e33737;box-shadow:0 0 0 4px rgba(227,55,55,.18),0 5px 18px rgba(0,0,0,.3);transition:width .16s,height .16s,margin .16s,opacity .16s;animation:parcelPulse 1.6s ease-out infinite}.parcel-locator:before{content:"";width:32%;height:32%;border-radius:50%;background:#e33737}.parcel-locator-label{position:absolute;left:50%;top:calc(var(--locator-size) + 5px);transform:translateX(-50%);background:#17212b;color:#fff;border-radius:5px;padding:3px 5px;font:800 8px/1 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.24)}@keyframes parcelPulse{0%{box-shadow:0 0 0 0 rgba(227,55,55,.38),0 5px 18px rgba(0,0,0,.3)}70%{box-shadow:0 0 0 12px rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}100%{box-shadow:0 0 0 0 rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}}
@@ -148,7 +148,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
             <option value="airport">Havaalanı</option>
           </select>
           <select class="select" id="poi-radius">
-            <option value="auto" selected>Akıllı: 5 → 10 → 20 → 30 km</option>
+            <option value="auto" selected>Akıllı: Her tür için 5 → 10 → 20 → 30 km</option>
             <option value="500">500 m</option>
             <option value="1000">1 km</option>
             <option value="2000">2 km</option>
@@ -161,7 +161,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
           </select>
           <button class="primary" id="poi-btn" disabled>Yakın Yerleri Bul</button>
         </div>
-        <div class="hint">Her kategori tek bir akordeon başlığında gösterilir; başlık kapalıyken sonuç sayısı görünür. Liste içindeki kutulardan en fazla 5 nokta seçip Google Maps’e gitmeden yol rotalarını doğrudan Kadastro360 haritasında çizebilirsiniz. Liste satırına tıklamak yalnızca noktayı odaklar ve kuş uçuşu bilgisini gösterir.</div>
+        <div class="hint">Akıllı aramada sonuç çıkmayan her kategori kırsal parseller için ayrı ayrı 30 km’ye kadar genişletilir. Her kategori tek bir akordeon başlığında gösterilir; başlık kapalıyken sonuç sayısı görünür. Liste içindeki kutulardan en fazla 5 nokta seçip Google Maps’e gitmeden yol rotalarını doğrudan Kadastro360 haritasında çizebilirsiniz. Liste satırına tıklamak yalnızca noktayı odaklar ve kuş uçuşu bilgisini gösterir.</div>
         <a class="link-btn google-poi-link disabled" id="google-poi-link" target="_blank" rel="noopener">Google Maps’te Seçili Türü Ara <span>↗</span></a>
         <div class="poi-route-planner" id="poi-route-planner" hidden>
           <div class="poi-route-head"><div class="poi-route-title">Seçili noktalara yol rotası</div><div class="poi-route-count" id="route-selection-count">0 / 5 seçili</div></div>
@@ -1783,7 +1783,8 @@ function renderPoiResults(items, context = {}){
         body.appendChild(list);
       }else{
         const note = document.createElement('div'); note.className = `notice ${state.state === 'failed' ? 'error' : 'info'}`;
-        note.textContent = state.state === 'failed' ? 'Bu kategori için servis yanıt vermedi.' : 'Seçilen tarama içinde kayıt bulunamadı.';
+        const checkedKm = Number(state.radius) > 0 ? `${Math.round(Number(state.radius)/1000)} km içinde ` : '';
+        note.textContent = state.state === 'failed' ? 'Bu kategori için servis yanıt vermedi.' : `${checkedKm}kayıt bulunamadı.`;
         body.appendChild(note);
       }
       accordionGrid.appendChild(section);
@@ -1823,7 +1824,7 @@ async function searchPoi(){
     for(const key of visible){
       const coverage=data.coverage?.[key]||{};
       const count=items.filter(item=>item.type===key).length;
-      states[key]={state:coverage.status==='failed'?'failed':count?'found':'empty',count};
+      states[key]={state:coverage.status==='failed'?'failed':count?'found':'empty',count,radius:Number(coverage.radius)||0};
     }
     renderPoiProgress(states,visible);
     renderPoiResults(items,{all:category==='all',category,states,data});

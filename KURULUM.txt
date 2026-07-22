@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.8.1
+KADASTRO360 WEB PILOT v1.8.2
 
 YEREL KURULUM
 1. Node.js 22 kurun.
@@ -15,7 +15,7 @@ RENDER GÜNCELLEME
 4. GitHub'da Commit changes yapın.
 5. Mevcut Render Blueprint sayfasında Manual Sync çalıştırın.
 6. Yeni bir Blueprint oluşturmayın; aksi halde yeni site adresi oluşur.
-7. Dağıtım tamamlanınca /api/health sonucunda version değerinin 1.8.1 olduğunu kontrol edin.
+7. Dağıtım tamamlanınca /api/health sonucunda version değerinin 1.8.2 olduğunu kontrol edin.
 
 ÖNEMLİ DOSYALAR
 - server.js

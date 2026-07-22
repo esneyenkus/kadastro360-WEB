@@ -1,5 +1,9 @@
-KADASTRO360 WEB PILOT v1.8.1
+KADASTRO360 WEB PILOT v1.8.2
 
+- Kırsal parsellerde okul, market, eczane, banka, ATM ve diğer kategorilerin 10 km’de erken kesilmesi düzeltildi.
+- Akıllı yakın yer araması, sonuç bulunmayan her kategoriyi ayrı ayrı 5 → 10 → 20 → 30 km tarıyor.
+- Boş kategori mesajında gerçekten kontrol edilen en geniş mesafe gösteriliyor.
+- Gönen/Ortaoba benzeri ilçe merkezine uzak parseller için kırsal yakın yer regresyon testi eklendi.
 ROTA GÖRÜNÜRLÜĞÜ VE VARIŞ ETİKETİ
 - Varıştaki numaralı ikon kaldırıldı; seçilen yakın yerin tam adı varış koordinatının üzerinde sürekli gösterilir.
 - Rota servisi başlangıç veya bitiş noktasını yola eşlediğinde parsel merkezi ve gerçek POI koordinatı renkli kesik bağlantı çizgisiyle tamamlanır.

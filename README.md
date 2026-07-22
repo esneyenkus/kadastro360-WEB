@@ -1,5 +1,6 @@
-# Kadastro360 Web Pilot v1.8.1
+# Kadastro360 Web Pilot v1.8.2
 
+Bu sürümde akıllı yakın yer araması, kırsal parsellerde günlük ihtiyaç kategorilerini 10 km’de bırakmaz. Sonuç bulunmayan okul, market, cami, eczane, hastane, banka, ATM, sahil/plaj, otogar, tren garı ve havaalanı kategorileri ayrı ayrı 30 km’ye kadar genişletilir.
 Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, düz çizgiyi yol rotası gibi gösterme veya tahmini rayiç üretmez.
 
 ## Bu sürümde düzeltilen ana sorunlar
@@ -71,7 +72,7 @@ Render dağıtımından sonra şu adres kontrol edilir:
 https://SİTE-ADRESİ/api/health
 ```
 
-Sonuçta `version: 1.8.1` görünmelidir.
+Sonuçta `version: 1.8.2` görünmelidir.
 
 ## Önemli doğruluk notu
 

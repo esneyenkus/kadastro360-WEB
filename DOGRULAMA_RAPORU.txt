@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.8.1 DOĞRULAMA RAPORU
+KADASTRO360 WEB PILOT v1.8.2 DOĞRULAMA RAPORU
 
 TARİH: 22.07.2026
 VERİ MODU: live-only
@@ -17,6 +17,7 @@ OTOMATİK TESTLER
 [GEÇTİ] WMS karo BBOX hesaplama, PNG doğrulama ve ikinci isteğin önbellekten gelmesi
 [GEÇTİ] 11 yakın yer kategorisinin üç toplu sorguda bulunması
 [GEÇTİ] Aynı yakın yer sorgusunun ikinci kez dış servise gitmeden önbellekten gelmesi
+[GEÇTİ] Kırsal parselde 10 km içinde bulunmayan okul, market, eczane, banka ve ATM kategorilerinin 20/30 km aşamasına genişletilmesi
 [GEÇTİ] Kodda Math.random ile sahte sonuç üretimi bulunmaması
 [GEÇTİ] ZIP içinde node_modules ve boş data klasörü bulunmaması kontrolü
 
