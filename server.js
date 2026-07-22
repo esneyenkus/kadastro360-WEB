@@ -20,6 +20,7 @@ const COOKIE_SECURE = process.env.COOKIE_SECURE !== '0';
 const ROOT = __dirname;
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const DEFAULT_DAILY_QUOTA = Math.max(1, Number(process.env.DEFAULT_DAILY_QUOTA) || 20);
+const NOMINATIM_BASE_URL = String(process.env.NOMINATIM_BASE_URL || 'https://nominatim.openstreetmap.org').replace(/\/$/, '');
 const ROUTING_BASE_URLS = (() => {
   const explicitList = String(process.env.ROUTING_BASE_URLS || '').split(',').map(value => value.trim()).filter(Boolean);
   const explicitOne = String(process.env.ROUTING_BASE_URL || '').trim();
@@ -55,7 +56,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.8.2'
+  userAgent: 'Kadastro360-Web-Pilot/1.8.3'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -345,7 +346,7 @@ async function routeOne(origin, destination) {
         if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
         try {
           const payload = await fetchJson(url.toString(), {
-            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.2', Accept: 'application/json' }
+            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.3', Accept: 'application/json' }
           }, 9000);
           if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
             const route = payload.routes[0];
@@ -448,7 +449,9 @@ const CATEGORY_QUERIES = {
       'nwr["cash_withdrawal"="yes"]',
       'nwr["vending"="cash"]'
     ],
-    fallback: []
+    fallback: [
+      'nwr["name"~"(atm|bankamatik|paramatik|bank24|parafpara)",i]'
+    ]
   },
   beach: {
     core: [
@@ -570,6 +573,8 @@ function detectionsForTags(tags = {}) {
   if (amenity === 'atm') add('atm', 'Yüksek', 'amenity=atm');
   else if (tags.atm === 'yes' || tags.cash_withdrawal === 'yes' || tags.vending === 'cash') {
     add('atm', 'Yüksek', tags.atm === 'yes' ? 'atm=yes' : (tags.cash_withdrawal === 'yes' ? 'cash_withdrawal=yes' : 'vending=cash'));
+  } else if (/\b(atm|bankamatik|paramatik|bank24|parafpara)\b/.test(text)) {
+    add('atm', 'Orta', 'Ad ATM/bankamatik olarak eşleşti');
   }
 
   if (tags.natural === 'beach' || tags.leisure === 'beach_resort' || tags.place === 'beach') {
@@ -948,7 +953,122 @@ function distanceToGeometry(lat, lng, geometry, fallbackLat, fallbackLng) {
   return haversine(fallbackLat, fallbackLng, lat, lng);
 }
 
-function itemFromElement(element, originLat, originLng, geometry, preferredCategory = null) {
+
+function cleanAdminName(value) {
+  return String(value || '').trim().slice(0, 120);
+}
+
+function normalizeAdminContext(value = {}) {
+  return {
+    province: cleanAdminName(value.province),
+    district: cleanAdminName(value.district),
+    neighborhood: cleanAdminName(value.neighborhood)
+  };
+}
+
+function tagAdminValues(tags = {}, keys = []) {
+  return keys.map(key => cleanAdminName(tags[key])).filter(Boolean);
+}
+
+function adminMatchForItem(tags = {}, adminContext = {}, scope = 'parcel') {
+  const districtNeedle = normalizeSearchText(adminContext.district);
+  const provinceNeedle = normalizeSearchText(adminContext.province);
+  const districtValues = tagAdminValues(tags, [
+    'addr:district', 'is_in:district', 'addr:county', 'is_in:county',
+    'addr:city', 'is_in:city', 'is_in'
+  ]).map(normalizeSearchText);
+  const provinceValues = tagAdminValues(tags, [
+    'addr:province', 'addr:state', 'is_in:province', 'is_in:state'
+  ]).map(normalizeSearchText);
+  let districtMatch = null;
+  let provinceMatch = null;
+  if (districtNeedle && districtValues.length) {
+    districtMatch = districtValues.some(value => value === districtNeedle || value.includes(districtNeedle) || districtNeedle.includes(value));
+  }
+  if (provinceNeedle && provinceValues.length) {
+    provinceMatch = provinceValues.some(value => value === provinceNeedle || value.includes(provinceNeedle) || provinceNeedle.includes(value));
+  }
+  // İlçe merkez koordinatından yapılan tarama, açıkça başka ilçe etiketi yoksa
+  // aynı ilçe sonucu olarak önceliklendirilir. Bu yalnızca sıralama bilgisidir;
+  // POI yine canlı OSM/Overpass kaydıdır.
+  if (scope === 'district-center' && districtNeedle && districtMatch !== false) districtMatch = true;
+  if (scope === 'district-center' && provinceNeedle && provinceMatch !== false) provinceMatch = true;
+  return { districtMatch, provinceMatch };
+}
+
+function poiScope(element) {
+  const scopes = Array.isArray(element?._k360Scopes) ? element._k360Scopes : [];
+  return scopes.includes('district-center') ? 'district-center' : 'parcel';
+}
+
+function poiPriority(item) {
+  if (item?.districtMatch === true) return 0;
+  if (item?.districtMatch === false) return 2;
+  return 1;
+}
+
+function comparePoi(a, b) {
+  return poiPriority(a) - poiPriority(b)
+    || Number(a.distance || 0) - Number(b.distance || 0)
+    || Number(a.centerDistance || 0) - Number(b.centerDistance || 0)
+    || String(a.name || '').localeCompare(String(b.name || ''), 'tr');
+}
+
+function scoreDistrictResult(row, adminContext) {
+  const display = normalizeSearchText(row?.display_name);
+  const address = row?.address || {};
+  const districtNeedle = normalizeSearchText(adminContext.district);
+  const provinceNeedle = normalizeSearchText(adminContext.province);
+  const districtFields = [address.town, address.city, address.county, address.municipality, address.city_district, address.district]
+    .map(normalizeSearchText).filter(Boolean);
+  const provinceFields = [address.state, address.province, address.region]
+    .map(normalizeSearchText).filter(Boolean);
+  let score = 0;
+  if (districtNeedle && districtFields.some(value => value === districtNeedle)) score += 8;
+  else if (districtNeedle && districtFields.some(value => value.includes(districtNeedle) || districtNeedle.includes(value))) score += 5;
+  else if (districtNeedle && display.includes(districtNeedle)) score += 3;
+  if (provinceNeedle && provinceFields.some(value => value === provinceNeedle)) score += 5;
+  else if (provinceNeedle && display.includes(provinceNeedle)) score += 2;
+  if (String(row?.type || '').toLowerCase() === 'administrative') score += 2;
+  return score;
+}
+
+async function getDistrictSearchAnchor(adminContext = {}) {
+  const context = normalizeAdminContext(adminContext);
+  if (!context.province || !context.district) return null;
+  const key = `district-anchor-v1:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}`;
+  return cached(key, 7 * 24 * 60 * 60 * 1000, async () => {
+    const url = new URL(`${NOMINATIM_BASE_URL}/search`);
+    url.searchParams.set('q', `${context.district}, ${context.province}, Türkiye`);
+    url.searchParams.set('format', 'jsonv2');
+    url.searchParams.set('addressdetails', '1');
+    url.searchParams.set('countrycodes', 'tr');
+    url.searchParams.set('limit', '8');
+    const rows = await fetchJson(url.toString(), {
+      headers: {
+        Accept: 'application/json',
+        'Accept-Language': 'tr-TR,tr;q=0.9',
+        'User-Agent': 'Kadastro360-Web-Pilot/1.8.3 (kadastro360.com.tr)'
+      }
+    }, 9000);
+    if (!Array.isArray(rows) || !rows.length) return null;
+    const ranked = rows
+      .map(row => ({ row, score: scoreDistrictResult(row, context) }))
+      .filter(entry => entry.score >= 5)
+      .sort((a, b) => b.score - a.score || Number(a.row?.place_rank || 99) - Number(b.row?.place_rank || 99));
+    const selected = ranked[0]?.row;
+    const lat = Number(selected?.lat);
+    const lng = Number(selected?.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return {
+      lat, lng,
+      displayName: cleanAdminName(selected.display_name),
+      boundingbox: Array.isArray(selected.boundingbox) ? selected.boundingbox.map(Number) : null
+    };
+  });
+}
+
+function itemFromElement(element, originLat, originLng, geometry, preferredCategory = null, adminContext = {}) {
   const itemLat = Number(element.lat ?? element.center?.lat);
   const itemLng = Number(element.lon ?? element.center?.lon);
   if (!Number.isFinite(itemLat) || !Number.isFinite(itemLng)) return null;
@@ -966,6 +1086,8 @@ function itemFromElement(element, originLat, originLng, geometry, preferredCateg
     tags['addr:street'],
     tags['addr:housenumber']
   ].filter(Boolean).join(' ') || null;
+  const searchScope = poiScope(element);
+  const adminMatch = adminMatchForItem(tags, normalizeAdminContext(adminContext), searchScope);
 
   return {
     id: `${element.type || 'x'}-${element.id}-${detection.type}`,
@@ -981,24 +1103,33 @@ function itemFromElement(element, originLat, originLng, geometry, preferredCateg
     lng: itemLng,
     distance: parcelDistance,
     centerDistance,
-    address
+    address,
+    searchScope,
+    districtMatch: adminMatch.districtMatch,
+    provinceMatch: adminMatch.provinceMatch
   };
 }
 
-function itemsFromElement(element, originLat, originLng, geometry, category = 'all') {
+function itemsFromElement(element, originLat, originLng, geometry, category = 'all', adminContext = {}) {
   if (category !== 'all') {
-    const item = itemFromElement(element, originLat, originLng, geometry, category);
+    const item = itemFromElement(element, originLat, originLng, geometry, category, adminContext);
     return item ? [item] : [];
   }
   return detectionsForTags(element.tags || {})
-    .map(detection => itemFromElement(element, originLat, originLng, geometry, detection.type))
+    .map(detection => itemFromElement(element, originLat, originLng, geometry, detection.type, adminContext))
     .filter(Boolean);
 }
 
-function mergeElements(target, data) {
+function mergeElements(target, data, scope = 'parcel') {
   for (const element of data?.elements || []) {
     const key = `${element.type || 'x'}-${element.id}`;
-    if (!target.has(key)) target.set(key, element);
+    const existing = target.get(key);
+    if (!existing) {
+      target.set(key, { ...element, _k360Scopes: [scope] });
+    } else {
+      const scopes = new Set([...(existing._k360Scopes || []), scope]);
+      existing._k360Scopes = [...scopes];
+    }
   }
 }
 
@@ -1010,22 +1141,24 @@ function categoryCounts(items) {
 }
 
 function limitBalanced(items, category) {
-  if (category !== 'all') return items.slice(0, 120);
+  const ordered = [...items].sort(comparePoi);
+  if (category !== 'all') return ordered.slice(0, 120);
   const perType = new Map();
-  for (const item of items) {
+  for (const item of ordered) {
     const list = perType.get(item.type) || [];
     if (list.length < 60) list.push(item);
     perType.set(item.type, list);
   }
   return [...perType.values()]
     .flat()
-    .sort((a, b) => a.distance - b.distance || a.centerDistance - b.centerDistance)
+    .sort(comparePoi)
     .slice(0, 400);
 }
 
-async function getPoi(lat, lng, radiusMode, category, geometry) {
+async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {}) {
+  const context = normalizeAdminContext(adminContext);
   const geometryKey = geometry ? JSON.stringify(geometry).slice(0, 2000) : '';
-  const cacheKey = `poi-v182:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${geometryKey}`;
+  const cacheKey = `poi-v183:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
   return cached(cacheKey, 30 * 60 * 1000, async () => {
     const startedAt = Date.now();
     const allCategories = Object.keys(CATEGORY_QUERIES);
@@ -1038,8 +1171,8 @@ async function getPoi(lat, lng, radiusMode, category, geometry) {
     const failedCategories = new Set();
     const coverage = {};
 
-    const absorb = (result, radius) => {
-      mergeElements(elementMap, { elements: result.elements });
+    const absorb = (result, radius, scope = 'parcel') => {
+      mergeElements(elementMap, { elements: result.elements }, scope);
       searchedRadii.push(radius);
       result.warnings.forEach(warning => warnings.push(warning));
       result.providers.forEach(provider => providers.add(provider));
@@ -1073,7 +1206,7 @@ async function getPoi(lat, lng, radiusMode, category, geometry) {
         absorb(result, radius);
 
         const currentItems = [...elementMap.values()]
-          .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all'))
+          .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all', context))
           .filter(item => item.centerDistance <= radius * 1.03);
         const found = new Set(currentItems.map(item => item.type));
 
@@ -1094,19 +1227,61 @@ async function getPoi(lat, lng, radiusMode, category, geometry) {
       }
     }
 
+    // Parsel ilçe merkezine uzaksa salt dairesel arama, komşu ilçedeki daha yakın
+    // kayıtları seçebilir. Eksik veya 15 km'den uzak kritik türler için seçilen
+    // ilçe merkezinde ikinci bir canlı OSM taraması yapılır ve aynı ilçe önceliklenir.
+    let districtAnchor = null;
+    let districtFallbackCategories = [];
+    if (radiusMode === 'auto' && context.province && context.district) {
+      const parcelItems = [...elementMap.values()]
+        .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all', context));
+      districtFallbackCategories = requestedCategories.filter(key => {
+        const rows = parcelItems.filter(item => item.type === key);
+        if (!rows.length) return true;
+        const nearest = [...rows].sort(comparePoi)[0];
+        return nearest.districtMatch === false || nearest.centerDistance > 15000;
+      });
+      if (districtFallbackCategories.length) {
+        try {
+          districtAnchor = await getDistrictSearchAnchor(context);
+          if (districtAnchor) {
+            let pendingDistrict = [...districtFallbackCategories];
+            for (const radius of [5000, 12000]) {
+              if (!pendingDistrict.length) break;
+              const result = await queryCategoriesAtRadius(districtAnchor.lat, districtAnchor.lng, radius, pendingDistrict);
+              absorb(result, radius, 'district-center');
+              const centerItems = [...elementMap.values()]
+                .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all', context))
+                .filter(item => item.searchScope === 'district-center');
+              pendingDistrict = pendingDistrict.filter(key => !centerItems.some(item => item.type === key));
+              for (const key of districtFallbackCategories) {
+                if (centerItems.some(item => item.type === key)) {
+                  coverage[key] = { ...(coverage[key] || {}), status: 'found', districtRadius: radius, districtFallback: true };
+                }
+              }
+            }
+          }
+        } catch (error) {
+          warnings.push(`İlçe merkezi öncelik taraması yapılamadı: ${error.message}`);
+        }
+      }
+    }
+
     const maxRadius = searchedRadii.length ? Math.max(...searchedRadii) : 0;
     const seenLocations = new Set();
     let items = [...elementMap.values()]
-      .flatMap(element => itemsFromElement(element, lat, lng, geometry, category))
+      .flatMap(element => itemsFromElement(element, lat, lng, geometry, category, context))
       .filter(item => {
-        if (maxRadius && item.centerDistance > maxRadius * 1.03) return false;
+        if (maxRadius && item.searchScope !== 'district-center' && item.centerDistance > maxRadius * 1.03) return false;
         const key = `${item.type}|${item.lat.toFixed(6)}|${item.lng.toFixed(6)}`;
         if (seenLocations.has(key)) return false;
         seenLocations.add(key);
         return true;
       })
-      .sort((a, b) => a.distance - b.distance || a.centerDistance - b.centerDistance);
+      .sort(comparePoi);
 
+    const districtMatchedTypes = new Set(items.filter(item => item.districtMatch === true).map(item => item.type));
+    items = items.filter(item => !districtMatchedTypes.has(item.type) || item.districtMatch !== false);
     const discoveredCounts = categoryCounts(items);
     items = limitBalanced(items, category);
     const shownCounts = categoryCounts(items);
@@ -1141,7 +1316,10 @@ async function getPoi(lat, lng, radiusMode, category, geometry) {
       coverage,
       counts: shownCounts,
       discoveredCounts,
-      truncatedCategories
+      truncatedCategories,
+      adminContext: context,
+      districtAnchor,
+      districtFallbackCategories
     };
   });
 }
@@ -1234,7 +1412,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.2', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.3', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
@@ -1510,13 +1688,18 @@ const server = http.createServer(async (req, res) => {
       const radiusMode = body.radius === 'auto' ? 'auto' : Math.max(300, Math.min(30000, Number(body.radius) || 1000));
       const category = String(body.category || 'all');
       const geometry = body.geometry && typeof body.geometry === 'object' ? body.geometry : null;
+      const adminContext = normalizeAdminContext({
+        province: body.province,
+        district: body.district,
+        neighborhood: body.neighborhood
+      });
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
         return sendJson(res, 400, { error: 'Geçersiz parsel koordinatı.' });
       }
       if (category !== 'all' && !CATEGORY_QUERIES[category]) {
         return sendJson(res, 400, { error: 'Geçersiz yakın yer türü.' });
       }
-      const result = await getPoi(lat, lng, radiusMode, category, geometry);
+      const result = await getPoi(lat, lng, radiusMode, category, geometry, adminContext);
       markService('overpass', true, `OpenStreetMap/Overpass yanıt verdi (${result.providers?.join(', ') || 'sağlayıcı'}).`);
       return sendJson(res, 200, { success: true, data: result.items, ...result });
     }
@@ -1562,6 +1745,9 @@ module.exports = {
   runSelectorSetResilient,
   queryCategoriesAtRadius,
   getPoi,
+  getDistrictSearchAnchor,
+  normalizeAdminContext,
+  comparePoi,
   itemFromElement,
   distanceToGeometry,
   limitBalanced,

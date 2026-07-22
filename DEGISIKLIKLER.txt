@@ -1,15 +1,31 @@
-KADASTRO360 WEB PILOT v1.8.2
+KADASTRO360 WEB PILOT v1.8.3
 
-- Kırsal parsellerde okul, market, eczane, banka, ATM ve diğer kategorilerin 10 km’de erken kesilmesi düzeltildi.
-- Akıllı yakın yer araması, sonuç bulunmayan her kategoriyi ayrı ayrı 5 → 10 → 20 → 30 km tarıyor.
-- Boş kategori mesajında gerçekten kontrol edilen en geniş mesafe gösteriliyor.
-- Gönen/Ortaoba benzeri ilçe merkezine uzak parseller için kırsal yakın yer regresyon testi eklendi.
-ROTA GÖRÜNÜRLÜĞÜ VE VARIŞ ETİKETİ
-- Varıştaki numaralı ikon kaldırıldı; seçilen yakın yerin tam adı varış koordinatının üzerinde sürekli gösterilir.
-- Rota servisi başlangıç veya bitiş noktasını yola eşlediğinde parsel merkezi ve gerçek POI koordinatı renkli kesik bağlantı çizgisiyle tamamlanır.
-- Ortak yol kesiminde üst üste binen rotalar farklı kalınlıklarda iç içe çizilir; alttaki kırmızı/mavi rota yakınlaşmadan da görünür kalır.
-- Bütün beyaz dış çizgiler renkli çizgilerden önce çizilerek sonraki rotanın önceki rotayı kapatması engellendi.
-- Rota katmanı parsel katmanının üstüne alındı; parsel başlangıcındaki rota parsel dolgusu altında kaybolmaz.
+İLÇE ÖNCELİKLİ YAKIN YER ARAMASI
+- Parsel sorgusundaki seçili il, ilçe ve mahalle bilgisi yakın yer API'sine aktarılır.
+- Her kategori parsel çevresinde 5 → 10 → 20 → 30 km kademeli taranır.
+- Kategori boşsa, en yakın sonuç 15 km'den uzaktaysa veya sonuç açıkça başka ilçeye aitse seçilen ilçe merkezi ayrıca aranır.
+- İlçe merkezi OpenStreetMap Nominatim ile çözülür; merkez çevresi Overpass üzerinde 5 km, gerekirse 12 km taranır.
+- Aynı ilçeye ait sonuçlar komşu ilçe kayıtlarından önce sıralanır.
+- Aynı ilçede uygun kayıt varken açıkça başka ilçeye ait banka/ATM sonuçları listede tutulmaz.
+- ATM etiketi eksik kayıtlarda gerçek ad alanındaki ATM, Bankamatik, Paramatik, Bank24 ve ParafPara ifadeleri yedek eşleşme olarak kullanılır.
+- Önceki yanlış/eksik sıfır sonuçların taşınmaması için yakın yer önbellek anahtarı poi-v183 olarak yenilendi.
+- Düzeltme Gönen'e özel değildir; seçilen tüm ilçe ve illerde aynı kuralla çalışır.
+
+VARIŞ ETİKETİ ÇAKIŞMALARI
+- Varıştaki numaralı ikon yerine seçilen yerin tam adı gösterilmeye devam eder.
+- Birbirine yakın varış noktaları ekran koordinatında kümelenir.
+- Etiketler kümeye göre yan yana ve gerektiğinde alt alta yerleştirilir.
+- Etiket ötelenirken gerçek varış noktası renkli bağlantı noktasıyla sabit kalır.
+- Harita hareketi ve yakınlaştırma sonrasında etiket yerleşimi yeniden hesaplanır.
+
+ORTAK YOLDA ÇOK RENKLİ ROTALAR
+- Bütün rotalar eşit okunabilir ana kalınlıkla çizilir.
+- Her rotanın üzerine farklı fazda kesikli renk şeridi uygulanır.
+- İki, üç, dört veya beş rota aynı yol kesimini kullanıyorsa ortak bölümde ilgili rota renkleri dönüşümlü görünür.
+- Mesafe ve süre etiketleri aynı noktaya yığılmaması için rotanın farklı oranlarına dağıtılır.
+- Bütün beyaz dış çizgiler renkli çizgilerden önce çizilir.
+- Rota katmanı parsel katmanının üstünde tutulur.
+- OSRM başlangıç/bitiş eşleme farkları renkli kesik bağlantıyla tamamlanır.
 
 YOL ROTASI
 - Birincil rota sağlayıcısı yanıt vermezse ikinci OSRM sağlayıcısı otomatik denenir.
@@ -17,28 +33,26 @@ YOL ROTASI
 - Yol ağına eşleşmeyen hedef için genişletilmiş eşleştirme denenir.
 - Her hedefin sonucu Hazır veya Rota alınamadı olarak ayrı gösterilir.
 - Kısmi sonuç sessizce başarı sayılmaz.
-- Dört hedefli yedek sağlayıcı regresyon testi eklendi.
 
 YAKIN YERLER
-- Tüm kategoriler için tarayıcıdan ayrı ayrı 11 istek gönderme kaldırıldı.
-- Kategoriler üç toplu Overpass sorgu grubuna ayrıldı.
-- Kategoriye göre kontrollü azami arama mesafeleri eklendi.
-- Aynı konum için 30 dakikalık önbellek eklendi.
-- 11 kategorinin 5 km içinde bulunduğu senaryoda en fazla üç Overpass isteği gönderildiği test edildi.
+- Tüm kategoriler için tarayıcıdan ayrı ayrı 11 istek gönderme kaldırılmış yapı korunur.
+- Kategoriler dengeli toplu Overpass sorgu gruplarında aranır.
+- Aynı konum için 30 dakikalık önbellek korunur.
+- Sonuç yok ile dış servis hatası ayrı gösterilir.
+- Sahte veya tahmini nokta üretilmez.
 
-AÇIK VERİ / WMS
-- Bulanıklaşan büyük tek resim yöntemi aktif yükleme akışından çıkarıldı.
-- Önce doğrudan gerçek WMS karo katmanı denenir.
-- Doğrudan bağlantı başarısız olursa sunucu önbellekli karo proxy’si yedek olarak kullanılır.
-- 512 piksel kaynak karo, 256 piksel harita karosunda yüksek çözünürlüklü gösterilir.
-- WMS karo önbelleği sınırlı LRU yapısında tutulur.
-- Plan katmanı opaklığı düşürüldü; parsel ve rota çizgileri üstte korunur.
-- Karo BBOX, PNG cevabı ve önbellek davranışı için regresyon testi eklendi.
+EKLENEN TESTLER
+- Gönen benzeri kırsal senaryoda uzaktaki/başka ilçedeki banka yerine seçilen ilçe merkezindeki bankanın önceliklendirilmesi.
+- Adı Bankamatik olan gerçek ATM kaydının fallback ile bulunması.
+- İlçe merkezi Nominatim çözümlemesi ve Overpass merkez taraması.
+- Çok renkli ortak rota şerit fonksiyonu.
+- Çakışan varış etiketlerinin otomatik yerleşim fonksiyonu.
+- Test bölgesine özel sabit Gönen metni bulunmaması.
 
 KORUNAN ÖZELLİKLER
 - TKGM il → ilçe → mahalle → parsel regresyon koruması
 - Aynı mahallede son 10 parselin oturumluk karşılaştırması
-- Taşınabilir ve ekranı matlaştırmayan renk rehberi
-- Boş/şeffaf WMS görüntüsünü doğrulama
+- Açık veri/WMS keskin karo ve proxy yedeği
+- Taşınabilir renk rehberi
 - Kullanıcı ve yönetici sistemi
 - Örnek, rastgele veya tahmini sonuç üretmeme

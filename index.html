@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kadastro360 — Web Pilot v1.8.2</title>
+<title>Kadastro360 — Web Pilot v1.8.3</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="endeksa-utils.js"></script>
@@ -47,7 +47,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 .poi-controls{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:7px;margin-bottom:7px}.poi-controls .primary{grid-column:1/-1}.hint{font-size:10px;color:var(--muted);line-height:1.45;margin:7px 0 10px}
 .poi-summary{font-size:10px;color:var(--muted);margin:0 0 7px;line-height:1.45}.poi-progress{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:0 0 8px}.category-chip{border:1px solid var(--line);border-radius:7px;padding:6px 7px;background:#fff;font-size:9px;display:flex;align-items:center;justify-content:space-between;gap:5px}.category-chip strong{font-size:9px}.category-chip.searching{border-color:#9eb7e8;background:#f4f7ff}.category-chip.found{border-color:#9fd3bf;background:#eff9f5}.category-chip.empty{background:#f7f8f9;color:var(--muted)}.category-chip.failed{border-color:#e5b4ad;background:#fff4f2;color:#8b2d22}.poi-section{border:1px solid var(--line);border-radius:9px;background:#fbfcfc;margin-bottom:8px;overflow:hidden}.poi-section-toggle{width:100%;min-height:40px;border:0;background:#fbfcfc;padding:8px 9px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;cursor:pointer;color:var(--text)}.poi-section-toggle:hover{background:#f2f7f5}.poi-section-toggle:focus-visible{outline:2px solid var(--green);outline-offset:-2px}.poi-section-heading{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800}.poi-section-meta{display:flex;align-items:center;gap:7px;flex:0 0 auto}.poi-section-count{font-size:9px;color:var(--muted);font-weight:700}.poi-section-arrow{font-size:12px;color:var(--muted);transition:transform .18s ease}.poi-section.open .poi-section-arrow{transform:rotate(180deg)}.poi-section-body{padding:0 7px 7px;border-top:1px solid var(--line)}.poi-section-body[hidden]{display:none}.poi-section .poi-list{margin-top:7px}.poi-list{display:grid;gap:6px}.poi-item{width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;padding:8px 9px;background:#fff;cursor:pointer}.poi-item:hover,.poi-item.selected{border-color:var(--green);background:var(--green2)}.poi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.poi-name{font-size:11px;font-weight:750}.poi-dist{font-size:10px;color:var(--green);font-weight:800;white-space:nowrap;text-align:right}.poi-sub{font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4}.quality{display:inline-block;margin-top:4px;border-radius:99px;padding:2px 6px;background:#eef2f5;color:#53616e;font-size:8px;font-weight:750}.quality.high{background:#e8f6f1;color:#0e6b51}.quality.check{background:#fff6df;color:#72500a}.poi-pin{position:relative;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#fff;border:2px solid #168a68;box-shadow:0 2px 7px rgba(0,0,0,.25);font-size:15px}.poi-pin .unnamed{position:absolute;right:-5px;top:-6px;width:15px;height:15px;border-radius:50%;background:#17212b;color:#fff;display:grid;place-items:center;font:800 9px/1 Arial;border:1px solid #fff}
 .selected-route{margin:6px 0;border:1px solid #b9ddcf;background:var(--green2);border-radius:8px;padding:9px}.selected-route strong{font-size:11px}.route-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}.route-link{display:block;text-align:center;text-decoration:none;background:var(--blue);color:#fff;border-radius:7px;padding:8px 6px;font-size:10px;font-weight:800}.route-link.secondary{background:#fff;color:#244f9e;border:1px solid #9eb7e8}.google-poi-link{margin:0 0 9px;border-color:#9eb7e8;background:#f4f7ff;color:#244f9e}.google-poi-link:hover{border-color:#4f76c7;background:#edf2ff}
-.poi-route-planner{border:1px solid #9eb7e8;background:#f5f8ff;border-radius:9px;padding:8px 9px;margin:0 0 9px}.poi-route-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.poi-route-title{font-size:11px;font-weight:850;color:#244f9e}.poi-route-count{font-size:9px;font-weight:800;color:#53616e;background:#fff;border:1px solid #cdd9ee;border-radius:99px;padding:3px 7px;white-space:nowrap}.poi-route-note{font-size:9px;color:#53616e;line-height:1.45;margin-top:5px}.poi-route-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}.poi-route-buttons button{min-height:32px;border-radius:7px;border:1px solid #9eb7e8;background:#fff;color:#244f9e;font-size:9px;font-weight:850;cursor:pointer}.poi-route-buttons button.primary-route{background:#2463eb;color:#fff;border-color:#2463eb}.poi-route-buttons button:disabled{opacity:.45;cursor:not-allowed}.route-results{display:grid;gap:5px;margin-top:7px}.route-result-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:6px;align-items:center;border:1px solid #d9e2ef;background:#fff;border-radius:7px;padding:6px 7px}.route-result-number{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:9px;font-weight:900}.route-result-name{font-size:9px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.route-result-meta{font-size:8px;color:#53616e;text-align:right;white-space:nowrap}.route-result-row.failed{border-color:#e2b6b6;background:#fff4f4}.route-result-row.failed .route-result-meta{color:#a12626;font-weight:800}.route-result-row.pending{background:#f7f9fc}.poi-accordion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:start}.poi-accordion-grid .poi-section{margin:0}.poi-accordion-grid .poi-section.open{grid-column:1/-1}.poi-choice-row{display:grid;grid-template-columns:26px minmax(0,1fr);gap:5px;align-items:stretch}.poi-route-check{display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}.poi-route-check:hover{border-color:#2463eb;background:#f4f7ff}.poi-route-check input{width:15px;height:15px;accent-color:#2463eb;cursor:pointer}.poi-choice-row.route-selected .poi-route-check{border-color:#2463eb;background:#eaf0ff}.route-destination-label-icon{background:transparent!important;border:0!important}.route-destination-label{--route-color:#2463eb;position:absolute;left:0;top:-9px;transform:translate(-50%,-100%);display:flex;align-items:center;gap:6px;max-width:280px;min-width:90px;padding:6px 8px;background:#fff;color:#17212b;border:2px solid var(--route-color);border-radius:8px;box-shadow:0 3px 10px rgba(0,0,0,.28);font:800 10px/1.25 Arial,sans-serif;white-space:normal;text-align:left;pointer-events:none}.route-destination-label .route-label-name{display:block;overflow-wrap:anywhere}.route-destination-label:after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--route-color)}.route-distance-label{background:#17212b;color:#fff;border-radius:6px;padding:4px 6px;font:800 9px/1.2 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.25)}.route-distance-label:after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#17212b}.open-data-refreshing{filter:saturate(.92);transition:opacity .2s ease}.open-data-refreshing.pending{opacity:.62}
+.poi-route-planner{border:1px solid #9eb7e8;background:#f5f8ff;border-radius:9px;padding:8px 9px;margin:0 0 9px}.poi-route-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.poi-route-title{font-size:11px;font-weight:850;color:#244f9e}.poi-route-count{font-size:9px;font-weight:800;color:#53616e;background:#fff;border:1px solid #cdd9ee;border-radius:99px;padding:3px 7px;white-space:nowrap}.poi-route-note{font-size:9px;color:#53616e;line-height:1.45;margin-top:5px}.poi-route-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}.poi-route-buttons button{min-height:32px;border-radius:7px;border:1px solid #9eb7e8;background:#fff;color:#244f9e;font-size:9px;font-weight:850;cursor:pointer}.poi-route-buttons button.primary-route{background:#2463eb;color:#fff;border-color:#2463eb}.poi-route-buttons button:disabled{opacity:.45;cursor:not-allowed}.route-results{display:grid;gap:5px;margin-top:7px}.route-result-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:6px;align-items:center;border:1px solid #d9e2ef;background:#fff;border-radius:7px;padding:6px 7px}.route-result-number{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:9px;font-weight:900}.route-result-name{font-size:9px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.route-result-meta{font-size:8px;color:#53616e;text-align:right;white-space:nowrap}.route-result-row.failed{border-color:#e2b6b6;background:#fff4f4}.route-result-row.failed .route-result-meta{color:#a12626;font-weight:800}.route-result-row.pending{background:#f7f9fc}.poi-accordion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:start}.poi-accordion-grid .poi-section{margin:0}.poi-accordion-grid .poi-section.open{grid-column:1/-1}.poi-choice-row{display:grid;grid-template-columns:26px minmax(0,1fr);gap:5px;align-items:stretch}.poi-route-check{display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}.poi-route-check:hover{border-color:#2463eb;background:#f4f7ff}.poi-route-check input{width:15px;height:15px;accent-color:#2463eb;cursor:pointer}.poi-choice-row.route-selected .poi-route-check{border-color:#2463eb;background:#eaf0ff}.route-destination-label-icon{background:transparent!important;border:0!important}.route-destination-anchor{position:absolute;left:-6px;top:-6px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--route-color);box-shadow:0 2px 7px rgba(0,0,0,.28);box-sizing:border-box}.route-destination-label{--route-color:#2463eb;--label-x:0px;--label-y:-12px;position:absolute;left:0;top:0;transform:translate(calc(-50% + var(--label-x)),calc(-100% + var(--label-y)));display:flex;align-items:center;gap:6px;max-width:280px;min-width:90px;padding:6px 8px;background:#fff;color:#17212b;border:2px solid var(--route-color);border-radius:8px;box-shadow:0 3px 10px rgba(0,0,0,.28);font:800 10px/1.25 Arial,sans-serif;white-space:normal;text-align:left;pointer-events:none;transition:transform .16s ease}.route-destination-label .route-label-name{display:block;overflow-wrap:anywhere}.route-distance-label{--distance-x:0px;--distance-y:0px;position:relative;transform:translate(var(--distance-x),var(--distance-y));background:#17212b;color:#fff;border-radius:6px;padding:4px 6px;font:800 9px/1.2 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.25)}.open-data-refreshing{filter:saturate(.92);transition:opacity .2s ease}.open-data-refreshing.pending{opacity:.62}
 
 .notice{border-radius:8px;padding:8px 9px;font-size:10px;line-height:1.45;margin-bottom:8px}.notice.info{background:#eef4ff;color:#31527f}.notice.warn{background:#fff6df;color:#72500a}.notice.error{background:#fff0f0;color:#8d3030}
 .map-wrap{position:relative;min-width:0}.map{height:100%;width:100%}.map-badge{position:absolute;left:12px;bottom:12px;z-index:500;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:10px;color:var(--muted);box-shadow:0 3px 12px rgba(0,0,0,.08)}
@@ -69,7 +69,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 
 
 
-/* v1.8.2 — seçilebilir yol rotaları, tek akordeon yakın yer listesi ve dinamik açık veri kapsamı */
+/* v1.8.3 — seçilebilir yol rotaları, tek akordeon yakın yer listesi ve dinamik açık veri kapsamı */
 .map-runtime-status{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1450;display:none;align-items:center;gap:8px;max-width:min(520px,calc(100% - 120px));padding:8px 12px;border-radius:9px;background:rgba(23,33,43,.92);color:#fff;font-size:10px;font-weight:750;box-shadow:0 7px 25px rgba(0,0,0,.22);pointer-events:none}.map-runtime-status.show{display:flex}.map-runtime-status.ok{background:rgba(14,107,81,.94)}.map-runtime-status.error{background:rgba(139,45,34,.94)}.map-runtime-status.loading:before{content:"";width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex:0 0 auto}
 .compare-control{position:absolute;right:12px;top:12px;z-index:1300;display:none;align-items:center;gap:5px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:9px;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,.12)}.compare-control.show{display:flex}.compare-control button{border:0;border-radius:6px;padding:6px 8px;background:#fff;font-size:9px;font-weight:800;cursor:pointer;color:var(--text)}.compare-control .compare-main{background:#fff5e8;color:#8a4c00}.compare-control .compare-main.off{background:#f1f3f5;color:#687583}.compare-control .compare-clear{border-left:1px solid var(--line);border-radius:0 6px 6px 0;color:#8b2d22}
 .parcel-locator-wrapper{background:transparent;border:0}.parcel-locator{--locator-size:34px;width:var(--locator-size);height:var(--locator-size);margin-left:calc(var(--locator-size) / -2);margin-top:calc(var(--locator-size) / -2);border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.96);border:3px solid #e33737;box-shadow:0 0 0 4px rgba(227,55,55,.18),0 5px 18px rgba(0,0,0,.3);transition:width .16s,height .16s,margin .16s,opacity .16s;animation:parcelPulse 1.6s ease-out infinite}.parcel-locator:before{content:"";width:32%;height:32%;border-radius:50%;background:#e33737}.parcel-locator-label{position:absolute;left:50%;top:calc(var(--locator-size) + 5px);transform:translateX(-50%);background:#17212b;color:#fff;border-radius:5px;padding:3px 5px;font:800 8px/1 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.24)}@keyframes parcelPulse{0%{box-shadow:0 0 0 0 rgba(227,55,55,.38),0 5px 18px rgba(0,0,0,.3)}70%{box-shadow:0 0 0 12px rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}100%{box-shadow:0 0 0 0 rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}}
@@ -276,7 +276,7 @@ const store = {
   map:null, parcelLayer:null, parcelHaloLayer:null, parcelFeature:null, parcelCenter:null,
   parcelLocator:null, parcelFocusZoom:null, comparisonGroup:null, comparisonVisible:true, comparisonItems:[],
   poiGroup:null, poiMarkers:new Map(), selectedLine:null, selectedLabel:null,
-  routeGroup:null, routeSelection:new Map(), routeLayers:[], routeRequestId:0, routeFocusActive:false,
+  routeGroup:null, routeSelection:new Map(), routeLayers:[], routeLabelEntries:[], routeRequestId:0, routeFocusActive:false,
   poiItems:[], poiSearchMeta:null, requestId:0, poiRequestId:0, account:null, services:null,
   openDataCatalog:null, openDataLayers:new Map(), openDataRequestId:0, openDataInfoBusy:false,
   wmsDiscoveryCache:new Map(), mapActivityTimer:null,
@@ -1453,6 +1453,7 @@ function clearRoadRoutes(resetSelection=false){
   store.routeRequestId++;
   store.routeGroup?.clearLayers();
   store.routeLayers=[];
+  store.routeLabelEntries=[];
   setRouteMarkerFocus(false);
   if(resetSelection){
     store.routeSelection.clear();
@@ -1494,9 +1495,15 @@ function routeLatLngs(geometry){
   return geometry.coordinates.map(pair=>[Number(pair[1]),Number(pair[0])]).filter(pair=>Number.isFinite(pair[0])&&Number.isFinite(pair[1]));
 }
 
-function routeLineWeight(index,total){
-  // Aynı yol kesiminde üst üste binen rotaları iç içe şeritler halinde görünür tutar.
-  return 4.5 + Math.max(0,total-index-1)*2;
+function routeLineWeight(){
+  return 7.5;
+}
+
+function routeStripeOptions(index,total){
+  if(total<=1) return {dashArray:null,dashOffset:null};
+  const segment=12;
+  const cycle=segment*total;
+  return {dashArray:`${segment} ${cycle-segment}`,dashOffset:String(-index*segment)};
 }
 
 function routeConnector(from,to){
@@ -1508,10 +1515,74 @@ function destinationRouteLabel(item,index,color){
   const safeName=escapeHtml(item?.name||'Seçili nokta');
   return L.divIcon({
     className:'route-destination-label-icon',
-    html:`<div class="route-destination-label" style="--route-color:${color}"><span class="route-label-name">${index+1}. ${safeName}</span></div>`,
+    html:`<div class="route-destination-anchor" style="--route-color:${color}"></div><div class="route-destination-label" data-route-label-index="${index}" style="--route-color:${color}"><span class="route-label-name">${index+1}. ${safeName}</span></div>`,
     iconSize:[0,0],
     iconAnchor:[0,0]
   });
+}
+
+function routeLabelRows(items){
+  const rows=[];
+  for(let index=0;index<items.length;index+=2) rows.push(items.slice(index,index+2));
+  return rows;
+}
+
+function layoutRouteDestinationLabels(){
+  if(!store.map||!store.routeLabelEntries.length) return;
+  const mapSize=store.map.getSize();
+  const entries=store.routeLabelEntries
+    .map(entry=>{
+      const element=entry.marker.getElement?.()?.querySelector('.route-destination-label');
+      if(!element)return null;
+      element.style.setProperty('--label-x','0px');
+      element.style.setProperty('--label-y','-14px');
+      return {
+        ...entry,
+        element,
+        point:store.map.latLngToContainerPoint(entry.latlng),
+        width:Math.max(90,element.offsetWidth||element.getBoundingClientRect().width||90),
+        height:Math.max(32,element.offsetHeight||element.getBoundingClientRect().height||32)
+      };
+    })
+    .filter(Boolean)
+    .sort((a,b)=>a.point.y-b.point.y||a.point.x-b.point.x);
+  const clusters=[];
+  for(const entry of entries){
+    let cluster=clusters.find(row=>Math.abs(row.center.x-entry.point.x)<220&&Math.abs(row.center.y-entry.point.y)<120&&row.items.length<5);
+    if(!cluster){cluster={center:{x:entry.point.x,y:entry.point.y},items:[]};clusters.push(cluster);}
+    cluster.items.push(entry);
+    cluster.center={
+      x:cluster.items.reduce((sum,item)=>sum+item.point.x,0)/cluster.items.length,
+      y:cluster.items.reduce((sum,item)=>sum+item.point.y,0)/cluster.items.length
+    };
+  }
+  const horizontalGap=14,verticalGap=10,edgeGap=8;
+  for(const cluster of clusters){
+    const rows=routeLabelRows(cluster.items);
+    let upward=14;
+    rows.forEach(row=>{
+      const rowHeight=Math.max(...row.map(item=>item.height));
+      const rowWidth=row.reduce((sum,item)=>sum+item.width,0)+horizontalGap*Math.max(0,row.length-1);
+      let cursor=cluster.center.x-rowWidth/2;
+      const desiredBottom=Math.max(rowHeight+edgeGap,Math.min(...cluster.items.map(item=>item.point.y))-upward);
+      row.forEach(entry=>{
+        let desiredCenterX=cursor+entry.width/2;
+        desiredCenterX=Math.max(entry.width/2+edgeGap,Math.min(mapSize.x-entry.width/2-edgeGap,desiredCenterX));
+        const x=desiredCenterX-entry.point.x;
+        const y=desiredBottom-entry.point.y;
+        entry.element.style.setProperty('--label-x',`${Math.round(x)}px`);
+        entry.element.style.setProperty('--label-y',`${Math.round(y)}px`);
+        cursor+=entry.width+horizontalGap;
+      });
+      upward+=rowHeight+verticalGap;
+    });
+  }
+}
+
+function routePointAtFraction(latlngs,fraction){
+  if(!latlngs.length)return null;
+  const index=Math.max(0,Math.min(latlngs.length-1,Math.round((latlngs.length-1)*fraction)));
+  return latlngs[index];
 }
 
 async function drawRoadRoutes(){
@@ -1528,7 +1599,7 @@ async function drawRoadRoutes(){
       destinations:selected.map(item=>({id:item.id,lat:item.lat,lng:item.lng}))
     })},90000);
     if(requestId!==store.routeRequestId) return;
-    store.routeGroup.clearLayers();store.routeLayers=[];
+    store.routeGroup.clearLayers();store.routeLayers=[];store.routeLabelEntries=[];
     const bounds=L.latLngBounds([store.parcelCenter]);
     const routes=Array.isArray(data.routes)?data.routes:[];
     const routeById=new Map(routes.map(route=>[String(route.id),route]));
@@ -1557,9 +1628,9 @@ async function drawRoadRoutes(){
       results.appendChild(routeResultRow({id:item.id,status:'ready',route},index));
     });
 
-    // Önce bütün beyaz dış çizgiler çizilir. Böylece sonraki rota, önceki rotayı beyaz halo ile kapatmaz.
+    // Önce bütün beyaz dış çizgiler çizilir.
     prepared.forEach(row=>{
-      const weight=routeLineWeight(row.index,selected.length);
+      const weight=routeLineWeight();
       const halo=L.polyline(row.latlngs,{pane:'routePane',color:'#fff',weight:weight+4,opacity:.96,lineJoin:'round',lineCap:'round'});
       halo.addTo(store.routeGroup);
       const connectorHalos=[];
@@ -1572,32 +1643,56 @@ async function drawRoadRoutes(){
       row.halo=halo;row.connectorHalos=connectorHalos;
     });
 
-    // Genişten dara renkli şeritler: ortak yol parçalarında her seçili rota uzaktan da görünür kalır.
+    // Her rotanın kendi sabit rengi altta kesintisiz kalır.
     prepared.forEach(row=>{
-      const weight=routeLineWeight(row.index,selected.length);
-      const line=L.polyline(row.latlngs,{pane:'routePane',color:row.color,weight,opacity:1,lineJoin:'round',lineCap:'round'});
+      const weight=routeLineWeight();
+      const line=L.polyline(row.latlngs,{pane:'routePane',color:row.color,weight,opacity:.88,lineJoin:'round',lineCap:'round'});
       line.addTo(store.routeGroup);
       const connectors=[];
       for(const segment of [row.startConnector,row.endConnector]){
         if(segment.length){
-          const connector=L.polyline(segment,{pane:'routePane',color:row.color,weight:Math.max(3,weight-1),opacity:1,lineJoin:'round',lineCap:'round',dashArray:'7 6'});
+          const connector=L.polyline(segment,{pane:'routePane',color:row.color,weight:Math.max(4,weight-1),opacity:.9,lineJoin:'round',lineCap:'round',dashArray:'7 6'});
           connector.addTo(store.routeGroup);connectors.push(connector);
+        }
+      }
+      row.line=line;row.connectors=connectors;
+    });
+
+    // Ortak yol kesimlerinde renkler sırayla görünür: iki rota varsa iki renk,
+    // üç rota varsa üç renk aynı çizgi üzerinde dönüşümlü şeritlenir.
+    prepared.forEach((row,stripeIndex)=>{
+      const weight=routeLineWeight();
+      const stripeStyle=routeStripeOptions(stripeIndex,prepared.length);
+      const stripe=L.polyline(row.latlngs,{pane:'routePane',color:row.color,weight:weight+.4,opacity:1,lineJoin:'round',lineCap:'butt',dashArray:stripeStyle.dashArray,dashOffset:stripeStyle.dashOffset});
+      stripe.addTo(store.routeGroup);
+      const connectorStripes=[];
+      if(prepared.length>1){
+        for(const segment of [row.startConnector,row.endConnector]){
+          if(segment.length){
+            const connectorStripe=L.polyline(segment,{pane:'routePane',color:row.color,weight:Math.max(4,weight-1),opacity:1,lineJoin:'round',lineCap:'butt',dashArray:stripeStyle.dashArray,dashOffset:stripeStyle.dashOffset});
+            connectorStripe.addTo(store.routeGroup);connectorStripes.push(connectorStripe);
+          }
         }
       }
       const exactDestination=L.latLng(row.item.lat,row.item.lng);
       const nameLabel=L.marker(exactDestination,{pane:'routePane',interactive:false,keyboard:false,icon:destinationRouteLabel(row.item,row.index,row.color)});
       nameLabel.addTo(store.routeGroup);
-      const middle=row.latlngs[Math.floor(row.latlngs.length*.55)];
-      const distanceLabel=L.marker(middle,{pane:'routePane',interactive:false,keyboard:false,icon:L.divIcon({className:'',html:`<div class="route-distance-label">${row.index+1} · ${formatDistance(row.route.distance)} · ${routeDuration(row.route.duration)}</div>`,iconSize:null,iconAnchor:[0,18]})});
+      store.routeLabelEntries.push({marker:nameLabel,latlng:exactDestination,index:row.index});
+      const fraction=prepared.length<=1?.55:.32+(stripeIndex*(.38/Math.max(1,prepared.length-1)));
+      const middle=routePointAtFraction(row.latlngs,fraction)||row.latlngs[Math.floor(row.latlngs.length/2)];
+      const offsetX=stripeIndex%2===0?-12:12;
+      const offsetY=(stripeIndex%3-1)*18;
+      const distanceLabel=L.marker(middle,{pane:'routePane',interactive:false,keyboard:false,icon:L.divIcon({className:'',html:`<div class="route-distance-label" style="--distance-x:${offsetX}px;--distance-y:${offsetY}px">${row.index+1} · ${formatDistance(row.route.distance)} · ${routeDuration(row.route.duration)}</div>`,iconSize:null,iconAnchor:[0,18]})});
       distanceLabel.addTo(store.routeGroup);
-      store.routeLayers.push({halo:row.halo,line,connectors,connectorHalos:row.connectorHalos,nameLabel,distanceLabel});
+      store.routeLayers.push({halo:row.halo,line:row.line,stripe,connectors:row.connectors,connectorStripes,connectorHalos:row.connectorHalos,nameLabel,distanceLabel});
     });
 
     const drawn=prepared.length;
     putLayer(store.routeGroup,store.visibility.poi);
     setRouteMarkerFocus(true);
     bringParcelToFront();
-    if(bounds.isValid()&&drawn) store.map.fitBounds(bounds,{paddingTopLeft:[70,70],paddingBottomRight:[70,70],maxZoom:15});
+    if(bounds.isValid()&&drawn) store.map.fitBounds(bounds,{paddingTopLeft:[120,120],paddingBottomRight:[120,120],maxZoom:15});
+    requestAnimationFrame(()=>requestAnimationFrame(layoutRouteDestinationLabels));
     const total=selected.length;
     const failed=total-drawn;
     setStatus(drawn===total?'ok':drawn?'warn':'error',drawn===total?`${drawn}/${total} yol rotası parselden varış noktasına kadar gösterildi.`:`${drawn}/${total} rota çizildi${failed?`; ${failed} hedef için rota alınamadı.`:''}`);
@@ -1649,7 +1744,10 @@ async function fetchPoiCategory(category, radius){
     lng:store.parcelCenter.lng,
     radius,
     category,
-    geometry:store.parcelFeature?.geometry || null
+    geometry:store.parcelFeature?.geometry || null,
+    province:store.il.selected?.name || '',
+    district:store.ilce.selected?.name || '',
+    neighborhood:store.mah.selected?.name || ''
   })},105000);
 }
 
@@ -1694,6 +1792,14 @@ function createPoiSection(category, countText, defaultOpen = false){
   return {section,body};
 }
 
+function comparePoiClient(a,b){
+  const rank=value=>value===true?0:value===false?2:1;
+  return rank(a?.districtMatch)-rank(b?.districtMatch)
+    || Number(a?.distance||0)-Number(b?.distance||0)
+    || Number(a?.centerDistance||0)-Number(b?.centerDistance||0)
+    || String(a?.name||'').localeCompare(String(b?.name||''),'tr');
+}
+
 function createPoiButton(item, mapBounds){
   const centerDistance = Number.isFinite(Number(item.centerDistance)) ? Number(item.centerDistance) : Number(item.distance);
   const popup = [
@@ -1718,7 +1824,8 @@ function createPoiButton(item, mapBounds){
   top.append(name,dist);
   const sub = document.createElement('div'); sub.className = 'poi-sub';
   const centerText = `Merkezden kuş uçuşu ${formatDistance(centerDistance)}`;
-  sub.textContent = [item.typeLabel || CATEGORY_NAMES[item.type],item.address,centerText,item.detectionReason].filter(Boolean).join(' · ');
+  const districtText = item.districtMatch===true && store.ilce.selected?.name ? `${store.ilce.selected.name} ilçe önceliği` : item.districtMatch===false ? 'Komşu ilçe kaydı' : '';
+  sub.textContent = [item.typeLabel || CATEGORY_NAMES[item.type],districtText,item.address,centerText,item.detectionReason].filter(Boolean).join(' · ');
   const quality = document.createElement('span');
   quality.className = `quality${item.confidence === 'Yüksek' ? ' high' : item.confidence === 'Kontrol önerilir' ? ' check' : ''}`;
   quality.textContent = `${item.isUnnamed ? 'İsimsiz kayıt · ' : ''}Tespit güveni: ${item.confidence || 'Belirtilmedi'}`;
@@ -1758,7 +1865,10 @@ function renderPoiResults(items, context = {}){
   const countText = context.all
     ? PRIORITY_CATEGORIES.map(key => `${CATEGORY_NAMES[key]} ${counts[key] || 0}`).join(' · ')
     : `${items.length} ${CATEGORY_NAMES[context.category] || 'yakın yer'}`;
-  summary.textContent = `${items.length} gerçek nokta gösteriliyor · ${countText}`;
+  const districtPriority = context.data?.districtFallbackCategories?.length && store.ilce.selected?.name
+    ? ` · ${store.ilce.selected.name} ilçe merkezi önceliği uygulandı`
+    : '';
+  summary.textContent = `${items.length} gerçek nokta gösteriliyor · ${countText}${districtPriority}`;
   output.appendChild(summary);
 
   if(failed.length){
@@ -1774,7 +1884,7 @@ function renderPoiResults(items, context = {}){
   if(context.all){
     for(const category of PRIORITY_CATEGORIES){
       const state = states[category] || {};
-      const categoryItems = items.filter(item => item.type === category).sort((a,b) => a.distance-b.distance || a.centerDistance-b.centerDistance);
+      const categoryItems = items.filter(item => item.type === category).sort(comparePoiClient);
       const countText = state.state === 'failed' ? 'servis yanıt vermedi' : `${counts[category] || 0} adet`;
       const {section,body} = createPoiSection(category,countText,false);
       if(categoryItems.length){
@@ -1790,7 +1900,7 @@ function renderPoiResults(items, context = {}){
       accordionGrid.appendChild(section);
     }
   }else{
-    const sortedItems = items.sort((a,b) => a.distance-b.distance || a.centerDistance-b.centerDistance);
+    const sortedItems = items.sort(comparePoiClient);
     const {section,body} = createPoiSection(context.category,`${sortedItems.length} adet`,true);
     const list = document.createElement('div'); list.className = 'poi-list';
     for(const item of sortedItems) list.appendChild(createPoiButton(item,mapBounds));
@@ -1949,8 +2059,8 @@ async function init(){
   store.comparisonGroup=L.layerGroup({pane:'comparisonPane'});
   putLayer(store.poiGroup,true);putLayer(store.routeGroup,true);putLayer(store.comparisonGroup,true);
   store.map.on('click',queryOpenDataFeatureInfo);
-  const handleMapMove=()=>{updateParcelLocator();bringParcelToFront();};
-  const handleMapZoom=()=>{updateParcelLocator();bringParcelToFront();};
+  const handleMapMove=()=>{updateParcelLocator();bringParcelToFront();layoutRouteDestinationLabels();};
+  const handleMapZoom=()=>{updateParcelLocator();bringParcelToFront();layoutRouteDestinationLabels();};
   store.map.on('zoomend',handleMapZoom);
   store.map.on('moveend',handleMapMove);
 

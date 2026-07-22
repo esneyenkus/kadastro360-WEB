@@ -1,33 +1,44 @@
-KADASTRO360 WEB PILOT v1.8.2 DOĞRULAMA RAPORU
+KADASTRO360 WEB PILOT v1.8.3 DOĞRULAMA RAPORU
 
 TARİH: 22.07.2026
 VERİ MODU: live-only
-MOCK VERİ: kapalı
+MOCK VERİ: uygulamada kapalı
 
-OTOMATİK TESTLER
-[GEÇTİ] Varış koordinatında eski numaralı ikonun kaldırılması ve tam yer adı etiketinin bulunması
-[GEÇTİ] Üst üste binen rotalar için genişten dara çoklu şerit çizimi
-[GEÇTİ] Parsel merkezi → yola eşlenen başlangıç ve yol sonu → gerçek POI koordinatı bağlantı çizgileri
-[GEÇTİ] Rota katmanının parsel katmanının üstünde tutulması
-[GEÇTİ] Sunucu ve yardımcı JavaScript dosyalarının sözdizimi
-[GEÇTİ] HTML içindeki kullanıcı ve yönetici JavaScript kodlarının ayrıştırılması
+BU REVİZYONDA ÇALIŞTIRILAN TESTLER
+[GEÇTİ] server.js ve bütün yardımcı JavaScript dosyalarının sözdizimi
+[GEÇTİ] index.html içindeki tarayıcı JavaScript kodunun ayrıştırılması
+[GEÇTİ] Gönen benzeri kontrollü senaryoda seçilen ilçe merkezindeki bankanın bulunması
+[GEÇTİ] Aynı ilçe sonucu varken açıkça Balya/komşu ilçe kayıtlı bankanın elenmesi
+[GEÇTİ] Amenity=atm etiketi bulunmayan fakat adında Bankamatik geçen gerçek kaydın ATM olarak bulunması
+[GEÇTİ] Eksik/uzak kategori için Nominatim ilçe merkezi çözümlemesi ve Overpass merkez taraması
+[GEÇTİ] İlçe merkezi önceliğinin Gönen adına sabitlenmemiş olması
+[GEÇTİ] Varış etiketi çakışma yerleşim fonksiyonunun bulunması
+[GEÇTİ] Ortak yol kesimleri için çok renkli dönüşümlü şerit fonksiyonunun bulunması
+[GEÇTİ] Mesafe/süre etiketlerini rotanın farklı noktalarına dağıtan fonksiyon
+[GEÇTİ] Dört hedefli rota ve yedek OSRM sağlayıcısı regresyon testi
+[GEÇTİ] Hızlı toplu yakın yer ve 30 dakikalık önbellek testi
+[GEÇTİ] Kırsal parselde kategori bazlı 5 → 10 → 20 → 30 km genişletme testi
 [GEÇTİ] TKGM il → ilçe → mahalle → parsel regresyon testi
-[GEÇTİ] Dört seçili hedef için birincil rota servisi hata verdiğinde yedek servisin dört rotayı da döndürmesi
-[GEÇTİ] Rota API oturum ve 1-5 hedef sınırı testi
-[GEÇTİ] WMS karo BBOX hesaplama, PNG doğrulama ve ikinci isteğin önbellekten gelmesi
-[GEÇTİ] 11 yakın yer kategorisinin üç toplu sorguda bulunması
-[GEÇTİ] Aynı yakın yer sorgusunun ikinci kez dış servise gitmeden önbellekten gelmesi
-[GEÇTİ] Kırsal parselde 10 km içinde bulunmayan okul, market, eczane, banka ve ATM kategorilerinin 20/30 km aşamasına genişletilmesi
-[GEÇTİ] Kodda Math.random ile sahte sonuç üretimi bulunmaması
-[GEÇTİ] ZIP içinde node_modules ve boş data klasörü bulunmaması kontrolü
 
-SINIR
-Bu çalışma ortamında dış DNS erişimi kapalıdır. Bu nedenle gerçek TKGM, TUCBS/ULASAV WMS, Overpass ve OSRM servisleri burada canlı olarak çağrılamadı. Dış servis davranışları, gerçek API biçimini kullanan kontrollü yerel servislerle regresyon testine tabi tutuldu. Son canlı doğrulama Render dağıtımından sonra pilot bölgelerde yapılmalıdır.
+KODDA KORUNAN KONTROLLER
+- Uygulama live-only modundadır.
+- Math.random ile sahte sonuç üretimi bulunmaz.
+- Başarısız dış servis cevabında sahte yakın yer eklenmez.
+- Düz kuş uçuşu çizgisi yol rotası olarak sunulmaz.
+- Başarısız rota hedefi sessizce atlanmaz.
 
-ÖNERİLEN CANLI TESTLER
-- Tekirdağ / Çorlu / Önerler / 323 / 2
-- Tekirdağ / Malkara / Camiatik / 418 / 61
-- Kırıkkale / Yahşihan bölgesinde geçerli bir ada-parsel
-- Kayseri veya Yozgat'ta YSK çevre düzeni planı
-- Giresun / Görele ortofoto
-- 4 farklı yakın yer seçip 4/4 rota sonucu
+TEST ORTAMI NOTU
+- Paket kayıt sunucusu bu çalışma anında pngjs indirmesine yanıt vermediği için `npm run check`, yalnızca test sürecinde kullanılan yerel ve bellek-içi PNG uyumluluk katmanıyla çalıştırıldı.
+- WMS BBOX, görüntü görünürlük analizi, karo cevabı ve önbellek akışları bu şekilde geçti.
+- Dağıtım paketinde bu test katmanı bulunmaz; package.json gerçek `pngjs` 7.0.0 bağımlılığını korur ve normal Render/GitHub kurulumunda `npm ci` bunu yükler.
+
+CANLI SERVİS SINIRI
+Bu çalışma ortamında gerçek TKGM, Nominatim, Overpass, OSRM ve WMS uçlarına güvenilir canlı erişim garanti edilemedi. Yeni ilçe önceliği ve ATM fallback akışı, gerçek API biçimini taklit eden kontrollü yerel servislerle test edildi. Son doğrulama Render dağıtımından sonra gerçek parselde yapılmalıdır.
+
+ÖNERİLEN CANLI TEST
+1. Gönen kırsalındaki aynı parseli açın.
+2. Tüm öncelikli yerleri aratın.
+3. Banka ve ATM sonuçlarında Gönen ilçe önceliği etiketini kontrol edin.
+4. Açıkça Balya gibi farklı ilçeye ait uzak banka, Gönen sonucu varken listede görünmemelidir.
+5. Birbirine yakın 3-5 hedef seçin; varış etiketleri birbirini kapatmamalıdır.
+6. Ortak yol kullanan rotalarda renkler dönüşümlü görünmelidir.

@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.8.2
+KADASTRO360 WEB PILOT v1.8.3
 
 YEREL KURULUM
 1. Node.js 22 kurun.
@@ -13,9 +13,9 @@ RENDER GÜNCELLEME
 2. ZIP içindeki bütün dosyaları mevcut GitHub deponuzun ana dizinine yükleyin.
 3. Eski dosyaların üzerine yazılmasını kabul edin.
 4. GitHub'da Commit changes yapın.
-5. Mevcut Render Blueprint sayfasında Manual Sync çalıştırın.
-6. Yeni bir Blueprint oluşturmayın; aksi halde yeni site adresi oluşur.
-7. Dağıtım tamamlanınca /api/health sonucunda version değerinin 1.8.2 olduğunu kontrol edin.
+5. Mevcut Render servisinde Deploy latest commit veya Manual Deploy çalıştırın.
+6. Yeni bir servis/Blueprint oluşturmayın; aksi halde yeni site adresi oluşur.
+7. Dağıtım tamamlanınca `/api/health` sonucunda version değerinin 1.8.3 olduğunu kontrol edin.
 
 ÖNEMLİ DOSYALAR
 - server.js
@@ -27,8 +27,15 @@ RENDER GÜNCELLEME
 - render.yaml
 
 ROTA AYARI
-Render ayarında şu değişken bulunmalıdır:
+Render ortam değişkenlerinde şu değer bulunmalıdır:
 ROUTING_BASE_URLS=https://router.project-osrm.org,https://routing.openstreetmap.de/routed-car
+
+İLÇE MERKEZİ AYARI
+NOMINATIM_BASE_URL isteğe bağlıdır.
+Boş bırakılırsa varsayılan adres kullanılır:
+https://nominatim.openstreetmap.org
+
+Yoğun ticari kullanımda genel Nominatim ucu yerine kullanım şartlarına uygun yönetilen/kendi Nominatim hizmetiniz tercih edilmelidir.
 
 GÜVENLİK
 - TEST_PASSWORD için güçlü ve yeni bir parola kullanın.
@@ -41,9 +48,17 @@ VERİ KLASÖRÜ
 - Render Free ortamında /tmp/kadastro360-data kullanılır; servis yeniden kurulursa geçmiş sıfırlanabilir.
 
 KONTROL
-npm run check aşağıdaki testleri çalıştırır:
-- Statik ve tarayıcı JavaScript sözdizimi
+`npm run check` aşağıdaki testleri çalıştırır:
+- Sunucu ve tarayıcı JavaScript sözdizimi
 - TKGM il → ilçe → mahalle → parsel regresyonu
-- Dört hedefli çoklu rota sağlayıcısı
-- Keskin WMS karo ve önbellek
+- Dört hedefli çoklu rota ve yedek sağlayıcı
+- Keskin WMS karo, PNG görünürlük ve önbellek
 - Hızlı toplu yakın yer ve önbellek
+- Kırsal parselde 30 km kategori genişletmesi
+- İlçe merkezi önceliği ve ATM adı fallback'i
+- Çok renkli ortak rota ve çakışmayan varış etiketleri
+
+CANLI TESTTEN ÖNCE
+- GitHub yüklemesinden sonra Render dağıtımının tamamlanmasını bekleyin.
+- Tarayıcıda Ctrl+F5 ile önbelleği temizleyerek açın.
+- `/api/health` sürümü 1.8.3 değilse eski dağıtım çalışıyordur.

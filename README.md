@@ -1,51 +1,68 @@
-# Kadastro360 Web Pilot v1.8.2
+# Kadastro360 Web Pilot v1.8.3
 
-Bu sürümde akıllı yakın yer araması, kırsal parsellerde günlük ihtiyaç kategorilerini 10 km’de bırakmaz. Sonuç bulunmayan okul, market, cami, eczane, hastane, banka, ATM, sahil/plaj, otogar, tren garı ve havaalanı kategorileri ayrı ayrı 30 km’ye kadar genişletilir.
-Gerçek veri kullanan web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, düz çizgiyi yol rotası gibi gösterme veya tahmini rayiç üretmez.
+Kadastro360; TKGM parsel sorgusu, arazi eğimi, gerçek yakın yer kayıtları, yol rotaları ve açık kamu katmanlarını tek ekranda birleştiren canlı veri web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, düz çizgiyi yol rotası gibi gösterme veya tahmini rayiç üretmez.
 
-## Bu sürümde düzeltilen ana sorunlar
+## v1.8.3 ile gelen ana düzeltmeler
 
-### 1. Seçilen rotaların eksik çizilmesi
+### 1. İlçe merkezini esas alan yakın yer araması
 
-- En fazla 5 hedef korunur.
-- Her hedef sırayla ve bağımsız olarak hesaplanır.
-- Birincil OSRM servisi yanıt vermezse ikinci OSRM servisi otomatik denenir.
-- Yol ağına eşleşmeyen noktalar için genişletilmiş yol eşleştirme denemesi yapılır.
-- Her hedef için ayrı **Hazır / Rota alınamadı** sonucu gösterilir.
-- Başarısız hedef sessizce atlanmaz.
-- Başarılı rotalar gerçek yol geometrisi, mesafe ve tahmini süreyle çizilir.
+Kırsal bir parselde yalnızca parsel çevresini genişletmek, komşu ilçedeki bir bankayı seçip gerçek ilçe merkezindeki banka ve ATM'leri kaçırabiliyordu. Yeni akışta:
+
+- Seçilen **il ve ilçe bilgisi** yakın yer API'sine gönderilir.
+- Her kategori önce parsel çevresinde 5 → 10 → 20 → 30 km kademeli taranır.
+- Sonuç yoksa, en yakın sonuç 15 km'den uzaktaysa veya kayıt açıkça başka ilçeye aitse seçilen ilçe merkezi ayrıca çözülür.
+- İlçe merkezi çevresi 5 km, gerekirse 12 km yarıçapla gerçek OpenStreetMap/Overpass kayıtları üzerinden taranır.
+- Aynı ilçeye ait kayıtlar komşu ilçe kayıtlarından önce sıralanır.
+- Aynı ilçede uygun kayıt bulunduğunda açıkça başka ilçeye ait banka/ATM gibi sonuçlar listeden çıkarılır.
+- ATM etiketi eksik olsa bile adında **ATM, Bankamatik, Paramatik, Bank24 veya ParafPara** geçen gerçek kayıtlar yedek eşleşme olarak değerlendirilebilir.
+- Bu davranış Gönen'e özel sabitlenmemiştir; kullanıcının seçtiği her ilçe için çalışır.
+
+İlçe merkezi çözümlemesi OpenStreetMap Nominatim ile, yakın yer kayıtları ise Overpass ile yapılır. Başarısız dış servis cevabında sahte nokta eklenmez.
+
+### 2. Üst üste binmeyen varış etiketleri
+
 - Varış koordinatında numaralı ikon yerine seçilen yakın yerin tam adı sürekli görünür.
-- OSRM’nin yola eşlediği başlangıç/bitiş ile parsel/POI arasındaki kısa fark, yol rotasıyla karışmaması için renkli kesik bağlantı olarak gösterilir.
-- Aynı yol üzerinde üst üste binen rotalar iç içe farklı kalınlıklarda çizilir; alttaki rotalar uzak görünümde kaybolmaz.
+- Birbirine yakın hedeflerin etiketleri otomatik kümelenir.
+- Etiketler yan yana veya alt alta kaydırılır; aynı noktada birbirini kapatmaz.
+- Gerçek varış koordinatı renkli küçük bir noktayla yerinde kalır; etiket yalnızca okunabilirlik için ötelenir.
+- Harita hareketi ve yakınlaştırma sonrasında etiket konumları yeniden hesaplanır.
 
-Varsayılan sağlayıcılar:
+### 3. Ortak yolda çok renkli rota gösterimi
+
+- Her rota önce kendi ana rengiyle çizilir.
+- Bunun üzerine rota sayısına göre farklı fazlarda kesikli renk şeritleri uygulanır.
+- İki, üç veya daha fazla rota aynı yol kesimini kullanıyorsa ortak bölüm tek renge dönüşmez; kullanılan rota renkleri dönüşümlü görünür.
+- Mesafe/süre etiketleri rotaların farklı noktalarına dağıtılır.
+- OSRM'nin yola eşlediği başlangıç veya bitiş ile gerçek parsel/POI koordinatı arasındaki kısa fark renkli kesik bağlantıyla tamamlanır.
+- Rota katmanı parsel katmanının üstünde tutulur ve bütün hedefleri kapsayan görünüm payı artırılmıştır.
+
+Varsayılan rota sağlayıcıları:
 
 ```text
 https://router.project-osrm.org
 https://routing.openstreetmap.de/routed-car
 ```
 
-### 2. Yakın yer aramasının yavaşlaması
+### 4. Hızlı ve kontrollü yakın yer taraması
 
-- “Tüm Yerler” seçeneği artık tarayıcıdan kategori başına 11 ayrı istek göndermez.
-- Kategoriler üç dengeli toplu sorgu grubunda aranır.
-- 5 km içinde bulunan kategoriler için gereksiz 10–30 km tekrarları yapılmaz.
-- Okul, market, cami, eczane, banka ve ATM en fazla 10 km; hastane 20 km; bölgesel ulaşım/sahil türleri 30 km’ye kadar kontrollü genişletilir.
+- “Tüm Yerler” seçeneği tarayıcıdan kategori başına ayrı istek göndermez.
+- Kategoriler dengeli toplu Overpass sorgularıyla aranır.
+- Bulunan kategoriler için gereksiz genişletme yapılmaz.
 - Aynı konumdaki tekrar arama 30 dakika önbellekten gelir.
-- Sonuçlar tek akordeon listesinde kalır; kapalı başlıkta örneğin **Market · 15 adet** görünür.
+- Sonuçlar kategori akordeonlarında gösterilir; kapalı başlıkta örneğin **Market · 15 adet** görünür.
+- Boş kategori ile dış servis hatası ayrı gösterilir.
 
-### 3. Açık veri katmanının bulanık veya kesik görünmesi
+## Açık veri ve WMS
 
-- Büyük ve büyütüldükçe pikselleşen tek resim yöntemi artık kullanılmaz.
-- Katman önce kullanıcının tarayıcısından gerçek WMS karoları halinde yüklenir.
-- Doğrudan WMS erişimi başarısız olursa aynı kaynak, sunucu önbellekli karo proxy’si üzerinden yedek olarak denenir.
-- Yakınlaştırmada her seviye kendi karosunu aldığı için görüntü büyütülmüş tek resim gibi bulanıklaşmaz.
-- Plan katmanı daha düşük opaklıkta gösterilir; parsel sınırı ve rotalar üstte kalır.
+- Büyük ve yakınlaştırıldıkça pikselleşen tek resim yöntemi kullanılmaz.
+- Katman önce tarayıcıdan gerçek WMS karoları halinde yüklenir.
+- Doğrudan WMS erişimi başarısız olursa sunucu önbellekli karo proxy'si yedek olarak denenir.
+- Plan katmanı düşük opaklıkta tutulur; parsel sınırı ve rotalar üstte kalır.
 - **Haritaya Ekle** mevcut parsel yakınlığını değiştirmez. **Plan Ölçeğine Git** yalnızca kullanıcı tıklarsa çalışır.
 
 ## Aynı mahallede parsel karşılaştırması
 
-Aynı mahallede sorgulanan son 10 parsel, tarayıcı oturumu boyunca geçici olarak saklanır. Önceki parseller turuncu kesik sınırla gösterilir. Haritadaki **Karşılaştırma** kontrolünden gizlenebilir veya temizlenebilir.
+Aynı mahallede sorgulanan son 10 parsel tarayıcı oturumu boyunca geçici olarak saklanır. Önceki parseller turuncu kesik sınırla gösterilir. Haritadaki **Karşılaştırma** kontrolünden gizlenebilir veya temizlenebilir.
 
 ## Pilot bölgeler
 
@@ -64,7 +81,7 @@ npm run check
 npm start
 ```
 
-Gerekli değişkenler `.env.example` dosyasındadır. `TEST_PASSWORD` ve `SESSION_SECRET` mutlaka ayarlanmalıdır.
+Gerekli değişkenler `.env.example` dosyasındadır. `TEST_PASSWORD` ve `SESSION_SECRET` mutlaka ayarlanmalıdır. `NOMINATIM_BASE_URL` isteğe bağlıdır; boş bırakılırsa genel OpenStreetMap Nominatim ucu kullanılır.
 
 Render dağıtımından sonra şu adres kontrol edilir:
 
@@ -72,7 +89,7 @@ Render dağıtımından sonra şu adres kontrol edilir:
 https://SİTE-ADRESİ/api/health
 ```
 
-Sonuçta `version: 1.8.2` görünmelidir.
+Sonuçta `version: 1.8.3` görünmelidir.
 
 ## Önemli doğruluk notu
 
