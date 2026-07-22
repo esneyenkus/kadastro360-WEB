@@ -199,7 +199,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 
 
       <section class="pane" id="open-data-pane">
-        <div class="notice info"><strong>Hazır plan tek tıkla otomatik açılır.</strong> Önce parseli sorgulayın, ardından “Hazır Katmanları Getir” düğmesine basın. Plan parsel çevresini kapsayan tek sabit görüntü olarak yüklenir; zoom sırasında yeniden karo istenmediği için kaybolmaz. Ek kaynaklar ayrı düğmeyle taranır. Şeffaf/boş WMS görüntüsü başarılı sayılmaz.</div>
+        <div class="notice info"><strong>Hazır plan tek tıkla otomatik açılır.</strong> Önce parseli sorgulayın, ardından “Hazır Katmanları Getir” düğmesine basın. Plan parsel çevresini kapsayan tek sabit görüntü olarak yüklenir; zoom sırasında yeniden karo istenmediği için kaybolmaz. Ek kaynaklar ayrı düğmeyle taranır. Şeffaf/boş WMS görüntüsü başarılı sayılmaz; bu görsel doğrulama Render yolu için yapılır. Render bağlantısı kapanırsa tarayıcı doğrudan resmî WMS görüntüsünü dener.</div>
         <div class="open-data-toolbar">
           <button class="primary" id="open-data-check" disabled>Hazır Katmanları Getir</button>
           <button class="open-data-clear" id="open-data-detailed" disabled>Ek Kaynakları Tara</button>
@@ -951,9 +951,19 @@ function wmsSnapshotBounds(item){
   const radiusKm=Math.max(3,Math.min(40,Number(item.wms?.snapshotRadiusKm)||14));
   const center=L.CRS.EPSG3857.project(L.latLng(store.parcelCenter.lat,store.parcelCenter.lng));
   const radius=radiusKm*1000;
-  const southWest=L.CRS.EPSG3857.unproject(L.point(center.x-radius,center.y-radius));
-  const northEast=L.CRS.EPSG3857.unproject(L.point(center.x+radius,center.y+radius));
-  return {bounds:L.latLngBounds(southWest,northEast),radiusKm};
+  const southWestProjected=L.point(center.x-radius,center.y-radius);
+  const northEastProjected=L.point(center.x+radius,center.y+radius);
+  const southWest=L.CRS.EPSG3857.unproject(southWestProjected);
+  const northEast=L.CRS.EPSG3857.unproject(northEastProjected);
+  return {
+    bounds:L.latLngBounds(southWest,northEast),
+    radiusKm,
+    bbox:[southWestProjected.x,southWestProjected.y,northEastProjected.x,northEastProjected.y]
+  };
+}
+
+function wmsSnapshotSize(item){
+  return Math.max(512,Math.min(1536,Number(item.wms?.snapshotSize)||1024));
 }
 
 function wmsSnapshotUrl(item,attempt,radiusKm){
@@ -964,9 +974,60 @@ function wmsSnapshotUrl(item,attempt,radiusKm){
     lat:String(store.parcelCenter.lat),
     lng:String(store.parcelCenter.lng),
     radiusKm:String(radiusKm),
-    size:String(Math.max(512,Math.min(1536,Number(item.wms?.snapshotSize)||1024)))
+    size:String(wmsSnapshotSize(item))
   });
   return `/api/open-data/wms-snapshot/${key}.png?${params}`;
+}
+
+function externalWmsSnapshotUrl(item,attempt,area){
+  const url=new URL(item.wms.baseUrl);
+  const version=attempt.version==='1.3.0'?'1.3.0':'1.1.1';
+  const params={
+    SERVICE:'WMS',REQUEST:'GetMap',VERSION:version,
+    LAYERS:attempt.layerName,
+    STYLES:String(attempt.layerName).split(',').map(()=>'').join(','),
+    FORMAT:'image/png',TRANSPARENT:'TRUE',
+    WIDTH:String(wmsSnapshotSize(item)),HEIGHT:String(wmsSnapshotSize(item)),
+    BBOX:area.bbox.join(',')
+  };
+  if(version==='1.3.0')params.CRS='EPSG:3857';else params.SRS='EPSG:3857';
+  Object.entries(params).forEach(([key,value])=>url.searchParams.set(key,value));
+  return url.toString();
+}
+
+function stableOverlayResult(layer,item,attempt,area,loadMode,dispose){
+  return {
+    layer,item,attempt,bounds:area.bounds,visualVerified:true,loadMode,
+    dispose:dispose||(()=>{}),
+    refresh(){/* ImageOverlay sabit kalır; zoom/pan sırasında yeni WMS isteği üretmez. */}
+  };
+}
+
+function waitForExternalSnapshotLayer(item,attempt){
+  return new Promise((resolve,reject)=>{
+    const area=wmsSnapshotBounds(item);
+    const url=externalWmsSnapshotUrl(item,attempt,area);
+    const layer=L.imageOverlay(url,area.bounds,{
+      pane:'openDataPane',opacity:item.category==='ortho'?.84:.64,interactive:false,crossOrigin:false,zIndex:240
+    });
+    let settled=false;
+    const cleanup=()=>{clearTimeout(timer);layer.off('load',onLoad);layer.off('error',onError);};
+    const fail=message=>{
+      if(settled)return;settled=true;cleanup();
+      try{if(layerOnMap(layer))store.map.removeLayer(layer);}catch{}
+      reject(new Error(message));
+    };
+    const onLoad=()=>{
+      if(settled)return;settled=true;cleanup();
+      resolve(stableOverlayResult(layer,item,attempt,area,'browser-external-snapshot',()=>{
+        try{if(layerOnMap(layer))store.map.removeLayer(layer);}catch{}
+      }));
+    };
+    const onError=()=>fail(`Resmî WMS görüntüsü tarayıcıya yüklenemedi (${attempt.version}).`);
+    layer.on('load',onLoad);layer.on('error',onError);
+    const timer=setTimeout(()=>fail(`Resmî WMS görüntüsü zaman aşımına uğradı (${attempt.version}).`),12000);
+    layer.addTo(store.map);
+  });
 }
 
 async function fetchWmsSnapshotLayer(item,attempt){
@@ -988,15 +1049,33 @@ async function fetchWmsSnapshotLayer(item,attempt){
     const layer=L.imageOverlay(objectUrl,area.bounds,{
       pane:'openDataPane',opacity:item.category==='ortho'?.84:.64,interactive:false,crossOrigin:false,zIndex:240
     });
-    return {
-      layer,item,attempt,bounds:area.bounds,objectUrl,visualVerified:true,loadMode:'stable-snapshot',
-      dispose(){try{URL.revokeObjectURL(objectUrl);}catch{}},
-      refresh(){/* Sabit görüntü zoom sırasında yeniden istek atmaz; bu nedenle kaybolmaz. */}
-    };
+    return stableOverlayResult(layer,item,attempt,area,'server-cached-snapshot',()=>{
+      try{URL.revokeObjectURL(objectUrl);}catch{}
+      try{if(layerOnMap(layer))store.map.removeLayer(layer);}catch{}
+    });
   }catch(error){
-    if(error?.name==='AbortError')throw new Error('Sabit plan görüntüsü zaman aşımına uğradı.');
+    if(error?.name==='AbortError')throw new Error('Render önbellekli plan görüntüsü zaman aşımına uğradı.');
     throw error;
   }finally{clearTimeout(timer);}
+}
+
+function raceSnapshotSources(item,attempt){
+  return new Promise((resolve,reject)=>{
+    let settled=false,pending=2;const errors=[];
+    const finishSuccess=result=>{
+      if(settled){try{result.dispose?.();}catch{}return;}
+      settled=true;resolve(result);
+    };
+    const finishError=error=>{
+      errors.push(humanError(error));pending--;
+      if(!pending&&!settled){
+        const unique=[...new Set(errors.filter(Boolean))];
+        reject(new Error(unique.join(' · ')||'Sabit WMS görüntüsü yüklenemedi.'));
+      }
+    };
+    waitForExternalSnapshotLayer(item,attempt).then(finishSuccess).catch(finishError);
+    setTimeout(()=>{if(!settled)fetchWmsSnapshotLayer(item,attempt).then(finishSuccess).catch(finishError);},450);
+  });
 }
 
 function firstSnapshotSuccess(item,attempts){
@@ -1005,26 +1084,51 @@ function firstSnapshotSuccess(item,attempts){
     if(!rows.length)return reject(new Error('Hazır WMS katman tanımı bulunamadı.'));
     let settled=false,pending=rows.length;const errors=[];
     rows.forEach(attempt=>{
-      fetchWmsSnapshotLayer(item,attempt).then(result=>{
-        if(settled){result.dispose?.();return;}
+      raceSnapshotSources(item,attempt).then(result=>{
+        if(settled){try{result.dispose?.();}catch{}return;}
         settled=true;resolve(result);
       }).catch(error=>{
         errors.push(humanError(error));pending--;
-        if(!pending&&!settled)reject(new Error(errors.filter(Boolean).join(' · ')||'Sabit WMS görüntüsü yüklenemedi.'));
+        if(!pending&&!settled){
+          const unique=[...new Set(errors.filter(Boolean))];
+          reject(new Error(unique.join(' · ')||'Sabit WMS görüntüsü yüklenemedi.'));
+        }
       });
     });
   });
 }
 
+async function firstEmergencyTileSuccess(item,attempts){
+  const errors=[];
+  for(const attempt of attempts){
+    try{
+      const layer=await waitForWmsLayer(item,attempt);
+      return {
+        layer,item,attempt,visualVerified:false,loadMode:'browser-tile-emergency',
+        dispose(){try{if(layerOnMap(layer))store.map.removeLayer(layer);}catch{}},
+        refresh(){/* Acil yedek WMS karo modu. */}
+      };
+    }catch(error){errors.push(humanError(error));}
+  }
+  throw new Error([...new Set(errors.filter(Boolean))].join(' · ')||'WMS yedek katmanı yüklenemedi.');
+}
+
 async function createSharpWmsLayer(item,statusNode){
-  if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Tek sabit plan görüntüsü hazırlanıyor; zoom sırasında yeniden karo istenmeyecek…';}
-  showMapActivity('Açık plan katmanı tek görüntü olarak hazırlanıyor','loading');
+  if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Resmî plan tek sabit görüntü olarak yükleniyor; tarayıcı ve Render bağlantıları birlikte deneniyor…';}
+  showMapActivity('Açık plan katmanı tek sabit görüntü olarak yükleniyor','loading');
   let lastError='Görünür plan içeriği bulunamadı.';
   const known=knownWmsAttempts(item).slice(0,2);
   try{
     const row=await firstSnapshotSuccess(item,known);
     item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
     wmsCacheWrite(`k360:wms-choice:${item.wms?.key||item.id}`,{layerName:row.attempt.layerName,version:row.attempt.version});
+    return row;
+  }catch(error){lastError=humanError(error);}
+
+  if(statusNode)statusNode.textContent='Tek görüntü bağlantısı yanıt vermedi; bilinen katman adıyla hafif WMS yedeği deneniyor…';
+  try{
+    const row=await firstEmergencyTileSuccess(item,known.slice(0,1));
+    item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;
     return row;
   }catch(error){lastError=humanError(error);}
 
@@ -1071,12 +1175,15 @@ async function toggleOpenDataLayer(itemId,button){
     card?.classList.add('active');button.textContent='Haritadan Kaldır';button.classList.add('remove');
     if(statusNode){
       statusNode.className='open-data-load-status notice ok';
-      statusNode.innerHTML=item.type==='wms'?'Plan katmanı tek sabit görüntü olarak yüklendi. Zoom ve harita hareketinde katman yeniden istek atmadığı için kaybolmaz.<div class="scale-note">Parsel sınırı beyaz çerçeve ve yeşil çizgiyle üstte; Renk Rehberi aktif WMS lejantını ve tam genel gösterimleri içerir.</div>':'Katman yüklendi; mevcut harita konumu korundu.';
+      if(item.type==='wms'){
+        const modeText=row.loadMode==='browser-external-snapshot'?'Resmî WMS görüntüsü doğrudan tarayıcıya tek sabit görüntü olarak yüklendi.':row.loadMode==='server-cached-snapshot'?'Plan görüntüsü Render önbelleği üzerinden tek sabit görüntü olarak yüklendi.':'Resmî servis tek görüntü vermediği için hafif WMS yedek modu açıldı.';
+        statusNode.innerHTML=`${modeText}<div class="scale-note">Sabit görüntü modunda zoom sırasında katman kaybolmaz. Parsel sınırı beyaz çerçeve ve yeşil çizgiyle üstte kalır.</div>`;
+      }else statusNode.textContent='Katman yüklendi; mevcut harita konumu korundu.';
     }
-    updateOpenDataMapBadge();showMapActivity('Katman hazır · Sabit ve hızlı plan görünümü etkin','ok',2600);
+    updateOpenDataMapBadge();showMapActivity(row.loadMode==='browser-tile-emergency'?'Katman hazır · Hafif WMS yedek modu etkin':'Katman hazır · Sabit ve hızlı plan görünümü etkin','ok',2600);
   }catch(error){
-    button.textContent=old;showMapActivity(`Katman yüklenemedi: ${humanError(error)}`,'error',4200);
-    if(statusNode){statusNode.className='open-data-load-status notice error';statusNode.textContent=`Katman eklenmedi: ${humanError(error)} Kaynak sayfası bağlantısı kullanılabilir.`;}
+    button.textContent='Tekrar Dene';showMapActivity(`Katman yüklenemedi: ${humanError(error)}`,'error',4200);
+    if(statusNode){statusNode.className='open-data-load-status notice error';statusNode.textContent=`Katman eklenmedi: ${humanError(error)} Bu düğme katmanı yeniden indirmek için aktif bırakıldı.`;}
   }finally{button.disabled=false;}
 }
 

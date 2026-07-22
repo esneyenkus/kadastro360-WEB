@@ -153,7 +153,7 @@ async function fetchBuffer(url, options = {}, timeoutMs = 10000, maxBytes = 8_00
       ...options,
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Kadastro360-Web-Pilot/1.8.8 (+stable-open-data-snapshot)',
+        'User-Agent': 'Kadastro360-Web-Pilot/1.8.9 (+stable-open-data-snapshot)',
         Accept: '*/*',
         ...(options.headers || {})
       }
@@ -177,6 +177,19 @@ function decodeBuffer(buffer) {
   const replacementCount = (utf8.match(/�/g) || []).length;
   if (replacementCount <= 2) return utf8;
   try { return new TextDecoder('windows-1254').decode(buffer); } catch { return utf8; }
+}
+
+async function fetchBufferRetry(url, options = {}, timeoutMs = 10000, maxBytes = 8_000_000, attempts = 2) {
+  let lastError;
+  for (let attempt = 1; attempt <= Math.max(1, attempts); attempt++) {
+    try {
+      return await fetchBuffer(url, options, timeoutMs, maxBytes);
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+    }
+  }
+  throw lastError;
 }
 
 async function fetchText(url, options = {}, timeoutMs = 10000, maxBytes = 8_000_000) {
@@ -682,7 +695,7 @@ async function wmsSnapshot({ key, layerName, version, latitude, longitude, radiu
       width: safeSize,
       height: safeSize
     });
-    const result = await fetchBuffer(url, {}, 18000, 12_000_000);
+    const result = await fetchBufferRetry(url, { headers: { Referer: 'https://kadastro360.com.tr/', Origin: 'https://kadastro360.com.tr' } }, 18000, 12_000_000, 2);
     const analysis = validateWmsImage(result.buffer, result.contentType, 'WMS sabit plan görüntüsü');
     if (!analysis.visible) {
       throw Object.assign(new Error('Bu parsel çevresinde katman görüntüsü boş veya şeffaf döndü.'), { httpStatus: 422 });
@@ -713,7 +726,7 @@ async function wmsLegend({ key, layerName, version = '1.1.1' }) {
       FORMAT: 'image/png', LAYER: safeLayer, TRANSPARENT: 'TRUE'
     };
     for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
-    const result = await fetchBuffer(url.toString(), {}, 16000, 12_000_000);
+    const result = await fetchBufferRetry(url.toString(), { headers: { Referer: 'https://kadastro360.com.tr/' } }, 16000, 12_000_000, 2);
     const analysis = validateWmsImage(result.buffer, result.contentType, 'WMS lejantı');
     if (!analysis.visible) throw Object.assign(new Error('Katman servisi görünür bir lejant görseli döndürmedi.'), { httpStatus: 404 });
     return { buffer: result.buffer, contentType: 'image/png', cache: 'MISS', layerName: safeLayer, version: safeVersion };

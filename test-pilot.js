@@ -55,7 +55,7 @@ const { PNG } = require('pngjs');
   assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
   assert(server.includes('ADMIN_PANEL_PIN') && server.includes('validAdminSession') && server.includes("pathname === '/yonetim-giris'"), 'İkinci yönetici doğrulaması eksik.');
   assert(admin.includes('Gelen erişim talepleri') && admin.includes('/admin/access-requests'), 'Erişim talepleri yönetici ekranında gösterilmiyor.');
-  assert(server.includes("version: '1.8.8'"), 'Sunucu sürümü 1.8.8 değil.');
+  assert(server.includes("version: '1.8.9'"), 'Sunucu sürümü 1.8.9 değil.');
   assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
 
   assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
@@ -83,6 +83,8 @@ const { PNG } = require('pngjs');
 
   assert(html.includes('createSharpWmsLayer') && html.includes('fetchWmsSnapshotLayer') && html.includes('/api/open-data/wms-snapshot/'), 'Sabit tek-görüntü WMS yüklemesi eksik.');
   assert(html.includes('knownWmsAttempts') && html.includes('firstSnapshotSuccess') && html.includes('snapshotSize'), 'Hızlı sabit WMS yükleme akışı eksik.');
+  assert(html.includes('waitForExternalSnapshotLayer') && html.includes('externalWmsSnapshotUrl') && html.includes('browser-external-snapshot'), 'Tarayıcıdan doğrudan sabit WMS yedeği eksik.');
+  assert(html.includes('raceSnapshotSources') && html.includes('server-cached-snapshot') && html.includes('browser-tile-emergency'), 'Hibrit WMS geri dönüş zinciri eksik.');
   assert(html.includes('parcel-locator') && html.includes('updateParcelLocator'), 'Parsel hedef animasyonu eksik.');
   assert(html.includes('sessionStorage') && html.includes('renderNeighborhoodComparisons'), 'Aynı mahalle geçici karşılaştırma önbelleği eksik.');
   assert(html.includes('parcelHaloPane') && html.includes('bringParcelToFront'), 'Parsel üst görünürlük katmanı eksik.');
@@ -126,7 +128,7 @@ const { PNG } = require('pngjs');
   assert(ysk?.wms?.loadMode === 'stable-single-image-with-cache', 'WMS sabit tek-görüntü modunda değil.');
   assert(catalog.wmsLoadMode === 'stable-single-image-with-cache' && catalog.catalogMode === 'quick', 'Katalog sabit WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.8.8 sabit katman, tam lejant, tanıtım ve rota doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.8.9 hibrit sabit katman, tam lejant, tanıtım ve rota doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

@@ -2,6 +2,8 @@
 
 const assert = require('assert');
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const { PNG } = require('pngjs');
 const { WMS_CONFIGS, wmsTile, wmsSnapshot, wmsLegend, tileMercatorBounds } = require('./open-data');
 
@@ -14,6 +16,11 @@ function listen(server) {
 function close(server) { return new Promise(resolve => server.close(resolve)); }
 
 (async () => {
+  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  assert(html.includes('externalWmsSnapshotUrl') && html.includes('waitForExternalSnapshotLayer'), 'Doğrudan tarayıcı ImageOverlay akışı eksik.');
+  assert(html.includes("'browser-external-snapshot'") && html.includes("'server-cached-snapshot'"), 'Hibrit sabit görüntü modları eksik.');
+  assert(html.includes("loadMode:'browser-tile-emergency'"), 'Acil WMS karo yedeği eksik.');
+
   const png = new PNG({ width: 256, height: 256 });
   for (let i = 0; i < png.data.length; i += 4) {
     png.data[i] = 255; png.data[i + 1] = 250; png.data[i + 2] = 38; png.data[i + 3] = 255;
@@ -67,7 +74,7 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
     config.baseUrl = original;
     await close(mock);
   }
-  console.log('Kadastro360 WMS karo, sabit görüntü, lejant ve önbellek testi geçti.');
+  console.log('Kadastro360 WMS hibrit sabit görüntü, karo yedeği, lejant ve önbellek testi geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

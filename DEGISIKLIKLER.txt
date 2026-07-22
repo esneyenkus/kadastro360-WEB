@@ -1,3 +1,12 @@
+v1.8.9
+- v1.8.8'de yalnızca Render sunucusu üzerinden alınan sabit WMS görüntüsü, Render'ın resmî WMS adresine bağlanamadığı durumda tamamen hata veriyordu.
+- Plan görüntüsü için hibrit yükleme zinciri eklendi: tarayıcıdan doğrudan tek ImageOverlay + Render önbellekli tek görüntü birlikte denenir.
+- Tarayıcı doğrudan görüntüyü alırsa katman tek sabit görüntü olarak haritada kalır; zoom ve pan sırasında yeniden karo istemez.
+- Her iki sabit görüntü yolu da başarısız olursa bilinen katman adıyla hafif tarayıcı WMS karo modu son yedek olarak açılır.
+- Render tarafındaki WMS isteklerine IPv4 önceliği, iki deneme ve kısa gecikmeli tekrar eklendi.
+- Aynı hata mesajlarının iki kez yazılması engellendi; başarısız düğme artık açıkça “Tekrar Dene” olur.
+- Katman tanımının yerel olduğu, gerçek plan piksellerinin resmî WMS servisinden geldiği açıklamalar netleştirildi.
+
 v1.8.8
 - Çevre düzeni planı WMS katmanı, çok sayıda karo yerine parsel çevresini kapsayan tek sabit ve önbellekli PNG görüntüsü olarak yüklenir.
 - Zoom in/out ve harita hareketinde yeni WMS karo istekleri üretilmediği için katmanın kaybolması ve tarayıcının kasılması azaltıldı.
