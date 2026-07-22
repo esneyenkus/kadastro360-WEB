@@ -70,6 +70,18 @@ class AccountStore {
       );
       CREATE INDEX IF NOT EXISTS idx_query_log_user_created
         ON query_log(username, created_at DESC);
+      CREATE TABLE IF NOT EXISTS access_requests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        full_name TEXT NOT NULL,
+        company TEXT,
+        email TEXT NOT NULL,
+        phone TEXT,
+        note TEXT,
+        status TEXT NOT NULL DEFAULT 'new',
+        created_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_access_requests_created
+        ON access_requests(created_at DESC);
     `);
   }
 
@@ -190,6 +202,34 @@ class AccountStore {
   listUsers() {
     return this.db.prepare('SELECT * FROM users ORDER BY created_at DESC').all()
       .map(row => this.publicUser(this.rowToUser(row)));
+  }
+
+  createAccessRequest(input) {
+    const fullName = String(input.fullName || '').trim();
+    const company = String(input.company || '').trim().slice(0, 160);
+    const email = String(input.email || '').trim().slice(0, 160);
+    const phone = String(input.phone || '').trim().slice(0, 60);
+    const note = String(input.note || '').trim().slice(0, 1000);
+    if (fullName.length < 3) throw new Error('Ad soyad en az 3 karakter olmalıdır.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Geçerli bir e-posta adresi girin.');
+    this.db.prepare(`INSERT INTO access_requests
+      (full_name,company,email,phone,note,status,created_at)
+      VALUES (?,?,?,?,?,?,?)`).run(
+      fullName,
+      company || null,
+      email,
+      phone || null,
+      note || null,
+      'new',
+      new Date().toISOString()
+    );
+    return { ok: true };
+  }
+
+  listAccessRequests(limit = 100) {
+    const safeLimit = Math.max(1, Math.min(500, Number(limit) || 100));
+    return this.db.prepare(`SELECT id,full_name AS fullName,company,email,phone,note,status,created_at AS createdAt
+      FROM access_requests ORDER BY id DESC LIMIT ?`).all(safeLimit);
   }
 
   createUser(input) {

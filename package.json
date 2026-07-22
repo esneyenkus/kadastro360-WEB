@@ -1,8 +1,8 @@
 {
   "name": "kadastro360-web-pilot",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "private": true,
-  "description": "Kadastro360 canlı veri web pilotu; ilçe öncelikli yakın yer taraması, çakışmasız etiketler ve çok renkli ortak rota çizimi",
+  "description": "Kadastro360 canlı veri web pilotu; ilçe öncelikli yakın yer taraması, ilçe öncelikli yakın yer düzeltmeleri, tanıtım/erişim ana sayfası ve geliştirilmiş rota etiket yerleşimi",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

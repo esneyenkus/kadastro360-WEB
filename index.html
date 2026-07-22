@@ -1530,52 +1530,68 @@ function routeLabelRows(items){
 function layoutRouteDestinationLabels(){
   if(!store.map||!store.routeLabelEntries.length) return;
   const mapSize=store.map.getSize();
+  const edgeGap=8;
+  const placed=[];
+  const intersects=(a,b)=>!(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y);
   const entries=store.routeLabelEntries
     .map(entry=>{
       const element=entry.marker.getElement?.()?.querySelector('.route-destination-label');
-      if(!element)return null;
+      if(!element) return null;
       element.style.setProperty('--label-x','0px');
       element.style.setProperty('--label-y','-14px');
-      return {
-        ...entry,
-        element,
-        point:store.map.latLngToContainerPoint(entry.latlng),
-        width:Math.max(90,element.offsetWidth||element.getBoundingClientRect().width||90),
-        height:Math.max(32,element.offsetHeight||element.getBoundingClientRect().height||32)
-      };
+      const point=store.map.latLngToContainerPoint(entry.latlng);
+      const width=Math.max(90,Math.round(element.offsetWidth||element.getBoundingClientRect().width||90));
+      const height=Math.max(32,Math.round(element.offsetHeight||element.getBoundingClientRect().height||32));
+      return {...entry,element,point,width,height};
     })
     .filter(Boolean)
     .sort((a,b)=>a.point.y-b.point.y||a.point.x-b.point.x);
-  const clusters=[];
+
   for(const entry of entries){
-    let cluster=clusters.find(row=>Math.abs(row.center.x-entry.point.x)<220&&Math.abs(row.center.y-entry.point.y)<120&&row.items.length<5);
-    if(!cluster){cluster={center:{x:entry.point.x,y:entry.point.y},items:[]};clusters.push(cluster);}
-    cluster.items.push(entry);
-    cluster.center={
-      x:cluster.items.reduce((sum,item)=>sum+item.point.x,0)/cluster.items.length,
-      y:cluster.items.reduce((sum,item)=>sum+item.point.y,0)/cluster.items.length
-    };
-  }
-  const horizontalGap=14,verticalGap=10,edgeGap=8;
-  for(const cluster of clusters){
-    const rows=routeLabelRows(cluster.items);
-    let upward=14;
-    rows.forEach(row=>{
-      const rowHeight=Math.max(...row.map(item=>item.height));
-      const rowWidth=row.reduce((sum,item)=>sum+item.width,0)+horizontalGap*Math.max(0,row.length-1);
-      let cursor=cluster.center.x-rowWidth/2;
-      const desiredBottom=Math.max(rowHeight+edgeGap,Math.min(...cluster.items.map(item=>item.point.y))-upward);
-      row.forEach(entry=>{
-        let desiredCenterX=cursor+entry.width/2;
-        desiredCenterX=Math.max(entry.width/2+edgeGap,Math.min(mapSize.x-entry.width/2-edgeGap,desiredCenterX));
-        const x=desiredCenterX-entry.point.x;
-        const y=desiredBottom-entry.point.y;
-        entry.element.style.setProperty('--label-x',`${Math.round(x)}px`);
-        entry.element.style.setProperty('--label-y',`${Math.round(y)}px`);
-        cursor+=entry.width+horizontalGap;
-      });
-      upward+=rowHeight+verticalGap;
-    });
+    const candidates=[];
+    const addCandidate=(x,y)=>candidates.push({x,y});
+    addCandidate(0,-14);
+    addCandidate(entry.width/2+16,-14);
+    addCandidate(-(entry.width/2+16),-14);
+    addCandidate(0,36);
+    addCandidate(entry.width/2+16,36);
+    addCandidate(-(entry.width/2+16),36);
+    for(let step=1;step<=4;step++){
+      addCandidate(0,-14-step*(entry.height+10));
+      addCandidate(0,36+step*(entry.height-8));
+      addCandidate((entry.width/2+16)*step,-14-step*6);
+      addCandidate(-(entry.width/2+16)*step,-14-step*6);
+    }
+
+    let chosen=null;
+    for(const candidate of candidates){
+      const rect={
+        x:Math.round(entry.point.x-entry.width/2+candidate.x),
+        y:Math.round(entry.point.y-entry.height+candidate.y),
+        w:entry.width,
+        h:entry.height
+      };
+      rect.x=Math.max(edgeGap,Math.min(mapSize.x-rect.w-edgeGap,rect.x));
+      rect.y=Math.max(edgeGap,Math.min(mapSize.y-rect.h-edgeGap,rect.y));
+      const collides=placed.some(other=>intersects(rect,other));
+      if(!collides){ chosen={rect,candidate}; break; }
+    }
+
+    if(!chosen){
+      const fallbackRect={
+        x:Math.max(edgeGap,Math.min(mapSize.x-entry.width-edgeGap,Math.round(entry.point.x-entry.width/2))),
+        y:Math.max(edgeGap,Math.min(mapSize.y-entry.height-edgeGap,Math.round(entry.point.y-entry.height-14))),
+        w:entry.width,
+        h:entry.height
+      };
+      chosen={rect:fallbackRect,candidate:{x:fallbackRect.x-(entry.point.x-entry.width/2),y:fallbackRect.y-(entry.point.y-entry.height)}};
+    }
+
+    placed.push(chosen.rect);
+    const offsetX=chosen.rect.x-(entry.point.x-entry.width/2);
+    const offsetY=chosen.rect.y-(entry.point.y-entry.height);
+    entry.element.style.setProperty('--label-x',`${Math.round(offsetX)}px`);
+    entry.element.style.setProperty('--label-y',`${Math.round(offsetY)}px`);
   }
 }
 
