@@ -16,6 +16,8 @@ const TEST_USERNAME = process.env.TEST_USERNAME || 'admin';
 const TEST_PASSWORD = process.env.TEST_PASSWORD || '';
 const SESSION_SECRET = process.env.SESSION_SECRET || '';
 const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+const ADMIN_SESSION_MAX_AGE_SECONDS = 30 * 60;
+const ADMIN_PANEL_PIN = String(process.env.ADMIN_PANEL_PIN || '');
 const COOKIE_SECURE = process.env.COOKIE_SECURE !== '0';
 const ROOT = __dirname;
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
@@ -56,7 +58,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.8.5'
+  userAgent: 'Kadastro360-Web-Pilot/1.8.6'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -127,6 +129,38 @@ function validSession(req) {
   }
 }
 
+function signAdminSession(username, expiresAt) {
+  const payload = `${username}|admin|${expiresAt}`;
+  const signature = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  return Buffer.from(`${payload}|${signature}`, 'utf8').toString('base64url');
+}
+
+function validAdminSession(req, user) {
+  if (!user || user.role !== 'admin' || !ADMIN_PANEL_PIN || !SESSION_SECRET) return false;
+  const token = parseCookies(req).kadastro360_admin;
+  if (!token) return false;
+  try {
+    const decoded = Buffer.from(token, 'base64url').toString('utf8');
+    const [username, scope, expiresRaw, signature] = decoded.split('|');
+    const expiresAt = Number(expiresRaw);
+    if (scope !== 'admin' || username !== user.username || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) return false;
+    const expected = crypto.createHmac('sha256', SESSION_SECRET)
+      .update(`${username}|admin|${expiresAt}`).digest('hex');
+    const a = Buffer.from(signature || '', 'hex');
+    const b = Buffer.from(expected, 'hex');
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
+
+function adminLoginPage(message = '', configured = Boolean(ADMIN_PANEL_PIN)) {
+  const alert = message ? `<div class="alert">${escapeHtml(message)}</div>` : '';
+  const setup = configured ? '' : '<div class="setup">Render Environment bölümüne <strong>ADMIN_PANEL_PIN</strong> adında, tahmin edilmesi zor ayrı bir güvenlik kodu eklenmeden yönetim paneli açılmaz.</div>';
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kadastro360 Yönetici Girişi</title><style>
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#173d4d,#0d1f29 60%,#08141b);font-family:Arial,sans-serif;color:#17212b;padding:20px}.box{width:min(440px,100%);background:#fff;border-radius:20px;padding:26px;box-shadow:0 30px 90px rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.5)}.mark{display:inline-flex;padding:6px 10px;border-radius:99px;background:#eef8f4;color:#0e6b51;font-size:11px;font-weight:900}.title{font-size:28px;font-weight:900;margin:14px 0 5px}.sub{color:#62727c;font-size:13px;line-height:1.6;margin-bottom:18px}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:12px;font-weight:800;color:#2c4350}.field input{width:100%;height:43px;border:1px solid #c8d3da;border-radius:11px;padding:0 12px;font-size:15px}.button{width:100%;border:0;border-radius:11px;padding:13px;background:#0e6b51;color:#fff;font-size:14px;font-weight:900;cursor:pointer;margin-top:8px}.alert,.setup{padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.55;margin-bottom:12px}.alert{background:#fff0f0;color:#982d2d;border:1px solid #efc3c3}.setup{background:#fff8e7;color:#72520d;border:1px solid #ecd69e}.foot{display:flex;justify-content:space-between;gap:12px;margin-top:16px;font-size:12px}.foot a{color:#315fae;text-decoration:none;font-weight:800}</style></head><body><main class="box"><div class="mark">KORUMALI YÖNETİM ALANI</div><div class="title">Kadastro360 Yönetici</div><div class="sub">Normal kullanıcı girişinden bağımsız olarak yönetici hesabı, parolası ve ikinci güvenlik kodu birlikte doğrulanır. Yönetici yetkisi 30 dakika sonra yeniden istenir.</div>${alert}${setup}<form method="post" action="/yonetim-giris"><div class="field"><label>Yönetici kullanıcı adı</label><input name="username" autocomplete="username" required></div><div class="field"><label>Yönetici parolası</label><input name="password" type="password" autocomplete="current-password" required></div><div class="field"><label>Yönetim güvenlik kodu</label><input name="adminPin" type="password" inputmode="numeric" autocomplete="one-time-code" required></div><button class="button" type="submit" ${configured ? '' : 'disabled'}>Yönetim paneline gir</button></form><div class="foot"><a href="/">Ana sayfa</a><a href="/app">Uygulama</a></div></main></body></html>`;
+}
+
 function sendHtml(res, status, html, extraHeaders = {}) {
   const body = Buffer.from(html, 'utf8');
   res.writeHead(status, {
@@ -136,6 +170,7 @@ function sendHtml(res, status, html, extraHeaders = {}) {
     'X-Frame-Options': 'DENY',
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'same-origin',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
     ...extraHeaders
   });
   res.end(body);
@@ -233,6 +268,7 @@ function marketingPage({ loginMessage = '', requestMessage = '', requestOk = fal
             <h3>Üye ol / pilot erişim talebi</h3>
             <p>Test kullanıcılarına hesap açmak için temel bilgilerinizi bırakın. Talebiniz yönetici ekranında saklanır.</p>
             <form method="post" action="/request-access">
+              <input name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0" aria-hidden="true">
               <div class="field"><label>Ad soyad</label><input name="fullName" required></div>
               <div class="field"><label>Kurum / şirket</label><input name="company"></div>
               <div class="field"><label>E-posta</label><input name="email" type="email" required></div>
@@ -454,7 +490,7 @@ async function routeOne(origin, destination) {
         if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
         try {
           const payload = await fetchJson(url.toString(), {
-            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.5', Accept: 'application/json' }
+            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.6', Accept: 'application/json' }
           }, 9000);
           if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
             const route = payload.routes[0];
@@ -1163,7 +1199,7 @@ async function getDistrictSearchAnchor(adminContext = {}) {
       headers: {
         Accept: 'application/json',
         'Accept-Language': 'tr-TR,tr;q=0.9',
-        'User-Agent': 'Kadastro360-Web-Pilot/1.8.5 (kadastro360.com.tr)'
+        'User-Agent': 'Kadastro360-Web-Pilot/1.8.6 (kadastro360.com.tr)'
       }
     }, 9000);
     if (!Array.isArray(rows) || !rows.length) return null;
@@ -1515,6 +1551,21 @@ function recordLoginFailure(req, username) {
 }
 function clearLoginFailures(req, username) { loginFailures.delete(loginKey(req, username)); }
 
+const publicFormWindows = new Map();
+function publicFormAllowed(req, name, limit = 3, windowMs = 60 * 60_000) {
+  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  const ip = forwarded || req.socket.remoteAddress || 'unknown';
+  const key = `${ip}:${name}`;
+  const now = Date.now();
+  const current = publicFormWindows.get(key);
+  if (!current || current.resetAt <= now) {
+    publicFormWindows.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  current.count += 1;
+  return current.count <= limit;
+}
+
 const requestWindows = new Map();
 function requestAllowed(req, pathname) {
   if (!pathname.startsWith('/api/') || pathname === '/api/health') return true;
@@ -1544,7 +1595,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.5', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.6', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {
@@ -1566,7 +1617,13 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'POST' && pathname === '/request-access') {
       try {
+        if (!publicFormAllowed(req, 'access-request')) {
+          return sendHtml(res, 429, marketingPage({ requestMessage: 'Kısa sürede çok fazla erişim talebi gönderildi. Lütfen daha sonra tekrar deneyin.' }));
+        }
         const form = await readFormBody(req);
+        if (String(form.get('website') || '').trim()) {
+          return sendHtml(res, 400, marketingPage({ requestMessage: 'Erişim talebi doğrulanamadı.' }));
+        }
         accounts.createAccessRequest({
           fullName: form.get('fullName') || '',
           company: form.get('company') || '',
@@ -1609,10 +1666,51 @@ const server = http.createServer(async (req, res) => {
       return res.end();
     }
 
+    if (req.method === 'GET' && pathname === '/yonetim-giris') {
+      if (sessionUser?.role === 'admin' && validAdminSession(req, sessionUser)) {
+        res.writeHead(302, { Location: '/admin' }); return res.end();
+      }
+      return sendHtml(res, ADMIN_PANEL_PIN ? 200 : 503, adminLoginPage());
+    }
+
+    if (req.method === 'POST' && pathname === '/yonetim-giris') {
+      if (!ADMIN_PANEL_PIN) return sendHtml(res, 503, adminLoginPage('Yönetim güvenlik kodu sunucuda henüz ayarlanmadı.', false));
+      const form = await readFormBody(req);
+      const username = form.get('username') || '';
+      const password = form.get('password') || '';
+      const adminPin = form.get('adminPin') || '';
+      const failureName = `admin:${username}`;
+      if (loginBlocked(req, failureName)) {
+        return sendHtml(res, 429, adminLoginPage('Çok fazla başarısız yönetici girişi yapıldı. 15 dakika sonra tekrar deneyin.'));
+      }
+      const user = accounts.authenticate(username, password);
+      const pinOk = secureEqual(adminPin, ADMIN_PANEL_PIN);
+      if (!user || user.role !== 'admin' || !pinOk) {
+        recordLoginFailure(req, failureName);
+        return sendHtml(res, 401, adminLoginPage('Yönetici bilgileri veya güvenlik kodu geçersiz.'));
+      }
+      clearLoginFailures(req, failureName);
+      const sessionExpiresAt = Date.now() + SESSION_MAX_AGE_SECONDS * 1000;
+      const adminExpiresAt = Date.now() + ADMIN_SESSION_MAX_AGE_SECONDS * 1000;
+      const sessionToken = signSession(user.username, sessionExpiresAt);
+      const adminToken = signAdminSession(user.username, adminExpiresAt);
+      res.writeHead(302, {
+        Location: '/admin',
+        'Set-Cookie': [
+          `kadastro360_session=${encodeURIComponent(sessionToken)}; Path=/; Max-Age=${SESSION_MAX_AGE_SECONDS}; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Lax`,
+          `kadastro360_admin=${encodeURIComponent(adminToken)}; Path=/; Max-Age=${ADMIN_SESSION_MAX_AGE_SECONDS}; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Strict`
+        ]
+      });
+      return res.end();
+    }
+
     if (req.method === 'GET' && pathname === '/logout') {
       res.writeHead(302, {
         Location: '/',
-        'Set-Cookie': `kadastro360_session=; Path=/; Max-Age=0; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Lax`
+        'Set-Cookie': [
+          `kadastro360_session=; Path=/; Max-Age=0; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Lax`,
+          `kadastro360_admin=; Path=/; Max-Age=0; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Strict`
+        ]
       });
       return res.end();
     }
@@ -1628,7 +1726,9 @@ const server = http.createServer(async (req, res) => {
       return sendFile(res, path.join(ROOT, 'endeksa-utils.js'), 'application/javascript; charset=utf-8');
     }
     if (req.method === 'GET' && pathname === '/admin') {
-      if (sessionUser.role !== 'admin') return sendHtml(res, 403, '<h1>Yetkisiz erişim</h1>');
+      if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) {
+        res.writeHead(302, { Location: '/yonetim-giris' }); return res.end();
+      }
       return sendFile(res, path.join(ROOT, 'admin.html'), 'text/html; charset=utf-8');
     }
     if (req.method === 'GET' && pathname === '/favicon.ico') {
@@ -1661,7 +1761,7 @@ const server = http.createServer(async (req, res) => {
       const province = String(requestUrl.searchParams.get('province') || '').trim();
       const district = String(requestUrl.searchParams.get('district') || '').trim();
       if (!province) return sendJson(res, 400, { error: 'Açık veri kontrolü için il gereklidir.' });
-      const result = await buildPilotCatalog({ province, district });
+      const result = await buildPilotCatalog({ province, district, detailed: requestUrl.searchParams.get('mode') === 'detailed' });
       markService('openData', true, `${province}${district ? ` / ${district}` : ''} için kaynak listesi hazırlandı. WMS katmanları kullanıcının tarayıcısından doğrudan yüklenir.`);
       return sendJson(res, 200, result);
     }
@@ -1697,17 +1797,26 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, result);
     }
     if (req.method === 'GET' && pathname === '/api/admin/users') {
-      if (sessionUser.role !== 'admin') return sendJson(res, 403, { error: 'Yönetici yetkisi gerekli.' });
+      if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
       return sendJson(res, 200, { users: accounts.listUsers() });
     }
     if (req.method === 'POST' && pathname === '/api/admin/users') {
-      if (sessionUser.role !== 'admin') return sendJson(res, 403, { error: 'Yönetici yetkisi gerekli.' });
+      if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
       return sendJson(res, 201, { user: accounts.createUser(await readJsonBody(req)) });
     }
     match = pathname.match(/^\/api\/admin\/users\/([^/]+)$/);
     if (req.method === 'PATCH' && match) {
-      if (sessionUser.role !== 'admin') return sendJson(res, 403, { error: 'Yönetici yetkisi gerekli.' });
+      if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
       return sendJson(res, 200, { user: accounts.updateUser(decodeURIComponent(match[1]), await readJsonBody(req)) });
+    }
+    if (req.method === 'GET' && pathname === '/api/admin/access-requests') {
+      if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
+      return sendJson(res, 200, { requests: accounts.listAccessRequests(requestUrl.searchParams.get('limit') || 200) });
+    }
+    match = pathname.match(/^\/api\/admin\/access-requests\/(\d+)$/);
+    if (req.method === 'PATCH' && match) {
+      if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
+      return sendJson(res, 200, { request: accounts.updateAccessRequest(Number(match[1]), await readJsonBody(req)) });
     }
     if (req.method === 'GET' && pathname === '/api/iller') {
       const result = await tkgmClient.getAdminList('province');

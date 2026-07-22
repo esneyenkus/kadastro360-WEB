@@ -1,3 +1,17 @@
+v1.8.6
+- Gelen pilot erişim talepleri yönetici panelinde listelenir hale getirildi.
+- Talep durumları Yeni / İncelendi / Onaylandı / Reddedildi olarak yönetilebilir.
+- Yönetici için ayrı /yonetim-giris ekranı oluşturuldu.
+- Yönetici parola doğrulamasına ek ADMIN_PANEL_PIN ikinci güvenlik kodu eklendi.
+- Yönetici oturumu 30 dakikalık ayrı HttpOnly + SameSite=Strict çerezle korundu.
+- Normal kullanıcı oturumu tek başına yönetici API'lerine erişemez.
+- Açık veri kataloğu hızlı ve ayrıntılı olmak üzere iki moda ayrıldı.
+- Hazır WMS katmanları yavaş CKAN/CSV taramasını beklemeden döner.
+- Bilinen WMS katman adı önce denenir; GetCapabilities yalnızca gerekirse çağrılır.
+- Tarayıcı ve sunucu WMS görünürlük kontrolleri paralelleştirildi.
+- Proxy WMS karosu 512 px'den 256 px'e; keepBuffer 3'ten 1'e düşürüldü.
+- Harita kasmasını azaltmak için gereksiz çevre karo yüklemeleri sınırlandı.
+
 v1.8.5
 - Ana alan adı için doğrudan giriş formu yerine tanıtım/karşılama ekranı eklendi.
 - Sağ panelde üye girişi ve pilot erişim talep formu oluşturuldu.

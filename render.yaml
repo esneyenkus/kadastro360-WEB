@@ -15,6 +15,8 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
+      - key: ADMIN_PANEL_PIN
+        sync: false
       - key: DEFAULT_DAILY_QUOTA
         value: 20
       - key: DATA_DIR

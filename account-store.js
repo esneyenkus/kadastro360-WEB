@@ -229,7 +229,19 @@ class AccountStore {
   listAccessRequests(limit = 100) {
     const safeLimit = Math.max(1, Math.min(500, Number(limit) || 100));
     return this.db.prepare(`SELECT id,full_name AS fullName,company,email,phone,note,status,created_at AS createdAt
-      FROM access_requests ORDER BY id DESC LIMIT ?`).all(safeLimit);
+      FROM access_requests ORDER BY CASE status WHEN 'new' THEN 0 WHEN 'reviewed' THEN 1 ELSE 2 END, id DESC LIMIT ?`).all(safeLimit);
+  }
+
+  updateAccessRequest(id, input = {}) {
+    const requestId = Number(id);
+    if (!Number.isInteger(requestId) || requestId < 1) throw new Error('Geçersiz erişim talebi.');
+    const allowed = new Set(['new', 'reviewed', 'approved', 'rejected']);
+    const status = String(input.status || '').trim();
+    if (!allowed.has(status)) throw new Error('Geçersiz talep durumu.');
+    const result = this.db.prepare('UPDATE access_requests SET status=? WHERE id=?').run(status, requestId);
+    if (!Number(result.changes || 0)) throw new Error('Erişim talebi bulunamadı.');
+    return this.db.prepare(`SELECT id,full_name AS fullName,company,email,phone,note,status,created_at AS createdAt
+      FROM access_requests WHERE id=?`).get(requestId);
   }
 
   createUser(input) {

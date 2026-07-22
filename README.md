@@ -1,8 +1,28 @@
-# Kadastro360 Web Pilot v1.8.5
+# Kadastro360 Web Pilot v1.8.6
 
 Kadastro360; TKGM parsel sorgusu, arazi eğimi, gerçek yakın yer kayıtları, yol rotaları ve açık kamu katmanlarını tek ekranda birleştiren canlı veri web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, düz çizgiyi yol rotası gibi gösterme veya tahmini rayiç üretmez.
 
-## v1.8.5 ile gelen ana düzeltmeler
+## v1.8.6 ile gelen ana düzeltmeler
+
+### 1. Korumalı yönetici girişi ve erişim talepleri
+
+- Yönetici paneli artık normal kullanıcı girişinden ayrı `/yonetim-giris` ekranından açılır.
+- Yönetici kullanıcı adı ve parolasına ek olarak Render'da tanımlanan `ADMIN_PANEL_PIN` güvenlik kodu istenir.
+- Yönetici yetki çerezi HttpOnly, Secure ve SameSite=Strict olarak 30 dakika geçerlidir.
+- Normal kullanıcı oturumu tek başına `/admin` veya `/api/admin/*` uçlarına erişemez.
+- Ana sayfadaki pilot erişim talepleri yönetim panelinde tarih, kurum, e-posta, telefon ve not bilgileriyle listelenir.
+- Talepler Yeni, İncelendi, Onaylandı veya Reddedildi durumuna alınabilir.
+
+### 2. Hızlandırılmış açık veri akışı
+
+- **Hazır Katmanları Getir** yalnızca önceden tanımlı resmî WMS katmanlarını ve kaynak bağlantılarını döndürür; yavaş katalog/CSV taramasını beklemez.
+- **Ek Kaynakları Tara** ayrı ve isteğe bağlıdır; ULASAV katalog/CSV kaynaklarını ayrıntılı tarar.
+- WMS katmanı eklenirken bilinen katman adı önce denenir; GetCapabilities keşfi yalnızca ilk bağlantı başarısız olursa çalışır.
+- Katman görünürlük doğrulaması tarayıcı ve sunucuda paralel yapılır.
+- Proxy karoları 512 yerine 256 piksele düşürüldü; çevre karo tamponu 3'ten 1'e indirildi.
+- Harita hareket ederken gereksiz karo istekleri azaltıldı; yalnızca ekranda gerekli alan yüklenir.
+
+### 3. Korunan yakın yer ve rota düzeltmeleri
 
 ### 1. İlçe merkezini esas alan yakın yer araması
 
@@ -11,7 +31,7 @@ Kırsal bir parselde yalnızca parsel çevresini genişletmek, komşu ilçedeki 
 - Seçilen **il ve ilçe bilgisi** yakın yer API'sine gönderilir.
 - Her kategori önce parsel çevresinde 5 → 10 → 20 → 30 km kademeli taranır.
 - Sonuç yoksa, en yakın sonuç 15 km'den uzaktaysa veya kayıt açıkça başka ilçeye aitse seçilen ilçe merkezi ayrıca çözülür.
-- İlçe merkezi çevresi 5 km, gerekirse 12 km yarıçapla gerçek OpenStreetMap/Overpass kayıtları üzerinden taranır.
+- İlçe merkezi çevresi 5 → 12 → 20 → 30 km kademeleriyle gerçek OpenStreetMap/Overpass kayıtları üzerinden taranır.
 - Aynı ilçeye ait kayıtlar komşu ilçe kayıtlarından önce sıralanır.
 - Aynı ilçede uygun kayıt bulunduğunda açıkça başka ilçeye ait banka/ATM gibi sonuçlar listeden çıkarılır.
 - ATM etiketi eksik olsa bile adında **ATM, Bankamatik, Paramatik, Bank24 veya ParafPara** geçen gerçek kayıtlar yedek eşleşme olarak değerlendirilebilir.
@@ -81,7 +101,7 @@ npm run check
 npm start
 ```
 
-Gerekli değişkenler `.env.example` dosyasındadır. `TEST_PASSWORD` ve `SESSION_SECRET` mutlaka ayarlanmalıdır. `NOMINATIM_BASE_URL` isteğe bağlıdır; boş bırakılırsa genel OpenStreetMap Nominatim ucu kullanılır.
+Gerekli değişkenler `.env.example` dosyasındadır. `TEST_PASSWORD`, `SESSION_SECRET` ve yönetici paneli için `ADMIN_PANEL_PIN` mutlaka ayarlanmalıdır. `NOMINATIM_BASE_URL` isteğe bağlıdır; boş bırakılırsa genel OpenStreetMap Nominatim ucu kullanılır.
 
 Render dağıtımından sonra şu adres kontrol edilir:
 
@@ -89,7 +109,7 @@ Render dağıtımından sonra şu adres kontrol edilir:
 https://SİTE-ADRESİ/api/health
 ```
 
-Sonuçta `version: 1.8.5` görünmelidir.
+Sonuçta `version: 1.8.6` görünmelidir.
 
 ## Önemli doğruluk notu
 

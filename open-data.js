@@ -278,7 +278,7 @@ function directWmsDefinition(config, resolved = null) {
     infoFormats: resolved?.infoFormats || [],
     legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
     verifiedAt: resolved?.verifiedAt || null,
-    loadMode: 'hybrid-direct-proxy'
+    loadMode: 'fast-known-layer-with-proxy-fallback'
   };
 }
 
@@ -504,7 +504,7 @@ async function discoverRegionDatasets(province, district) {
   return { items: deduped, warnings };
 }
 
-async function buildPilotCatalog({ province, district }) {
+async function buildPilotCatalog({ province, district, detailed = false }) {
   const selectedWms = WMS_CONFIGS.filter(config => matchesLocation(config, province, district));
   const items = selectedWms.map(config => ({
     id: config.key,
@@ -517,21 +517,24 @@ async function buildPilotCatalog({ province, district }) {
     updatedAt: null,
     verifiedAt: null,
     browserDirect: true,
+    quickReady: true,
     wms: directWmsDefinition(config)
   }));
   const warnings = [];
 
-  // WMS katmanları önce kullanıcının tarayıcısından doğrudan keskin karo olarak yüklenir.
-  // Doğrudan erişim başarısız olursa sunucu önbellekli proxy yedek olarak denenir.
-  const discovered = await Promise.race([
-    discoverRegionDatasets(province, district),
-    new Promise(resolve => setTimeout(() => resolve({
-      items: [],
-      warnings: ['ULASAV katalog/CSV kontrolü bu istekte zaman aşımına uğradı; kaynak bağlantıları gösterilmeye devam ediyor.']
-    }), 6500))
-  ]);
-  items.push(...discovered.items);
-  warnings.push(...discovered.warnings);
+  // Hızlı modda hazır WMS tanımları ve kaynak bağlantıları anında döner.
+  // CKAN/CSV katalog taraması yalnızca kullanıcı ayrıntılı taramayı ayrıca isterse çalışır.
+  if (detailed) {
+    const discovered = await Promise.race([
+      discoverRegionDatasets(province, district),
+      new Promise(resolve => setTimeout(() => resolve({
+        items: [],
+        warnings: ['ULASAV katalog/CSV kontrolü bu istekte zaman aşımına uğradı; hazır katmanlar gösterilmeye devam ediyor.']
+      }), 6500))
+    ]);
+    items.push(...discovered.items);
+    warnings.push(...discovered.warnings);
+  }
 
   for (const fallback of STATIC_REGION_LINKS.filter(config => matchesLocation(config, province, district))) {
     const id = `source-${normalizeTr(fallback.title).replace(/\s+/g, '-')}`;
@@ -559,7 +562,8 @@ async function buildPilotCatalog({ province, district }) {
     warnings: [...new Set(warnings)],
     licenseUrl: ULASAV_LICENSE,
     providerUrl: ULASAV_ROOT,
-    wmsLoadMode: 'hybrid-direct-proxy',
+    catalogMode: detailed ? 'detailed' : 'quick',
+    wmsLoadMode: 'fast-known-layer-with-proxy-fallback',
     supportedRegions: [
       'Kayseri: çevre düzeni planı ve idari sınırlar',
       'Tekirdağ / Çorlu: çevre düzeni planı ve belediye rayiç kayıtları',

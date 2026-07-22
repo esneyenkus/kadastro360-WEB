@@ -1,10 +1,17 @@
-KADASTRO360 WEB PILOT v1.8.5 DOĞRULAMA RAPORU
+KADASTRO360 WEB PILOT v1.8.6 DOĞRULAMA RAPORU
 
 TARİH: 22.07.2026
 VERİ MODU: live-only
 MOCK VERİ: uygulamada kapalı
 
 BU REVİZYONDA ÇALIŞTIRILAN TESTLER
+[GEÇTİ] Ayrı yönetici giriş ekranı, ikinci güvenlik kodu ve 30 dakikalık yönetici çerezi statik kontrolü
+[GEÇTİ] Erişim talebi oluşturma, listeleme ve durum güncelleme SQLite testi
+[GEÇTİ] Yönetici API uçları için korumalı oturum kontrolü
+[GEÇTİ] Hızlı açık veri kataloğunun dış katalog taramasını beklemeden dönmesi
+[GEÇTİ] Bilinen WMS katmanı önceliği ve keşfin yalnızca yedek olarak kullanılması
+[GEÇTİ] 256 px WMS proxy karosu ve önbellek testi
+[GEÇTİ] Tarayıcı JavaScript sözdizimi ve hızlı/ayrıntılı açık veri düğmeleri
 [GEÇTİ] server.js ve bütün yardımcı JavaScript dosyalarının sözdizimi
 [GEÇTİ] index.html içindeki tarayıcı JavaScript kodunun ayrıştırılması
 [GEÇTİ] Gönen benzeri kontrollü senaryoda seçilen ilçe merkezindeki bankanın bulunması
