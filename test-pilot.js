@@ -53,7 +53,7 @@ const { PNG } = require('pngjs');
   assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
   assert(server.includes('ADMIN_PANEL_PIN') && server.includes('validAdminSession') && server.includes("pathname === '/yonetim-giris'"), 'İkinci yönetici doğrulaması eksik.');
   assert(admin.includes('Gelen erişim talepleri') && admin.includes('/admin/access-requests'), 'Erişim talepleri yönetici ekranında gösterilmiyor.');
-  assert(server.includes("version: '1.8.6'"), 'Sunucu sürümü 1.8.6 değil.');
+  assert(server.includes("version: '1.8.7'"), 'Sunucu sürümü 1.8.7 değil.');
   assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
 
   assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
@@ -123,7 +123,7 @@ const { PNG } = require('pngjs');
   assert(ysk?.wms?.loadMode === 'fast-known-layer-with-proxy-fallback', 'WMS hızlı hazır katman + proxy yedek modunda değil.');
   assert(catalog.wmsLoadMode === 'fast-known-layer-with-proxy-fallback' && catalog.catalogMode === 'quick', 'Katalog hızlı WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.8.6 statik, tanıtım, rota ve açık veri doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.8.7 statik, tanıtım, rota ve açık veri doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

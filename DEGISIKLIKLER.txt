@@ -1,4 +1,4 @@
-v1.8.6
+v1.8.7
 - Gelen pilot erişim talepleri yönetici panelinde listelenir hale getirildi.
 - Talep durumları Yeni / İncelendi / Onaylandı / Reddedildi olarak yönetilebilir.
 - Yönetici için ayrı /yonetim-giris ekranı oluşturuldu.

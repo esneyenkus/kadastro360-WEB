@@ -58,7 +58,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.8.6'
+  userAgent: 'Kadastro360-Web-Pilot/1.8.7'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -490,7 +490,7 @@ async function routeOne(origin, destination) {
         if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
         try {
           const payload = await fetchJson(url.toString(), {
-            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.6', Accept: 'application/json' }
+            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.8.7', Accept: 'application/json' }
           }, 9000);
           if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
             const route = payload.routes[0];
@@ -1199,7 +1199,7 @@ async function getDistrictSearchAnchor(adminContext = {}) {
       headers: {
         Accept: 'application/json',
         'Accept-Language': 'tr-TR,tr;q=0.9',
-        'User-Agent': 'Kadastro360-Web-Pilot/1.8.6 (kadastro360.com.tr)'
+        'User-Agent': 'Kadastro360-Web-Pilot/1.8.7 (kadastro360.com.tr)'
       }
     }, 9000);
     if (!Array.isArray(rows) || !rows.length) return null;
@@ -1595,7 +1595,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.6', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.8.7', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
     }
 
     if (!TEST_PASSWORD || !SESSION_SECRET) {

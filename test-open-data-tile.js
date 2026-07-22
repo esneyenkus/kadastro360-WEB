@@ -36,7 +36,10 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
     const first = await wmsTile({ key: 'cdp-ysk', layerName: '0', version: '1.1.1', z: 8, x: 148, y: 96, size: 256 });
     assert.strictEqual(first.cache, 'MISS');
     assert.strictEqual(first.contentType, 'image/png');
-    assert(first.buffer.length > 1000);
+    assert(first.buffer.length > 0, 'WMS karo gövdesi boş döndü.');
+    const decoded = PNG.sync.read(first.buffer);
+    assert.strictEqual(decoded.width, 256, 'WMS karo genişliği beklenen değer değil.');
+    assert.strictEqual(decoded.height, 256, 'WMS karo yüksekliği beklenen değer değil.');
     const second = await wmsTile({ key: 'cdp-ysk', layerName: '0', version: '1.1.1', z: 8, x: 148, y: 96, size: 256 });
     assert.strictEqual(second.cache, 'HIT', 'İkinci WMS karo isteği önbellekten gelmedi.');
     assert.strictEqual(requests.length, 1, 'Önbellek WMS kaynağına ikinci kez istek gönderdi.');
