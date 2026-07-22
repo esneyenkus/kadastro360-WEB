@@ -1,6 +1,6 @@
 {
   "name": "kadastro360-web-pilot",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "private": true,
   "description": "Kadastro360 canlı veri web pilotu; doğrulanmış sabit pilot WMS görüntüsü, hızlandırılmış yakın yer taraması, büyütülebilir renk rehberi ve yönetimli pilot erişim",
   "main": "server.js",

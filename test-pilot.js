@@ -55,7 +55,7 @@ const { PNG } = require('pngjs');
   assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
   assert(server.includes('ADMIN_PANEL_PIN') && server.includes('validAdminSession') && server.includes("pathname === '/yonetim-giris'"), 'İkinci yönetici doğrulaması eksik.');
   assert(admin.includes('Gelen erişim talepleri') && admin.includes('/admin/access-requests'), 'Erişim talepleri yönetici ekranında gösterilmiyor.');
-  assert(server.includes("version: '1.9.1'"), 'Sunucu sürümü 1.9.1 değil.');
+  assert(server.includes("version: '1.9.2'"), 'Sunucu sürümü 1.9.2 değil.');
   assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
 
   assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
@@ -74,7 +74,7 @@ const { PNG } = require('pngjs');
   assert(html.includes('probeWmsInBrowser') && html.includes('/open-data/wms-probe'), 'WMS görsel doğrulaması eksik.');
   assert(html.includes('Şeffaf/boş WMS görüntüsü başarılı sayılmaz'), 'Boş WMS güvenlik uyarısı eksik.');
   assert(!html.includes('Servisi Aç ↗'), 'Teknik WMS XML bağlantısı kullanıcı ekranında görünmemeli.');
-  assert(html.includes('parsel merkezli yaklaşık 80 km genişliğinde tek sabit görüntü') && html.includes('yeniden WMS isteği gönderilmez'), 'Sabit pilot WMS açıklaması eksik.');
+  assert(html.includes('plan bölgesinin tamamını kapsayan genel görünüm') && html.includes('yeniden WMS isteği gönderilmez'), 'İki aşamalı tam bölgesel WMS açıklaması eksik.');
   assert(html.includes('id="legend-window"') && html.includes('Renk Rehberi') && html.includes('initDraggableLegend'), 'Taşınabilir renk rehberi eksik.');
   assert(html.includes('legend-preview-modal') && html.includes('openLegendPreview') && html.includes('openOfficialLegendPreview'), 'Tıklanabilir büyütülmüş renk rehberi önizlemesi eksik.');
   assert(html.includes('legend-official-image') && html.includes('/api/open-data/wms-legend/'), 'Aktif WMS resmî lejant görüntüsü eksik.');
@@ -85,7 +85,7 @@ const { PNG } = require('pngjs');
   assert(html.includes('createPersistentViewportWmsLayer') && html.includes('stableWmsView') && html.includes('/api/open-data/wms-snapshot/'), 'Sabit pilot WMS yüklemesi eksik.');
   assert(html.includes('knownWmsAttempts') && html.includes('findVisibleWmsAttempt') && html.includes('firstViewportSuccess'), 'Görünür WMS katman seçimi eksik.');
   assert(html.includes('externalWmsViewportUrl') && html.includes('waitForImageOverlay') && html.includes('browser-viewport'), 'Tarayıcıdan doğrudan sabit WMS yüklemesi eksik.');
-  assert(html.includes('raceViewportSources') && html.includes('server-viewport-cache') && html.includes('stable-pilot-snapshot'), 'Sabit WMS geri dönüş zinciri eksik.');
+  assert(html.includes('raceViewportSources') && html.includes('server-viewport-cache') && html.includes('regionalOverviewWmsView') && html.includes('loadRegionalOverviewLayer'), 'Ayrıntı ve bölgesel WMS geri dönüş zinciri eksik.');
   assert(html.includes('parcel-locator') && html.includes('updateParcelLocator'), 'Parsel hedef animasyonu eksik.');
   assert(html.includes('sessionStorage') && html.includes('renderNeighborhoodComparisons'), 'Aynı mahalle geçici karşılaştırma önbelleği eksik.');
   assert(html.includes('parcelHaloPane') && html.includes('bringParcelToFront'), 'Parsel üst görünürlük katmanı eksik.');
@@ -129,7 +129,7 @@ const { PNG } = require('pngjs');
   assert(ysk?.wms?.loadMode === 'stable-pilot-snapshot', 'WMS sabit pilot görünümü modunda değil.');
   assert(catalog.wmsLoadMode === 'stable-pilot-snapshot' && catalog.catalogMode === 'quick', 'Katalog sabit pilot WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.9.1 sabit doğrulanmış plan katmanı, hızlandırılmış yakın yer, büyütülebilir tam lejant, tanıtım ve rota doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.9.2 hızlı ayrıntı ve tam bölgesel plan katmanı, hızlandırılmış yakın yer, büyütülebilir tam lejant, tanıtım ve rota doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

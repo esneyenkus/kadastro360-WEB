@@ -1,3 +1,11 @@
+v1.9.2
+- Kayseri/Kocasinan testinde hızlı yüklenen fakat 80 km karede kalan plan görünümü düzeltildi.
+- Plan katmanı iki aşamalı hale getirildi: önce parsel çevresindeki hızlı ayrıntı, ardından plan servisinin tanımlı bölgesinin tamamını kapsayan genel görünüm.
+- Bölgesel genel görünüm tarayıcı ve Render önbellek yolu arasında yarışmalı yedeklemeyle yüklenir.
+- Genel görünüm hazırlanırken hızlı ayrıntı ekranda kalır; başarısız olursa kullanıcıya tek tıkla tekrar deneme düğmesi gösterilir.
+- Zoom/pan sırasında yeni WMS isteği üretilmez; ayrıntı ve bölgesel görünüm sabit kalır.
+- Katman durum metinleri, ayrıntı ve bölgesel tamamlanma aşamalarını ayrı gösterir.
+
 v1.9.1
 - WMS katmanında her zoom/pan hareketinde yeni görüntü isteme kaldırıldı.
 - Plan katmanı parsel merkezli yaklaşık 80 km genişliğinde tek sabit pilot görüntüsü olarak yüklenir; yakınlaştırma ve uzaklaştırmada katman kaybolmaz veya yarım kalmaz.

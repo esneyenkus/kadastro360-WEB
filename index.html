@@ -561,7 +561,7 @@ function renderOpenDataCatalog(data){
     const guide=item.category==='plan'?`<button type="button" class="plan-guide-btn" data-open-action="guide" data-item-id="${escapeHtml(item.id)}">Renk Rehberi</button>`:'';
     const focus=item.category==='plan'?`<button type="button" class="plan-focus-btn" data-open-action="focus" data-item-id="${escapeHtml(item.id)}">Plan Ölçeğine Git</button>`:'';
     const source=item.sourceUrl?`<a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Kaynak Sayfası ↗</a>`:'';
-    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Plan, parsel merkezli yaklaşık 80 km genişliğinde tek sabit görüntü olarak açılır. Zoom/pan sırasında yeniden WMS isteği gönderilmez; katman yarım kalmaz. Hazır katman boş dönerse resmî katman listesi bir kez kontrol edilerek görünür katman seçilir.</div>':'';
+    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Plan önce parsel çevresinde hızlı ayrıntı görüntüsüyle açılır; ardından plan bölgesinin tamamını kapsayan genel görünüm arka planda eklenir. Zoom/pan sırasında yeniden WMS isteği gönderilmez. Hazır katman boş dönerse resmî katman listesi bir kez kontrol edilerek görünür katman seçilir.</div>':'';
     card.innerHTML=`<div class="open-data-head"><div class="open-data-title">${escapeHtml(item.title)}</div><span class="open-data-kind ${kindClass}">${kindLabel}</span></div><div class="open-data-desc">${escapeHtml(item.description||'Kamuya açık veri kaynağı.')}<br><strong>Sağlayıcı:</strong> ${escapeHtml(item.provider||'Belirtilmedi')}</div>${rayicSummaryHtml(item)}<div class="open-data-fresh">${escapeHtml(openDataFreshness(item))}</div><div class="open-data-actions">${overlayButton}${focus}${guide}${source}</div>${directNote}<div class="open-data-load-status" aria-live="polite"></div>${openDataResourcesHtml(item)}`;
     list.appendChild(card);
   }
@@ -1245,6 +1245,33 @@ function stableWmsView(item){
   return view;
 }
 
+function regionalOverviewWmsView(item){
+  if(!Array.isArray(item?.wms?.bounds)||item.wms.bounds.length!==4)return null;
+  const [south,west,north,east]=item.wms.bounds.map(Number);
+  if(![south,west,north,east].every(Number.isFinite))return null;
+  const raw=L.latLngBounds([south,west],[north,east]);
+  const sw=L.CRS.EPSG3857.project(raw.getSouthWest());
+  const ne=L.CRS.EPSG3857.project(raw.getNorthEast());
+  const minX=Math.min(sw.x,ne.x),maxX=Math.max(sw.x,ne.x),minY=Math.min(sw.y,ne.y),maxY=Math.max(sw.y,ne.y);
+  const spanX=Math.max(1,maxX-minX),spanY=Math.max(1,maxY-minY);
+  const ratio=Math.max(.45,Math.min(2.8,spanX/spanY));
+  const width=1536;
+  const height=Math.max(640,Math.min(1536,Math.round(width/ratio)));
+  const centerX=(minX+maxX)/2,centerY=(minY+maxY)/2;
+  const center=L.CRS.EPSG3857.unproject(L.point(centerX,centerY));
+  const radiusMeters=Math.max(spanX,spanY)/2;
+  const serverBounds=L.latLngBounds(
+    L.CRS.EPSG3857.unproject(L.point(centerX-radiusMeters,centerY-radiusMeters)),
+    L.CRS.EPSG3857.unproject(L.point(centerX+radiusMeters,centerY+radiusMeters))
+  );
+  return {
+    bounds:raw,bbox:[minX,minY,maxX,maxY],width,height,center,
+    radiusKm:radiusMeters/1000,
+    serverBounds,
+    signature:`region:${item.wms?.key||item.id}:${Math.round(minX)}:${Math.round(minY)}:${Math.round(maxX)}:${Math.round(maxY)}:${width}x${height}`
+  };
+}
+
 function currentWmsViewport(item){
   return stableWmsView(item);
 }
@@ -1325,9 +1352,40 @@ async function firstViewportSuccess(item,attempts,view,group){
   throw new Error([...new Set(errors.filter(Boolean))].join(' · ')||'WMS görünümü yüklenemedi.');
 }
 
+async function loadRegionalOverviewLayer(item,attempt,group,controller,statusNode){
+  const view=regionalOverviewWmsView(item);
+  if(!view||controller.disposed)return false;
+  try{
+    const result=await raceViewportSources(item,attempt,view,group);
+    if(controller.disposed){result.dispose?.();return false;}
+    controller.overview?.dispose?.();
+    controller.overview={...result,view};
+    try{
+      result.layer.setOpacity?.(item.category==='ortho'?.78:.58);
+      result.layer.setZIndex?.(225);result.layer.bringToBack?.();
+      controller.current?.layer?.setZIndex?.(245);controller.current?.layer?.bringToFront?.();
+    }catch{}
+    showMapActivity('Katman tamamlandı · Bölgesel görünüm hazır','ok',2600);
+    if(statusNode){
+      statusNode.className='open-data-load-status notice ok';
+      statusNode.innerHTML='Plan katmanı tamamlandı: hızlı parsel ayrıntısı ve bölgesel genel görünüm birlikte açık.<div class="scale-note">Uzak görünümde bölgenin tamamı, yakın görünümde parsel çevresindeki daha net görüntü kullanılır; zoom/pan sırasında yeni WMS isteği gönderilmez.</div>';
+    }
+    return true;
+  }catch(error){
+    if(!controller.disposed)showMapActivity('Parsel ayrıntısı açık · Bölgesel görünüm alınamadı','warn',3200);
+    if(statusNode&&!controller.disposed){
+      statusNode.className='open-data-load-status notice warn';
+      statusNode.innerHTML=`Parsel çevresindeki ayrıntılı plan açık; bölgesel genel görünüm alınamadı. <button type="button" class="open-data-retry-overview" style="margin-left:6px;border:1px solid #c8a452;border-radius:7px;background:#fff;padding:5px 8px;font-weight:800;cursor:pointer">Genel görünümü tekrar dene</button><div class="scale-note">${escapeHtml(humanError(error))}</div>`;
+      const retry=statusNode.querySelector('.open-data-retry-overview');
+      if(retry)retry.onclick=()=>{retry.disabled=true;retry.textContent='Hazırlanıyor…';loadRegionalOverviewLayer(item,attempt,group,controller,statusNode);};
+    }
+    return false;
+  }
+}
+
 async function createPersistentViewportWmsLayer(item,statusNode,attempts){
   const group=L.layerGroup().addTo(store.map);
-  const controller={layer:group,item,current:null,disposed:false,attempt:null};
+  const controller={layer:group,item,current:null,overview:null,disposed:false,attempt:null};
   try{
     const view=stableWmsView(item);
     const initial=await firstViewportSuccess(item,attempts,view,group);
@@ -1338,13 +1396,14 @@ async function createPersistentViewportWmsLayer(item,statusNode,attempts){
   controller.refresh=()=>Promise.resolve(false);
   controller.dispose=()=>{
     if(controller.disposed)return;controller.disposed=true;
-    controller.current?.dispose?.();try{if(layerOnMap(group))store.map.removeLayer(group);}catch{}
+    controller.current?.dispose?.();controller.overview?.dispose?.();try{if(layerOnMap(group))store.map.removeLayer(group);}catch{}
   };
-  controller.loadMode='stable-pilot-snapshot';
+  controller.loadMode='detail-plus-region-overview';
   if(statusNode){
-    statusNode.className='open-data-load-status notice ok';
-    statusNode.innerHTML='Plan katmanı parsel merkezli sabit pilot görüntüsü olarak yüklendi.<div class="scale-note">Yakınlaştırma ve uzaklaştırmada yeni WMS isteği gönderilmez; katman kaybolmaz veya yarım kalmaz.</div>';
+    statusNode.className='open-data-load-status notice info';
+    statusNode.innerHTML='Parsel çevresindeki hızlı plan görüntüsü açıldı; bölgesel genel görünüm arka planda tamamlanıyor…<div class="scale-note">Mevcut ayrıntı ekranda korunur. Bölgesel görüntü hazır olduğunda katman alanı otomatik genişler.</div>';
   }
+  setTimeout(()=>loadRegionalOverviewLayer(item,controller.attempt,group,controller,statusNode),80);
   return controller;
 }
 
@@ -1415,11 +1474,11 @@ async function toggleOpenDataLayer(itemId,button){
     if(statusNode){
       statusNode.className='open-data-load-status notice ok';
       if(item.type==='wms'){
-        const modeText=row.loadMode==='stable-pilot-snapshot'?'Plan, parsel çevresini geniş ölçekte kapsayan tek sabit görüntü olarak yüklendi. Zoom/pan sırasında yeniden istek gönderilmez.':'Resmî servis görünüm görüntüsü vermediği için yedek WMS modu açıldı.';
+        const modeText=row.loadMode==='detail-plus-region-overview'?'Plan, hızlı parsel ayrıntısı ve bölgesel genel görünüm olarak yüklendi. Zoom/pan sırasında yeniden istek gönderilmez.':row.loadMode==='stable-pilot-snapshot'?'Plan, parsel çevresini kapsayan sabit görüntü olarak yüklendi.':'Resmî servis görünüm görüntüsü vermediği için yedek WMS modu açıldı.';
         statusNode.innerHTML=`${modeText}<div class="scale-note">Katman haritada sabit kalır; yarım yükleme ve her zoom hareketinde yeniden bekleme engellenmiştir. Parsel sınırı her zaman üstte tutulur.</div>`;
       }else statusNode.textContent='Katman yüklendi; mevcut harita konumu korundu.';
     }
-    updateOpenDataMapBadge();showMapActivity(row.loadMode==='stable-pilot-snapshot'?'Katman hazır · Sabit pilot görünümü etkin':'Katman hazır · WMS yedek modu etkin','ok',2600);
+    updateOpenDataMapBadge();showMapActivity(row.loadMode==='detail-plus-region-overview'?'Katman hazır · Ayrıntı ve bölgesel görünüm etkin':row.loadMode==='stable-pilot-snapshot'?'Katman hazır · Sabit pilot görünümü etkin':'Katman hazır · WMS yedek modu etkin','ok',2600);
   }catch(error){
     button.textContent='Tekrar Dene';showMapActivity(`Katman yüklenemedi: ${humanError(error)}`,'error',4200);
     if(statusNode){statusNode.className='open-data-load-status notice error';statusNode.textContent=`Katman eklenmedi: ${humanError(error)} Bu düğme katmanı yeniden indirmek için aktif bırakıldı.`;}

@@ -1,4 +1,4 @@
-KADASTRO360 WEB PILOT v1.9.1 DOĞRULAMA RAPORU
+KADASTRO360 WEB PILOT v1.9.2 DOĞRULAMA RAPORU
 
 TARİH: 22.07.2026
 VERİ MODU: live-only
@@ -54,7 +54,7 @@ Bu çalışma ortamında gerçek TKGM, Nominatim, Overpass, OSRM ve WMS uçları
 6. Ortak yol kullanan rotalarda renkler dönüşümlü görünmelidir.
 
 
-v1.9.1 EK KONTROLLER
+v1.9.2 EK KONTROLLER
 - Sabit tek-görüntü WMS uç noktası ve önbellek kontrolü.
 - Dinamik WMS lejant uç noktası.
 - Hazır planın otomatik yüklenmesi.
@@ -62,7 +62,7 @@ v1.9.1 EK KONTROLLER
 - Tam EK-1c genel renk/gösterim listesi.
 
 
-v1.9.1 EK KONTROLLER
+v1.9.2 EK KONTROLLER
 - Tarayıcıdan doğrudan resmî WMS tek-görüntü ImageOverlay yolu statik kontrolü.
 - Render önbellekli sabit görüntü yolu ve iki denemeli sunucu erişimi.
 - Sabit görüntü yolları başarısız olduğunda hafif tarayıcı WMS karo yedeği.
@@ -73,7 +73,7 @@ CANLI SINIR
 - Paket tam plan rasterını içermez. Katman adı, kapsam ve lejant tanımları paket içindedir; gerçek plan pikselleri Bakanlığın resmî WMS servisinden alınır.
 - Bu çalışma ortamında gerçek tucbs-public-api.csb.gov.tr adresine DNS erişimi bulunmadığından son canlı doğrulama Render dağıtımında Çorlu/Önerler parselinde yapılmalıdır.
 
-V1.9.1 KESİNTİSİZ KATMAN KONTROLLERİ
+V1.9.2 KESİNTİSİZ KATMAN KONTROLLERİ
 [GEÇTİ] Görünür harita alanı için tek WMS görüntüsü oluşturan ekran-bazlı yükleme akışı
 [GEÇTİ] Zoom/pan sırasında eski görüntüyü yeni görüntü tamamen yüklenene kadar koruyan değiştirme mantığı
 [GEÇTİ] Bölgesel düşük çözünürlüklü genel görünümü ayrıntılı katmanın altında tutan arka plan akışı

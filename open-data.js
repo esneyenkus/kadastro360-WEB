@@ -153,7 +153,7 @@ async function fetchBuffer(url, options = {}, timeoutMs = 10000, maxBytes = 8_00
       ...options,
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Kadastro360-Web-Pilot/1.9.1 (+stable-open-data-snapshot)',
+        'User-Agent': 'Kadastro360-Web-Pilot/1.9.2 (+stable-open-data-snapshot)',
         Accept: '*/*',
         ...(options.headers || {})
       }
