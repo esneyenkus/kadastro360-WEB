@@ -1602,7 +1602,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.9.4', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.9.4', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true });
     }
 
     if (req.method === 'GET' && pathname === '/favicon.ico') {
@@ -2037,7 +2037,30 @@ const server = http.createServer(async (req, res) => {
 });
 
 
+const REQUIRED_BRAND_ASSETS = [
+  'kadastro360-logo-horizontal.png',
+  'kadastro360-logo-vertical.png',
+  'kadastro360-mark.png',
+  'favicon.ico',
+  'favicon-32.png',
+  'favicon-16.png',
+  'apple-touch-icon.png',
+  'icon-192.png',
+  'icon-512.png'
+];
+
+function verifyBrandAssets() {
+  const missing = REQUIRED_BRAND_ASSETS.filter(name => {
+    const filePath = path.join(ROOT, 'assets', name);
+    return !fs.existsSync(filePath) || !fs.statSync(filePath).isFile() || fs.statSync(filePath).size < 100;
+  });
+  if (missing.length) {
+    throw new Error(`Kadastro360 logo dosyaları eksik: ${missing.join(', ')}. GitHub/Render yüklemesinde assets klasörünü proje köküne eksiksiz ekleyin.`);
+  }
+}
+
 function startServer() {
+  verifyBrandAssets();
   server.listen(START_PORT, HOST, () => {
     activePort = START_PORT;
     console.log(`Kadastro360 Web hazır: http://${HOST}:${activePort}`);

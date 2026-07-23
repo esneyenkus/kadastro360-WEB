@@ -1,0 +1,37 @@
+KADASTRO360 v1.9.4 KÖK — LOGO DAĞITIM DÜZELTMESİ
+
+Sorunun nedeni:
+Logo kodda tanımlı olsa bile GitHub/Render deposunda assets klasörü yoksa tarayıcı kırık görsel gösterir.
+
+GitHub'a yüklenmesi zorunlu yapı:
+
+proje-koku/
+  server.js
+  index.html
+  admin.html
+  package.json
+  package-lock.json
+  render.yaml
+  assets/
+    kadastro360-logo-horizontal.png
+    kadastro360-logo-vertical.png
+    kadastro360-mark.png
+    favicon.ico
+    favicon-32.png
+    favicon-16.png
+    apple-touch-icon.png
+    icon-192.png
+    icon-512.png
+
+ÖNEMLİ:
+1. ZIP dosyasını GitHub'a tek dosya olarak koymayın.
+2. ZIP'i bilgisayarda açın.
+3. İçindeki bütün dosyaları ve assets klasörünü depo köküne yükleyin.
+4. assets klasörü server.js ile aynı seviyede bulunmalıdır.
+5. Render yeniden dağıtımı tamamlandıktan sonra şu adresleri kontrol edin:
+   https://kadastro360.com.tr/assets/kadastro360-logo-horizontal.png
+   https://kadastro360.com.tr/assets/favicon.ico
+   https://kadastro360.com.tr/api/health
+6. /api/health içinde brandingAssets:true görülmelidir.
+
+Bu pakette test-brand-assets.js bulunur. assets klasörü eksikse Render build aşaması başarısız olur; kırık logolu sürümün yayına çıkması engellenir.

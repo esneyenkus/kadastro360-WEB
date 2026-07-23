@@ -1,0 +1,9 @@
+KADASTRO360 v1.9.4 KÖK — LOGO DÜZELTME RAPORU
+
+- Seçilen kırmızı pinli, parsel alanlı ve 360 oklu logo dosyaları assets klasöründe doğrulandı.
+- Ana sayfa, giriş alanı, uygulama başlığı ve yönetim ekranındaki logo yolları kontrol edildi.
+- Sunucu /assets/... isteklerini image/png ve image/x-icon olarak sunuyor.
+- Başlatma öncesi zorunlu logo dosyası kontrolü eklendi.
+- Render build kontrolüne test-brand-assets.js eklendi.
+- Logo dosyaları eksikse dağıtım artık sessizce kırık görselle açılmayacak; build/start açık hata verecek.
+- Uygulamanın TKGM, eğim, yakın yerler ve WMS işlevlerinde değişiklik yapılmadı.
