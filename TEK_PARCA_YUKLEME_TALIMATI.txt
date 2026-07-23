@@ -1,0 +1,30 @@
+KADASTRO360 v1.9.4 KÖK — TEK PARÇA / KLASÖRSÜZ GITHUB YÜKLEMESİ
+
+Bu pakette logo dosyalarını ayrıca yüklemeniz gerekmez.
+ensure-brand-assets.js, Render derleme sırasında assets klasörünü ve 9 marka dosyasını otomatik oluşturur.
+
+GITHUB WEB ÜZERİNDEN:
+1) Bu ZIP'i bilgisayarınızda AYRI BİR KLASÖRE ÇIKARIN.
+2) GitHub > esneyenkus/kadastro360-deneme > Add file > Upload files ekranını açın.
+3) Çıkardığınız klasörün İÇİNE girin. Dış klasörü veya ZIP'i sürüklemeyin.
+4) Ctrl+A ile içerideki tüm dosyaları seçin ve Upload files alanına sürükleyin.
+5) Altta Commit changes düğmesine basın.
+6) Render otomatik dağıtımı başlatacaktır.
+
+ÖNEMLİ DOSYALAR:
+- ensure-brand-assets.js  (logoları otomatik üretir)
+- package.json            (build ve start öncesi üretimi çalıştırır)
+- package-lock.json
+- server.js
+- index.html
+- admin.html
+- render.yaml
+
+DOĞRULAMA:
+Render logunda önce şu satır görünmelidir:
+Kadastro360 marka dosyaları hazır: 9
+Ardından:
+Logo doğrulaması geçti: 9 marka dosyası hazır.
+
+Canlı kontrol adresi:
+https://kadastro360.com.tr/assets/kadastro360-logo-horizontal.png
