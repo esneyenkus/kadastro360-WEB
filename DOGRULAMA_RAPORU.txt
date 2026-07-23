@@ -1,88 +1,57 @@
-KADASTRO360 WEB PILOT v1.9.2 DOĞRULAMA RAPORU
+KADASTRO360 WEB PILOT v1.9.4 KÖK SÜRÜM DOĞRULAMA RAPORU
 
-TARİH: 22.07.2026
+TARİH: 23.07.2026
+TABAN SÜRÜM: v1.9.3
 VERİ MODU: live-only
-MOCK VERİ: uygulamada kapalı
+MOCK VERİ: kapalı
 
-BU REVİZYONDA ÇALIŞTIRILAN TESTLER
-[GEÇTİ] Ayrı yönetici giriş ekranı, ikinci güvenlik kodu ve 30 dakikalık yönetici çerezi statik kontrolü
-[GEÇTİ] Erişim talebi oluşturma, listeleme ve durum güncelleme SQLite testi
-[GEÇTİ] Yönetici API uçları için korumalı oturum kontrolü
-[GEÇTİ] Hızlı açık veri kataloğunun dış katalog taramasını beklemeden dönmesi
-[GEÇTİ] Boş/şeffaf hazır WMS katmanının elenmesi ve görünür alt/bileşik katman seçimi
-[GEÇTİ] 256 px WMS proxy karosu ve önbellek testi
-[GEÇTİ] Sabit 40 km yarıçaplı pilot plan görüntüsü ve zoom/pan sırasında sıfır yenileme isteği statik kontrolü
-[GEÇTİ] Tarayıcı görünürlük doğrulamasının yavaş Render kontrolünü beklemeden sonuç vermesi
-[GEÇTİ] Overpass yedek/sorgu bölme sınırları ve hızlandırılmış ilçe merkezi akışı
-[GEÇTİ] Tarayıcı JavaScript sözdizimi ve hızlı/ayrıntılı açık veri düğmeleri
-[GEÇTİ] server.js ve bütün yardımcı JavaScript dosyalarının sözdizimi
-[GEÇTİ] index.html içindeki tarayıcı JavaScript kodunun ayrıştırılması
-[GEÇTİ] Gönen benzeri kontrollü senaryoda seçilen ilçe merkezindeki bankanın bulunması
-[GEÇTİ] Aynı ilçe sonucu varken açıkça Balya/komşu ilçe kayıtlı bankanın elenmesi
-[GEÇTİ] Amenity=atm etiketi bulunmayan fakat adında Bankamatik geçen gerçek kaydın ATM olarak bulunması
-[GEÇTİ] Eksik/uzak kategori için Nominatim ilçe merkezi çözümlemesi ve Overpass merkez taraması
-[GEÇTİ] İlçe merkezi önceliğinin Gönen adına sabitlenmemiş olması
-[GEÇTİ] Varış etiketi çakışma yerleşim fonksiyonunun bulunması
-[GEÇTİ] Ortak yol kesimleri için çok renkli dönüşümlü şerit fonksiyonunun bulunması
-[GEÇTİ] Mesafe/süre etiketlerini rotanın farklı noktalarına dağıtan fonksiyon
-[GEÇTİ] Dört hedefli rota ve yedek OSRM sağlayıcısı regresyon testi
-[GEÇTİ] Hızlı toplu yakın yer ve 30 dakikalık önbellek testi
-[GEÇTİ] Kırsal parselde kategori bazlı 10 → 20 → 30 km genişletme testi
+YAPILAN DEĞİŞİKLİK
+- Kullanıcının seçtiği kırmızı konum pinli, parsel haritalı ve 360 derece oklu Kadastro360 logosu entegre edildi.
+- Ana tanıtım sayfası, üye giriş alanı, uygulama sol başlığı, yönetim paneli ve yönetici giriş ekranı aynı logoya geçirildi.
+- Favicon 16/32, ICO, Apple Touch Icon ve 192/512 uygulama ikonları eklendi.
+- Logo dosyaları /assets yolundan güvenli biçimde sunuluyor.
+- Sunucu ve paket sürüm bilgisi v1.9.4 olarak güncellendi.
+
+KORUNAN İŞLEVLER
+- TKGM il → ilçe → mahalle → ada/parsel akışı
+- Eğim ve arazi analizi
+- Canlı yakın yer taraması ve ilçe önceliği
+- Çoklu yol rotası ve çakışmayan varış etiketleri
+- Endeksa ve resmî kaynak bağlantıları
+- Sabit/önbellekli WMS görüntüsü, lejant ve açık veri akışı
+- Kullanıcı, kota, deneme ve korumalı yönetici sistemi
+- Sahte, rastgele veya tahmini yakın yer üretmeme ilkesi
+
+OTOMATİK TEST SONUÇLARI
+[GEÇTİ] server.js ve yardımcı JavaScript dosyalarının sözdizimi
+[GEÇTİ] index.html ve admin.html içindeki tarayıcı JavaScript ayrıştırması
+[GEÇTİ] Ana uygulama regresyon ve canlı veri ilkesi kontrolleri
 [GEÇTİ] TKGM il → ilçe → mahalle → parsel regresyon testi
+[GEÇTİ] Dört hedefli çoklu sağlayıcı rota testi
+[GEÇTİ] WMS sabit görüntü, görünürlük, lejant ve önbellek testi
+[GEÇTİ] Hızlı toplu yakın yer ve önbellek testi
+[GEÇTİ] Kırsal parselde 30 km kategori genişletme testi
+[GEÇTİ] İlçe merkezi önceliği ve ATM fallback testi
+[GEÇTİ] Çok renkli rota ve etiket çakışma statik testi
+[GEÇTİ] Yönetici, erişim talebi ve hesap deposu testi
 
-KODDA KORUNAN KONTROLLER
-- Uygulama live-only modundadır.
-- Math.random ile sahte sonuç üretimi bulunmaz.
-- Başarısız dış servis cevabında sahte yakın yer eklenmez.
-- Düz kuş uçuşu çizgisi yol rotası olarak sunulmaz.
-- Başarısız rota hedefi sessizce atlanmaz.
+YEREL SUNUCU KONTROLLERİ
+[GEÇTİ] /api/health yanıtı: version=1.9.4, dataMode=live-only
+[GEÇTİ] Ana sayfada yeni yatay logo kaynağı
+[GEÇTİ] /assets/kadastro360-logo-horizontal.png görüntü sunumu
+[GEÇTİ] /favicon.ico görüntü sunumu
+[GEÇTİ] Pilot kullanıcı girişi sonrası /app yönlendirmesi
 
 TEST ORTAMI NOTU
-- Paket kayıt sunucusu bu çalışma anında pngjs indirmesine yanıt vermediği için `npm run check`, yalnızca test sürecinde kullanılan yerel ve bellek-içi PNG uyumluluk katmanıyla çalıştırıldı.
-- WMS BBOX, görüntü görünürlük analizi, karo cevabı ve önbellek akışları bu şekilde geçti.
-- Dağıtım paketinde bu test katmanı bulunmaz; package.json gerçek `pngjs` 7.0.0 bağımlılığını korur ve normal Render/GitHub kurulumunda `npm ci` bunu yükler.
+- Bu çalışma ortamında npm kayıt sunucusuna güvenilir erişim olmadığından otomatik testler yalnızca test sırasında oluşturulan bellek-içi PNG uyumluluk katmanıyla çalıştırıldı.
+- Bu geçici test katmanı dağıtım ZIP paketine dahil edilmedi.
+- package.json ve package-lock.json gerçek pngjs 7.0.0 bağımlılığını korur; Render/GitHub kurulumu npm ci ile gerçek paketi yükler.
 
-CANLI SERVİS SINIRI
-Bu çalışma ortamında gerçek TKGM, Nominatim, Overpass, OSRM ve WMS uçlarına güvenilir canlı erişim garanti edilemedi. Yeni ilçe önceliği ve ATM fallback akışı, gerçek API biçimini taklit eden kontrollü yerel servislerle test edildi. Son doğrulama Render dağıtımından sonra gerçek parselde yapılmalıdır.
+CANLI DIŞ SERVİS SINIRI
+- Gerçek TKGM, Nominatim, Overpass, OSRM ve Bakanlık WMS hizmetlerinin anlık erişilebilirliği dış sağlayıcılara bağlıdır.
+- Kök sürümün güvenilirliğini korumak için v1.9.3 sonrasında doğrulanmamış yeni bir WMS servisi eklenmedi.
+- v1.9.3 içinde zaten bulunan bölgesel servis tanımları ve Kayseri revizeleri aynen korundu.
 
-ÖNERİLEN CANLI TEST
-1. Gönen kırsalındaki aynı parseli açın.
-2. Tüm öncelikli yerleri aratın.
-3. Banka ve ATM sonuçlarında Gönen ilçe önceliği etiketini kontrol edin.
-4. Açıkça Balya gibi farklı ilçeye ait uzak banka, Gönen sonucu varken listede görünmemelidir.
-5. Birbirine yakın 3-5 hedef seçin; varış etiketleri birbirini kapatmamalıdır.
-6. Ortak yol kullanan rotalarda renkler dönüşümlü görünmelidir.
-
-
-v1.9.2 EK KONTROLLER
-- Sabit tek-görüntü WMS uç noktası ve önbellek kontrolü.
-- Dinamik WMS lejant uç noktası.
-- Hazır planın otomatik yüklenmesi.
-- Zoom sırasında karo yenilemeden sabit ImageOverlay kullanımı.
-- Tam EK-1c genel renk/gösterim listesi.
-
-
-v1.9.2 EK KONTROLLER
-- Tarayıcıdan doğrudan resmî WMS tek-görüntü ImageOverlay yolu statik kontrolü.
-- Render önbellekli sabit görüntü yolu ve iki denemeli sunucu erişimi.
-- Sabit görüntü yolları başarısız olduğunda hafif tarayıcı WMS karo yedeği.
-- Zoom/pan sırasında sabit ImageOverlay'nin yeniden istek üretmemesi.
-- Tekrarlanan bağlantı hatalarının birleştirilmesi ve Tekrar Dene durumu.
-
-CANLI SINIR
-- Paket tam plan rasterını içermez. Katman adı, kapsam ve lejant tanımları paket içindedir; gerçek plan pikselleri Bakanlığın resmî WMS servisinden alınır.
-- Bu çalışma ortamında gerçek tucbs-public-api.csb.gov.tr adresine DNS erişimi bulunmadığından son canlı doğrulama Render dağıtımında Çorlu/Önerler parselinde yapılmalıdır.
-
-V1.9.2 KESİNTİSİZ KATMAN KONTROLLERİ
-[GEÇTİ] Görünür harita alanı için tek WMS görüntüsü oluşturan ekran-bazlı yükleme akışı
-[GEÇTİ] Zoom/pan sırasında eski görüntüyü yeni görüntü tamamen yüklenene kadar koruyan değiştirme mantığı
-[GEÇTİ] Bölgesel düşük çözünürlüklü genel görünümü ayrıntılı katmanın altında tutan arka plan akışı
-[GEÇTİ] Tarayıcı doğrudan WMS ve Render önbellekli görüntü yollarının geri dönüş zinciri
-[GEÇTİ] Yenileme hatasında mevcut katmanı kaldırmayan koruma davranışı
-[GEÇTİ] Renk rehberi satırlarının büyütülmüş önizleme penceresi
-[GEÇTİ] Resmî WMS lejant görüntüsünün tıklanarak büyütülmesi ve kapatılması
-
-CANLI DOĞRULAMA NOTU
-- Paket tam plan rasterını içermez; gerçek plan görüntüsü Bakanlığın resmî WMS servisinden alınır.
-- Bu çalışma ortamında tucbs-public-api.csb.gov.tr için DNS çözümlemesi yapılamadığı için canlı WMS hız/başarı testi burada çalıştırılamadı.
-- Son canlı kontrol Render dağıtımından sonra Çorlu/Önerler parselinde yapılmalıdır.
+SONUÇ
+- v1.9.4, son çalışan v1.9.3 kod tabanının işlevleri bozulmadan marka/logo entegrasyonu yapılmış kök sürümüdür.
+- Değişmeden saklanacak yedek: Kadastro360-Web-Pilot-v1.9.3.zip

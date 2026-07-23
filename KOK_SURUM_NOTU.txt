@@ -1,0 +1,16 @@
+KADASTRO360 v1.9.4 KÖK SÜRÜM
+
+TABAN
+- Kadastro360-Web-Pilot-v1.9.3 üzerine kurulmuştur.
+- TKGM, eğim, yakın yerler, rota, Endeksa bağlantıları, açık veri/WMS, kullanıcı ve yönetici işlevleri korunmuştur.
+
+LOGO
+- Seçilen kırmızı konum pinli, parsel haritalı ve 360 derece oklu logo entegre edilmiştir.
+- Tanıtım sayfası, uygulama, giriş ekranı, yönetim paneli, favicon ve mobil ikonlarda aynı marka kullanılır.
+
+BÖLGE KAPSAMI
+- v1.9.3 içindeki bölgesel WMS tanımları aynen korunmuştur: Kayseri–Sivas–Yozgat; Tekirdağ–Kırklareli–Edirne; Kırıkkale; Ordu–Trabzon–Rize–Gümüşhane–Giresun–Artvin; ayrıca Görele ortofoto.
+- Kök sürümün güvenilirliğini korumak için henüz canlı testleri tamamlanmamış yeni bir WMS servisi eklenmemiştir.
+
+YEDEK
+- Kadastro360-Web-Pilot-v1.9.3.zip değişmeden saklanmalıdır.

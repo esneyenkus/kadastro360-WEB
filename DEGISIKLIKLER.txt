@@ -1,3 +1,21 @@
+KADASTRO360 WEB PILOT v1.9.4 KÖK SÜRÜM
+
+- v1.9.3 içindeki TKGM, eğim, yakın yerler, rota, açık veri/WMS, kullanıcı ve yönetim işlevleri değiştirilmeden korundu.
+- Kullanıcının seçtiği parsel haritası, kırmızı konum pini ve 360 derece oklu Kadastro360 logosu entegre edildi.
+- Ana tanıtım sayfası, uygulama başlığı, giriş alanı, yönetim paneli ve yönetici giriş ekranı aynı marka görsellerine geçirildi.
+- Favicon, Apple Touch Icon ve uygulama ikonları eklendi.
+- Logo dosyaları /assets altında tek merkezden sunulur.
+- Kararlılığı korumak için doğrulanmamış yeni WMS servisi eklenmedi; v1.9.3 kapsamındaki bölgesel servis tanımları aynen korundu.
+
+v1.9.3
+- Bölgesel genel görünüm ve hızlı yükleme korunurken parsel çevresi 6 km yarıçapta daha net ilk görüntüyle açılır.
+- Zoom 13 ve üzerinde yalnızca ekranda görünen alan arka planda yüksek çözünürlükte yenilenir.
+- Yeni net görüntü hazır olana kadar eski katman korunur; zoom sırasında boşluk veya kaybolma oluşmaz.
+- Harita uzaklaştırıldığında yüksek çözünürlüklü parça kaldırılır ve hızlı bölgesel görünüm kullanılır.
+- Geçmiş sekmesine Parseli Aç ve Parsel + Katman seçenekleri eklendi.
+- Geçmişten açılan kayıt, il/ilçe/mahalle zincirini canlı TKGM listelerinden çözerek aynı parsele gider.
+- Parsel + Katman seçeneği parseli açtıktan sonra hazır açık veri katmanını otomatik uygular.
+
 v1.9.2
 - Kayseri/Kocasinan testinde hızlı yüklenen fakat 80 km karede kalan plan görünümü düzeltildi.
 - Plan katmanı iki aşamalı hale getirildi: önce parsel çevresindeki hızlı ayrıntı, ardından plan servisinin tanımlı bölgesinin tamamını kapsayan genel görünüm.

@@ -55,7 +55,7 @@ const { PNG } = require('pngjs');
   assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
   assert(server.includes('ADMIN_PANEL_PIN') && server.includes('validAdminSession') && server.includes("pathname === '/yonetim-giris'"), 'İkinci yönetici doğrulaması eksik.');
   assert(admin.includes('Gelen erişim talepleri') && admin.includes('/admin/access-requests'), 'Erişim talepleri yönetici ekranında gösterilmiyor.');
-  assert(server.includes("version: '1.9.2'"), 'Sunucu sürümü 1.9.2 değil.');
+  assert(server.includes("version: '1.9.4'"), 'Sunucu sürümü 1.9.4 değil.');
   assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
 
   assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
@@ -73,6 +73,9 @@ const { PNG } = require('pngjs');
   assert(html.includes('discoverBrowserWmsLayers') && html.includes('waitForWmsLayer'), 'Tarayıcıdan WMS keşfi ve doğrudan karo yüklemesi eksik.');
   assert(html.includes('probeWmsInBrowser') && html.includes('/open-data/wms-probe'), 'WMS görsel doğrulaması eksik.');
   assert(html.includes('Şeffaf/boş WMS görüntüsü başarılı sayılmaz'), 'Boş WMS güvenlik uyarısı eksik.');
+  assert(html.includes('adaptive-resolution-overview') && html.includes('if(zoom<13)') && html.includes('projectedWmsView(item,store.map.getBounds())'), 'Uyarlamalı yüksek çözünürlüklü WMS görünümü eksik.');
+  assert(openDataCode.includes("stableRadiusKm: config.category === 'plan' ? 6 : 8") && openDataCode.includes("stableSize: config.category === 'plan' ? 1280 : 768"), 'Yakın plan ayrıntısı çözünürlük ayarı eksik.');
+  assert(html.includes('function reopenHistoryParcel(') && html.includes('Parsel + Katman') && html.includes("searchParcel({openDataAfter:openLayer})"), 'Geçmişten parsel ve katman açma akışı eksik.');
   assert(!html.includes('Servisi Aç ↗'), 'Teknik WMS XML bağlantısı kullanıcı ekranında görünmemeli.');
   assert(html.includes('plan bölgesinin tamamını kapsayan genel görünüm') && html.includes('yeniden WMS isteği gönderilmez'), 'İki aşamalı tam bölgesel WMS açıklaması eksik.');
   assert(html.includes('id="legend-window"') && html.includes('Renk Rehberi') && html.includes('initDraggableLegend'), 'Taşınabilir renk rehberi eksik.');
@@ -129,7 +132,7 @@ const { PNG } = require('pngjs');
   assert(ysk?.wms?.loadMode === 'stable-pilot-snapshot', 'WMS sabit pilot görünümü modunda değil.');
   assert(catalog.wmsLoadMode === 'stable-pilot-snapshot' && catalog.catalogMode === 'quick', 'Katalog sabit pilot WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.9.2 hızlı ayrıntı ve tam bölgesel plan katmanı, hızlandırılmış yakın yer, büyütülebilir tam lejant, tanıtım ve rota doğrulaması geçti.');
+  console.log('Kadastro360 Web Pilot v1.9.4 Kök Sürüm hızlı ayrıntı ve tam bölgesel plan katmanı, hızlandırılmış yakın yer, büyütülebilir tam lejant, tanıtım ve rota doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

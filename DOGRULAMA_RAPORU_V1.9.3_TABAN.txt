@@ -1,0 +1,88 @@
+KADASTRO360 WEB PILOT v1.9.3 DOĞRULAMA RAPORU
+
+TARİH: 22.07.2026
+VERİ MODU: live-only
+MOCK VERİ: uygulamada kapalı
+
+BU REVİZYONDA ÇALIŞTIRILAN TESTLER
+[GEÇTİ] Ayrı yönetici giriş ekranı, ikinci güvenlik kodu ve 30 dakikalık yönetici çerezi statik kontrolü
+[GEÇTİ] Erişim talebi oluşturma, listeleme ve durum güncelleme SQLite testi
+[GEÇTİ] Yönetici API uçları için korumalı oturum kontrolü
+[GEÇTİ] Hızlı açık veri kataloğunun dış katalog taramasını beklemeden dönmesi
+[GEÇTİ] Boş/şeffaf hazır WMS katmanının elenmesi ve görünür alt/bileşik katman seçimi
+[GEÇTİ] 256 px WMS proxy karosu ve önbellek testi
+[GEÇTİ] Sabit 40 km yarıçaplı pilot plan görüntüsü ve zoom/pan sırasında sıfır yenileme isteği statik kontrolü
+[GEÇTİ] Tarayıcı görünürlük doğrulamasının yavaş Render kontrolünü beklemeden sonuç vermesi
+[GEÇTİ] Overpass yedek/sorgu bölme sınırları ve hızlandırılmış ilçe merkezi akışı
+[GEÇTİ] Tarayıcı JavaScript sözdizimi ve hızlı/ayrıntılı açık veri düğmeleri
+[GEÇTİ] server.js ve bütün yardımcı JavaScript dosyalarının sözdizimi
+[GEÇTİ] index.html içindeki tarayıcı JavaScript kodunun ayrıştırılması
+[GEÇTİ] Gönen benzeri kontrollü senaryoda seçilen ilçe merkezindeki bankanın bulunması
+[GEÇTİ] Aynı ilçe sonucu varken açıkça Balya/komşu ilçe kayıtlı bankanın elenmesi
+[GEÇTİ] Amenity=atm etiketi bulunmayan fakat adında Bankamatik geçen gerçek kaydın ATM olarak bulunması
+[GEÇTİ] Eksik/uzak kategori için Nominatim ilçe merkezi çözümlemesi ve Overpass merkez taraması
+[GEÇTİ] İlçe merkezi önceliğinin Gönen adına sabitlenmemiş olması
+[GEÇTİ] Varış etiketi çakışma yerleşim fonksiyonunun bulunması
+[GEÇTİ] Ortak yol kesimleri için çok renkli dönüşümlü şerit fonksiyonunun bulunması
+[GEÇTİ] Mesafe/süre etiketlerini rotanın farklı noktalarına dağıtan fonksiyon
+[GEÇTİ] Dört hedefli rota ve yedek OSRM sağlayıcısı regresyon testi
+[GEÇTİ] Hızlı toplu yakın yer ve 30 dakikalık önbellek testi
+[GEÇTİ] Kırsal parselde kategori bazlı 10 → 20 → 30 km genişletme testi
+[GEÇTİ] TKGM il → ilçe → mahalle → parsel regresyon testi
+
+KODDA KORUNAN KONTROLLER
+- Uygulama live-only modundadır.
+- Math.random ile sahte sonuç üretimi bulunmaz.
+- Başarısız dış servis cevabında sahte yakın yer eklenmez.
+- Düz kuş uçuşu çizgisi yol rotası olarak sunulmaz.
+- Başarısız rota hedefi sessizce atlanmaz.
+
+TEST ORTAMI NOTU
+- Paket kayıt sunucusu bu çalışma anında pngjs indirmesine yanıt vermediği için `npm run check`, yalnızca test sürecinde kullanılan yerel ve bellek-içi PNG uyumluluk katmanıyla çalıştırıldı.
+- WMS BBOX, görüntü görünürlük analizi, karo cevabı ve önbellek akışları bu şekilde geçti.
+- Dağıtım paketinde bu test katmanı bulunmaz; package.json gerçek `pngjs` 7.0.0 bağımlılığını korur ve normal Render/GitHub kurulumunda `npm ci` bunu yükler.
+
+CANLI SERVİS SINIRI
+Bu çalışma ortamında gerçek TKGM, Nominatim, Overpass, OSRM ve WMS uçlarına güvenilir canlı erişim garanti edilemedi. Yeni ilçe önceliği ve ATM fallback akışı, gerçek API biçimini taklit eden kontrollü yerel servislerle test edildi. Son doğrulama Render dağıtımından sonra gerçek parselde yapılmalıdır.
+
+ÖNERİLEN CANLI TEST
+1. Gönen kırsalındaki aynı parseli açın.
+2. Tüm öncelikli yerleri aratın.
+3. Banka ve ATM sonuçlarında Gönen ilçe önceliği etiketini kontrol edin.
+4. Açıkça Balya gibi farklı ilçeye ait uzak banka, Gönen sonucu varken listede görünmemelidir.
+5. Birbirine yakın 3-5 hedef seçin; varış etiketleri birbirini kapatmamalıdır.
+6. Ortak yol kullanan rotalarda renkler dönüşümlü görünmelidir.
+
+
+v1.9.3 EK KONTROLLER
+- Sabit tek-görüntü WMS uç noktası ve önbellek kontrolü.
+- Dinamik WMS lejant uç noktası.
+- Hazır planın otomatik yüklenmesi.
+- Zoom sırasında karo yenilemeden sabit ImageOverlay kullanımı.
+- Tam EK-1c genel renk/gösterim listesi.
+
+
+v1.9.3 EK KONTROLLER
+- Tarayıcıdan doğrudan resmî WMS tek-görüntü ImageOverlay yolu statik kontrolü.
+- Render önbellekli sabit görüntü yolu ve iki denemeli sunucu erişimi.
+- Sabit görüntü yolları başarısız olduğunda hafif tarayıcı WMS karo yedeği.
+- Zoom/pan sırasında sabit ImageOverlay'nin yeniden istek üretmemesi.
+- Tekrarlanan bağlantı hatalarının birleştirilmesi ve Tekrar Dene durumu.
+
+CANLI SINIR
+- Paket tam plan rasterını içermez. Katman adı, kapsam ve lejant tanımları paket içindedir; gerçek plan pikselleri Bakanlığın resmî WMS servisinden alınır.
+- Bu çalışma ortamında gerçek tucbs-public-api.csb.gov.tr adresine DNS erişimi bulunmadığından son canlı doğrulama Render dağıtımında Çorlu/Önerler parselinde yapılmalıdır.
+
+V1.9.3 KESİNTİSİZ KATMAN KONTROLLERİ
+[GEÇTİ] Görünür harita alanı için tek WMS görüntüsü oluşturan ekran-bazlı yükleme akışı
+[GEÇTİ] Zoom/pan sırasında eski görüntüyü yeni görüntü tamamen yüklenene kadar koruyan değiştirme mantığı
+[GEÇTİ] Bölgesel düşük çözünürlüklü genel görünümü ayrıntılı katmanın altında tutan arka plan akışı
+[GEÇTİ] Tarayıcı doğrudan WMS ve Render önbellekli görüntü yollarının geri dönüş zinciri
+[GEÇTİ] Yenileme hatasında mevcut katmanı kaldırmayan koruma davranışı
+[GEÇTİ] Renk rehberi satırlarının büyütülmüş önizleme penceresi
+[GEÇTİ] Resmî WMS lejant görüntüsünün tıklanarak büyütülmesi ve kapatılması
+
+CANLI DOĞRULAMA NOTU
+- Paket tam plan rasterını içermez; gerçek plan görüntüsü Bakanlığın resmî WMS servisinden alınır.
+- Bu çalışma ortamında tucbs-public-api.csb.gov.tr için DNS çözümlemesi yapılamadığı için canlı WMS hız/başarı testi burada çalıştırılamadı.
+- Son canlı kontrol Render dağıtımından sonra Çorlu/Önerler parselinde yapılmalıdır.

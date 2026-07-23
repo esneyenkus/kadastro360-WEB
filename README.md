@@ -1,8 +1,12 @@
-# Kadastro360 Web Pilot v1.9.2
+# Kadastro360 Web Pilot v1.9.4 Kök Sürüm
+
+Bu paket, son çalışan v1.9.3 tabanı korunarak seçilen kırmızı pinli ve 360 oklu logonun entegre edildiği güvenli kök sürümdür. İşlevsel WMS/TKGM/yakın yer koduna yeni ve doğrulanmamış servis eklenmemiştir.
+
+# Kadastro360 Web Pilot v1.9.4 Kök Sürüm
 
 Kadastro360; TKGM parsel sorgusu, arazi eğimi, gerçek yakın yer kayıtları, yol rotaları ve açık kamu katmanlarını tek ekranda birleştiren canlı veri web pilotudur. Örnek parsel, rastgele eğim, sahte yakın yer, düz çizgiyi yol rotası gibi gösterme veya tahmini rayiç üretmez.
 
-## v1.9.2 ile gelen ana düzeltmeler
+## v1.9.3 ile gelen ana düzeltmeler
 
 - Açık plan katmanı önce parsel çevresinde hızlı ayrıntı görüntüsüyle, ardından plan bölgesinin tamamını kapsayan sabit genel görünümle yüklenir.
 - Zoom veya harita hareketinde yeni WMS isteği gönderilmez; katman yarım kalmaz ve bekleme mesajı sürekli açık kalmaz.
@@ -117,7 +121,7 @@ Render dağıtımından sonra şu adres kontrol edilir:
 https://SİTE-ADRESİ/api/health
 ```
 
-Sonuçta `version: 1.9.2` görünmelidir.
+Sonuçta `version: 1.9.3` görünmelidir.
 
 ## Önemli doğruluk notu
 

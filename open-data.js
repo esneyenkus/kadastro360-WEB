@@ -153,7 +153,7 @@ async function fetchBuffer(url, options = {}, timeoutMs = 10000, maxBytes = 8_00
       ...options,
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Kadastro360-Web-Pilot/1.9.2 (+stable-open-data-snapshot)',
+        'User-Agent': 'Kadastro360-Web-Pilot/1.9.4 (+stable-open-data-snapshot)',
         Accept: '*/*',
         ...(options.headers || {})
       }
@@ -288,10 +288,10 @@ function directWmsDefinition(config, resolved = null) {
     supportsFeatureInfo: config.category === 'plan',
     recommendedZoom: config.category === 'plan' ? 10 : null,
     probeRadiusKm: config.category === 'plan' ? 24 : 8,
-    snapshotRadiusKm: config.category === 'plan' ? 40 : 8,
-    snapshotSize: config.category === 'plan' ? 1024 : 768,
-    stableRadiusKm: config.category === 'plan' ? 40 : 8,
-    stableSize: config.category === 'plan' ? 1024 : 768,
+    snapshotRadiusKm: config.category === 'plan' ? 6 : 8,
+    snapshotSize: config.category === 'plan' ? 1280 : 768,
+    stableRadiusKm: config.category === 'plan' ? 6 : 8,
+    stableSize: config.category === 'plan' ? 1280 : 768,
     infoFormats: resolved?.infoFormats || [],
     legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
     verifiedAt: resolved?.verifiedAt || null,
