@@ -3,7 +3,7 @@ services:
     name: kadastro360-web-pilot
     runtime: node
     plan: free
-    buildCommand: npm ci --omit=dev && npm run check
+    buildCommand: npm install --omit=dev --no-audit --no-fund && npm run check
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:

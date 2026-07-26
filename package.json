@@ -1,18 +1,19 @@
 {
   "name": "kadastro360-web-pilot",
-  "version": "1.9.4-tek-parca",
+  "version": "2.0.0",
   "private": true,
-  "description": "Kadastro360 v1.9.4 kök sürüm; marka dosyalarını dağıtım sırasında otomatik üretir.",
+  "description": "Kadastro360 kullanıcı paneli, Resend davetleri, PostgreSQL kalıcı veritabanı ve mükerrer geçmiş düzeltmesi.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node ensure-brand-assets.js && node test-brand-assets.js && node --check server.js && node --check tkgm-client.js && node --check account-store.js && node --check terrain.js && node --check endeksa-utils.js && node --check open-data.js && node --check test-pilot.js && node --check test-tkgm-regression.js && node --check test-route.js && node --check test-open-data-tile.js && node --check test-poi-fast.js && node --check test-poi-rural.js && node --check test-poi-district.js && node --check test-route-visual.js && node --check test-admin.js && node test-pilot.js && node test-tkgm-regression.js && node test-route.js && node test-open-data-tile.js && node test-poi-fast.js && node test-poi-rural.js && node test-poi-district.js && node test-route-visual.js && node test-admin.js",
+    "check": "node ensure-brand-assets.js && node test-brand-assets.js && node --check server.js && node --check tkgm-client.js && node --check account-store.js && node --check mailer.js && node --check terrain.js && node --check endeksa-utils.js && node --check open-data.js && node --check test-pilot.js && node --check test-tkgm-regression.js && node --check test-route.js && node --check test-open-data-tile.js && node --check test-poi-fast.js && node --check test-poi-rural.js && node --check test-poi-district.js && node --check test-route-visual.js && node --check test-admin.js && node test-pilot.js && node test-tkgm-regression.js && node test-route.js && node test-open-data-tile.js && node test-poi-fast.js && node test-poi-rural.js && node test-poi-district.js && node test-route-visual.js && node test-admin.js",
     "prestart": "node ensure-brand-assets.js"
   },
   "engines": {
     "node": "22.x"
   },
   "dependencies": {
-    "pngjs": "^7.0.0"
+    "pngjs": "^7.0.0",
+    "pg": "^8.16.3"
   }
 }

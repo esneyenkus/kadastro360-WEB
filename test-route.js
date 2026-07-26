@@ -110,6 +110,9 @@ async function freePort() {
     cwd: __dirname,
     env: {
       ...process.env,
+      DATABASE_URL: '',
+      RESEND_API_KEY: '',
+      MAIL_FROM: '',
       HOST: '127.0.0.1',
       PORT: String(appPort),
       COOKIE_SECURE: '0',

@@ -7,6 +7,8 @@ const server = fs.readFileSync('server.js', 'utf8');
 const html = fs.readFileSync('index.html', 'utf8');
 const admin = fs.readFileSync('admin.html', 'utf8');
 const account = fs.readFileSync('account-store.js', 'utf8');
+const accountPage = fs.readFileSync('account.html', 'utf8');
+const mailer = fs.readFileSync('mailer.js', 'utf8');
 const openDataCode = fs.readFileSync('open-data.js', 'utf8');
 const tkgmCode = fs.readFileSync('tkgm-client.js', 'utf8');
 const {
@@ -31,6 +33,12 @@ const { PNG } = require('pngjs');
     /pathname === '\/api\/history'/,
     /pathname === '\/api\/admin\/users'/,
     /pathname === '\/api\/admin\/access-requests'/,
+    /access-requests.*invite/,
+    /pathname === '\/api\/admin\/site-content'/,
+    /pathname === '\/hesabim'/,
+    /pathname === '\/parolami-unuttum'/,
+    /pathname === '\/davet'/,
+    /pathname === '\/parola-yenile'/,
     /pathname === '\/yonetim-giris'/,
     /pathname === '\/api\/open-data\/catalog'/,
     /pathname === '\/api\/open-data\/geojson'/,
@@ -42,12 +50,13 @@ const { PNG } = require('pngjs');
   ]) assert(pattern.test(server), `Eksik rota: ${pattern}`);
 
   const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(code => code.trim());
+  const accountScripts = [...accountPage.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(code => code.trim());
   const adminScripts = [...admin.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(code => code.trim());
-  for (const [index, code] of [...inlineScripts, ...adminScripts].entries()) {
+  for (const [index, code] of [...inlineScripts, ...adminScripts, ...accountScripts].entries()) {
     new vm.Script(code, { filename: `inline-script-${index + 1}.js` });
   }
 
-  const allCode = server + html + account + openDataCode + tkgmCode;
+  const allCode = server + html + admin + accountPage + account + mailer + openDataCode + tkgmCode;
   assert(!/Math\.random\s*\(/.test(allCode), 'Uygulama kodunda rastgele veri üretimi bulunmamalı.');
   assert(!/mockData\s*:\s*true/.test(server + html), 'Mock veri açık olmamalı.');
   assert(server.includes("dataMode: 'live-only'"), 'Canlı veri modu belirtilmemiş.');
@@ -55,7 +64,14 @@ const { PNG } = require('pngjs');
   assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
   assert(server.includes('ADMIN_PANEL_PIN') && server.includes('validAdminSession') && server.includes("pathname === '/yonetim-giris'"), 'İkinci yönetici doğrulaması eksik.');
   assert(admin.includes('Gelen erişim talepleri') && admin.includes('/admin/access-requests'), 'Erişim talepleri yönetici ekranında gösterilmiyor.');
-  assert(server.includes("version: '1.9.4'"), 'Sunucu sürümü 1.9.4 değil.');
+  assert(server.includes("version: '2.0.0'"), 'Sunucu sürümü 2.0.0 değil.');
+  assert(!server.includes('Kadastro360 Web Pilot</div>') && !html.includes('<title>Kadastro360 — Web Pilot'), 'Görünür Web Pilot ifadesi kaldırılmamış.');
+  assert(allCode.includes('info@kadastro360.com.tr') && server.includes('contactEmail'), 'İletişim e-posta alanı eksik.');
+  assert(account.includes('history_key') && account.includes('ON CONFLICT(username,history_key)'), 'Mükerrer geçmiş engeli eksik.');
+  assert(account.includes("this.provider = this.databaseUrl ? 'postgres' : 'sqlite'") && account.includes("require('pg')"), 'PostgreSQL kalıcı veritabanı geçişi eksik.');
+  assert(mailer.includes('api.resend.com/emails') && server.includes('RESEND_API_KEY'), 'Resend davet ve parola e-postası eksik.');
+  assert(accountPage.includes('Profil bilgileri') && accountPage.includes('/me/password'), 'Geliştirilmiş kullanıcı paneli eksik.');
+  assert(admin.includes('Onayla ve davet gönder') && admin.includes('Ana sayfa ve iletişim içeriği'), 'Yönetim paneli davet veya içerik bölümü eksik.');
   assert(tkgmCode.includes('TKGM, seçilen mahallede bu ada/parsel kaydını bulamadı'), 'TKGM parsel bulunamadı mesajı eksik.');
 
   assert(tkgmCode.includes('normalizeAdminItems'), 'TKGM idari veri normalizasyonu eksik.');
@@ -132,7 +148,7 @@ const { PNG } = require('pngjs');
   assert(ysk?.wms?.loadMode === 'stable-pilot-snapshot', 'WMS sabit pilot görünümü modunda değil.');
   assert(catalog.wmsLoadMode === 'stable-pilot-snapshot' && catalog.catalogMode === 'quick', 'Katalog sabit pilot WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 Web Pilot v1.9.4 Kök Sürüm hızlı ayrıntı ve tam bölgesel plan katmanı, hızlandırılmış yakın yer, büyütülebilir tam lejant, tanıtım ve rota doğrulaması geçti.');
+  console.log('Kadastro360 v2.0 kullanıcı paneli, kalıcı veritabanı, Resend, mükerrer geçmiş ve mevcut harita özellikleri doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

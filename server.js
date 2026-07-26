@@ -7,7 +7,8 @@ const crypto = require('crypto');
 const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first');
 const { analyzeTerrain } = require('./terrain');
-const { AccountStore } = require('./account-store');
+const { AccountStore, DEFAULT_SITE_CONTENT } = require('./account-store');
+const { KadastroMailer } = require('./mailer');
 const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo, wmsProbe, wmsSnapshot, wmsLegend, wmsTile } = require('./open-data');
 const { TKGMClient, sourcesFromEnvironment } = require('./tkgm-client');
 
@@ -24,6 +25,12 @@ const COOKIE_SECURE = process.env.COOKIE_SECURE !== '0';
 const ROOT = __dirname;
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const DEFAULT_DAILY_QUOTA = Math.max(1, Number(process.env.DEFAULT_DAILY_QUOTA) || 20);
+const DATABASE_URL = String(process.env.DATABASE_URL || '').trim();
+const DB_SSL = String(process.env.DB_SSL || 'true').toLowerCase() !== 'false';
+const DB_SSL_REJECT_UNAUTHORIZED = String(process.env.DB_SSL_REJECT_UNAUTHORIZED || 'false').toLowerCase() === 'true';
+const APP_BASE_URL = String(process.env.APP_BASE_URL || 'https://kadastro360.com.tr').trim().replace(/\/$/, '');
+const INVITE_TTL_HOURS = Math.max(1, Math.min(168, Number(process.env.INVITE_TTL_HOURS) || 48));
+const RESET_TTL_HOURS = Math.max(1, Math.min(24, Number(process.env.RESET_TTL_HOURS) || 2));
 const NOMINATIM_BASE_URL = String(process.env.NOMINATIM_BASE_URL || 'https://nominatim.openstreetmap.org').replace(/\/$/, '');
 const ROUTING_BASE_URLS = (() => {
   const explicitList = String(process.env.ROUTING_BASE_URLS || '').split(',').map(value => value.trim()).filter(Boolean);
@@ -38,8 +45,18 @@ const accounts = new AccountStore({
   dataDir: DATA_DIR,
   adminUsername: TEST_USERNAME,
   adminPassword: TEST_PASSWORD,
-  defaultDailyQuota: DEFAULT_DAILY_QUOTA
+  defaultDailyQuota: DEFAULT_DAILY_QUOTA,
+  databaseUrl: DATABASE_URL,
+  dbSsl: DB_SSL,
+  dbSslRejectUnauthorized: DB_SSL_REJECT_UNAUTHORIZED
 });
+const mailer = new KadastroMailer({
+  apiKey: process.env.RESEND_API_KEY,
+  from: process.env.MAIL_FROM,
+  replyTo: process.env.MAIL_REPLY_TO,
+  appBaseUrl: APP_BASE_URL
+});
+let siteContent = { ...DEFAULT_SITE_CONTENT };
 
 const serviceHealth = {
   tkgm: { status: 'unknown', lastSuccessAt: null, lastErrorAt: null, message: 'Henüz kontrol edilmedi.' },
@@ -108,7 +125,7 @@ function signSession(username, expiresAt) {
   return Buffer.from(`${payload}|${signature}`, 'utf8').toString('base64url');
 }
 
-function validSession(req) {
+async function validSession(req) {
   if (!TEST_PASSWORD || !SESSION_SECRET) return null;
   const token = parseCookies(req).kadastro360_session;
   if (!token) return null;
@@ -122,7 +139,7 @@ function validSession(req) {
     const a = Buffer.from(signature || '', 'hex');
     const b = Buffer.from(expected, 'hex');
     if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
-    const user = accounts.getUser(username);
+    const user = await accounts.getUser(username);
     if (!user?.active) return null;
     if (user.trialEndsAt && Date.parse(user.trialEndsAt) <= Date.now()) return null;
     return user;
@@ -160,7 +177,7 @@ function adminLoginPage(message = '', configured = Boolean(ADMIN_PANEL_PIN)) {
   const alert = message ? `<div class="alert">${escapeHtml(message)}</div>` : '';
   const setup = configured ? '' : '<div class="setup">Render Environment bölümüne <strong>ADMIN_PANEL_PIN</strong> adında, tahmin edilmesi zor ayrı bir güvenlik kodu eklenmeden yönetim paneli açılmaz.</div>';
   return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kadastro360 Yönetici Girişi</title><link rel="icon" href="/assets/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png"><style>
-  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#173d4d,#0d1f29 60%,#08141b);font-family:Arial,sans-serif;color:#17212b;padding:20px}.box{width:min(440px,100%);background:#fff;border-radius:20px;padding:26px;box-shadow:0 30px 90px rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.5)}.login-logo{display:block;width:min(290px,90%);height:auto;margin:0 0 16px}.mark{display:inline-flex;padding:6px 10px;border-radius:99px;background:#eef8f4;color:#0e6b51;font-size:11px;font-weight:900}.title{font-size:28px;font-weight:900;margin:14px 0 5px}.sub{color:#62727c;font-size:13px;line-height:1.6;margin-bottom:18px}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:12px;font-weight:800;color:#2c4350}.field input{width:100%;height:43px;border:1px solid #c8d3da;border-radius:11px;padding:0 12px;font-size:15px}.button{width:100%;border:0;border-radius:11px;padding:13px;background:#0e6b51;color:#fff;font-size:14px;font-weight:900;cursor:pointer;margin-top:8px}.alert,.setup{padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.55;margin-bottom:12px}.alert{background:#fff0f0;color:#982d2d;border:1px solid #efc3c3}.setup{background:#fff8e7;color:#72520d;border:1px solid #ecd69e}.foot{display:flex;justify-content:space-between;gap:12px;margin-top:16px;font-size:12px}.foot a{color:#315fae;text-decoration:none;font-weight:800}</style></head><body><main class="box"><img class="login-logo" src="/assets/kadastro360-logo-horizontal.png?v=20260723-2" alt="Kadastro360"><div class="mark">KORUMALI YÖNETİM ALANI</div><div class="title">Kadastro360 Yönetici</div><div class="sub">Normal kullanıcı girişinden bağımsız olarak yönetici hesabı, parolası ve ikinci güvenlik kodu birlikte doğrulanır. Yönetici yetkisi 30 dakika sonra yeniden istenir.</div>${alert}${setup}<form method="post" action="/yonetim-giris"><div class="field"><label>Yönetici kullanıcı adı</label><input name="username" autocomplete="username" required></div><div class="field"><label>Yönetici parolası</label><input name="password" type="password" autocomplete="current-password" required></div><div class="field"><label>Yönetim güvenlik kodu</label><input name="adminPin" type="password" inputmode="numeric" autocomplete="one-time-code" required></div><button class="button" type="submit" ${configured ? '' : 'disabled'}>Yönetim paneline gir</button></form><div class="foot"><a href="/">Ana sayfa</a><a href="/app">Uygulama</a></div></main></body></html>`;
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#173d4d,#0d1f29 60%,#08141b);font-family:Arial,sans-serif;color:#17212b;padding:20px}.box{width:min(440px,100%);background:#fff;border-radius:20px;padding:26px;box-shadow:0 30px 90px rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.5)}.login-logo{display:block;width:min(290px,90%);height:auto;margin:0 0 16px}.mark{display:inline-flex;padding:6px 10px;border-radius:99px;background:#eef8f4;color:#0e6b51;font-size:11px;font-weight:900}.title{font-size:28px;font-weight:900;margin:14px 0 5px}.sub{color:#62727c;font-size:13px;line-height:1.6;margin-bottom:18px}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:12px;font-weight:800;color:#2c4350}.field input{width:100%;height:43px;border:1px solid #c8d3da;border-radius:11px;padding:0 12px;font-size:15px}.button{width:100%;border:0;border-radius:11px;padding:13px;background:#0e6b51;color:#fff;font-size:14px;font-weight:900;cursor:pointer;margin-top:8px}.alert,.setup{padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.55;margin-bottom:12px}.alert{background:#fff0f0;color:#982d2d;border:1px solid #efc3c3}.setup{background:#fff8e7;color:#72520d;border:1px solid #ecd69e}.foot{display:flex;justify-content:space-between;gap:12px;margin-top:16px;font-size:12px}.foot a{color:#315fae;text-decoration:none;font-weight:800}</style></head><body><main class="box"><img class="login-logo" src="/assets/kadastro360-logo-horizontal.png" alt="Kadastro360"><div class="mark">KORUMALI YÖNETİM ALANI</div><div class="title">Kadastro360 Yönetici</div><div class="sub">Normal kullanıcı girişinden bağımsız olarak yönetici hesabı, parolası ve ikinci güvenlik kodu birlikte doğrulanır. Yönetici yetkisi 30 dakika sonra yeniden istenir.</div>${alert}${setup}<form method="post" action="/yonetim-giris"><div class="field"><label>Yönetici kullanıcı adı</label><input name="username" autocomplete="username" required></div><div class="field"><label>Yönetici parolası</label><input name="password" type="password" autocomplete="current-password" required></div><div class="field"><label>Yönetim güvenlik kodu</label><input name="adminPin" type="password" inputmode="numeric" autocomplete="one-time-code" required></div><button class="button" type="submit" ${configured ? '' : 'disabled'}>Yönetim paneline gir</button></form><div class="foot"><a href="/">Ana sayfa</a><a href="/app">Uygulama</a></div></main></body></html>`;
 }
 
 function sendHtml(res, status, html, extraHeaders = {}) {
@@ -179,6 +196,7 @@ function sendHtml(res, status, html, extraHeaders = {}) {
 }
 
 function marketingPage({ loginMessage = '', requestMessage = '', requestOk = false, user = null } = {}) {
+  const content = siteContent || DEFAULT_SITE_CONTENT;
   const safeLogin = loginMessage ? `<div class="msg error">${escapeHtml(loginMessage)}</div>` : '';
   const safeRequest = requestMessage ? `<div class="msg ${requestOk ? 'success' : 'error'}">${escapeHtml(requestMessage)}</div>` : '';
   const userPanel = user ? `
@@ -189,6 +207,7 @@ function marketingPage({ loginMessage = '', requestMessage = '', requestOk = fal
       </div>
       <div class="session-actions">
         <a class="mini-btn primary" href="/app">Uygulamayı Aç</a>
+        <a class="mini-btn" href="/hesabim">Hesabım</a>
         <a class="mini-btn" href="/logout">Çıkış</a>
       </div>
     </div>` : '';
@@ -206,7 +225,7 @@ function marketingPage({ loginMessage = '', requestMessage = '', requestOk = fal
     @media (max-width:700px){.page{padding:14px}.hero-main{padding:20px}.brand-logo-main{width:240px}.hero-main h1{font-size:34px}.cta-row{flex-direction:column}.btn{width:100%}.topbar{flex-direction:column;align-items:flex-start}.map-surface{height:210px}}
   </style></head><body><div class="page"><div class="shell">
     <div class="topbar">
-      <div><img class="brand-logo-main" src="/assets/kadastro360-logo-horizontal.png?v=20260723-2" alt="Kadastro360"><div class="brand-sub">Parsel sorgusu, eğim analizi, yakın yerler ve açık kamu katmanları tek ekranda.</div></div>
+      <div><img class="brand-logo-main" src="/assets/kadastro360-logo-horizontal.png" alt="Kadastro360"><div class="brand-sub">Parsel sorgusu, eğim analizi, yakın yerler ve açık kamu katmanları tek ekranda.</div></div>
       <div class="top-actions">
         <div class="top-pill">Canlı veri · TKGM + OSM + açık veri</div>
         <a class="top-link" href="#erişim">Pilot erişim</a>
@@ -215,9 +234,9 @@ function marketingPage({ loginMessage = '', requestMessage = '', requestOk = fal
     </div>
     <div class="hero">
       <section class="card hero-main">
-        <div class="eyebrow">Kadastro360 Web Pilot</div>
-        <h1>Parsel bilgisini, eğimi ve yakın çevreyi tek bakışta yönetin.</h1>
-        <p>Kadastro360; il → ilçe → mahalle → ada → parsel sorgusunu, canlı parsel konumunu, gerçek eğim analizini, yakın okul-market-cami-eczane-banka-ATM-hastane-otogar-tren garı-havaalanı sonuçlarını ve açık kamu katmanlarını tek bir arayüzde toplar.</p>
+        <div class="eyebrow">${escapeHtml(content.heroBadge)}</div>
+        <h1>${escapeHtml(content.heroTitle)}</h1>
+        <p>${escapeHtml(content.heroDescription)}</p>
         <div class="cta-row">
           ${user ? `<a class="btn primary" href="/app">Uygulamaya gir</a>` : `<a class="btn primary" href="#giris">Pilot hesaba giriş yap</a>`}
           <a class="btn secondary" href="#nasil">Nasıl çalışır?</a>
@@ -250,7 +269,7 @@ function marketingPage({ loginMessage = '', requestMessage = '', requestOk = fal
         </div>
       </section>
       <aside class="card auth" id="giris">
-        <img class="auth-logo" src="/assets/kadastro360-logo-horizontal.png?v=20260723-2" alt="Kadastro360">
+        <img class="auth-logo" src="/assets/kadastro360-logo-horizontal.png" alt="Kadastro360">
         <h2>Hızlı erişim</h2>
         <p class="auth-sub">Pilot kullanıcılar giriş yapabilir. Yeni test kullanıcıları ise aşağıdaki formdan erişim talebi bırakabilir.</p>
         ${userPanel}
@@ -265,7 +284,7 @@ function marketingPage({ loginMessage = '', requestMessage = '', requestOk = fal
               <div class="field"><label>Parola</label><input name="password" type="password" autocomplete="current-password" required></div>
               <button class="submit" type="submit">Giriş yap</button>
             </form>
-            <div class="helper">Bu pilot yalnızca canlı veri kaynakları kullanır; örnek veya sanal yakın yer verisi üretmez.</div>
+            <div class="helper">Sistem yalnızca canlı veri kaynakları kullanır; örnek veya sanal yakın yer verisi üretmez.<br><a href="/parolami-unuttum" style="color:#315fae;font-weight:800">Parolamı unuttum</a></div>
           </section>
           <section class="auth-box" id="erişim">
             <h3>Üye ol / pilot erişim talebi</h3>
@@ -288,8 +307,35 @@ function marketingPage({ loginMessage = '', requestMessage = '', requestOk = fal
       <article class="info-card"><h3>Neler var?</h3><ul><li>TKGM tabanlı parsel akışı</li><li>Yakın okul, market, cami, eczane, banka, ATM, hastane</li><li>Otogar, tren garı/istasyonu, havaalanı</li><li>Yol rotası ve mesafe/süre bilgisi</li><li>Açık kamu katmanları ve plan odaklı görünüm</li></ul></article>
       <article class="info-card"><h3>Neden Kadastro360?</h3><p>Hedef; emlak ve arazi kararında birden fazla ekran, dağınık servis ve yavaş iş akışı yerine tek bir çalışma yüzeyi sunmaktır. Pilot sürüm düzenli olarak gerçek kullanım geri bildirimleriyle geliştirilmektedir.</p></article>
     </section>
-    <div class="footer-note">Kadastro360 Web Pilot · Canlı veri odaklı test yayını. Uygulamaya giriş yapan kullanıcılar kendi hesap kotası dahilinde sorgu yapabilir.</div>
+    <div class="footer-note">${escapeHtml(content.footerNote)}<br><strong>İletişim:</strong> <a href="mailto:${escapeHtml(content.contactEmail)}" style="color:#0e6b51;font-weight:800">${escapeHtml(content.contactEmail)}</a></div>
   </div></div></body></html>`;
+}
+
+
+function publicAccountFormPage({ mode = 'forgot', token = '', message = '', ok = false } = {}) {
+  const isForgot = mode === 'forgot';
+  const isInvite = mode === 'invite';
+  const title = isForgot ? 'Parolamı unuttum' : isInvite ? 'Kadastro360 hesabını etkinleştir' : 'Yeni parola belirle';
+  const subtitle = isForgot
+    ? 'Kullanıcı adınızı veya hesabınıza kayıtlı e-posta adresini girin.'
+    : isInvite
+      ? 'Davet bağlantınızla hesabınızı etkinleştirin ve güvenli parolanızı belirleyin.'
+      : 'Parola yenileme bağlantınızla yeni parolanızı belirleyin.';
+  const action = isForgot ? '/parolami-unuttum' : isInvite ? '/davet' : '/parola-yenile';
+  const alert = message ? `<div class="notice ${ok ? 'ok' : 'error'}">${escapeHtml(message)}</div>` : '';
+  const form = ok && !isForgot ? `<a class="button" href="/">Giriş sayfasına dön</a>` : isForgot ? `
+    <form method="post" action="${action}">
+      <div class="field"><label>Kullanıcı adı veya e-posta</label><input name="identifier" autocomplete="username" required></div>
+      <button class="button" type="submit">Yenileme bağlantısı gönder</button>
+    </form>` : `
+    <form method="post" action="${action}">
+      <input type="hidden" name="token" value="${escapeHtml(token)}">
+      <div class="field"><label>Yeni parola</label><input name="password" type="password" minlength="8" autocomplete="new-password" required></div>
+      <div class="field"><label>Yeni parola tekrar</label><input name="passwordAgain" type="password" minlength="8" autocomplete="new-password" required></div>
+      <button class="button" type="submit">${isInvite ? 'Hesabımı etkinleştir' : 'Parolamı yenile'}</button>
+    </form>`;
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)} · Kadastro360</title><link rel="icon" href="/assets/favicon.ico"><style>
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at top,#e6f4ef,#eef3f6 58%,#dfe8ed);font-family:Arial,sans-serif;color:#16222d}.card{width:min(470px,100%);background:#fff;border:1px solid #d8e0e7;border-radius:22px;padding:26px;box-shadow:0 28px 80px rgba(10,38,55,.18)}.logo{display:block;width:250px;max-width:85%;height:auto;margin:0 0 18px}.tag{display:inline-flex;padding:6px 10px;border-radius:99px;background:#eef8f4;color:#0e6b51;font-size:11px;font-weight:900}h1{font-size:27px;margin:14px 0 7px}.sub{font-size:13px;line-height:1.65;color:#5d6c76;margin:0 0 18px}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:12px;font-weight:800}.field input{height:44px;border:1px solid #c8d3da;border-radius:11px;padding:0 12px;font-size:15px}.button{display:block;width:100%;border:0;border-radius:11px;padding:13px;background:#0e6b51;color:#fff;text-align:center;text-decoration:none;font-size:14px;font-weight:900;cursor:pointer;margin-top:10px}.notice{padding:11px 12px;border-radius:10px;font-size:12px;line-height:1.55;margin-bottom:12px}.notice.ok{background:#eefaf5;color:#0e6b51;border:1px solid #b8e0cf}.notice.error{background:#fff1f1;color:#8d2c2c;border:1px solid #efc3c3}.foot{display:flex;justify-content:space-between;gap:12px;margin-top:18px;font-size:12px}.foot a{color:#315fae;text-decoration:none;font-weight:800}</style></head><body><main class="card"><img class="logo" src="/assets/kadastro360-logo-horizontal.png" alt="Kadastro360"><div class="tag">GÜVENLİ HESAP İŞLEMİ</div><h1>${escapeHtml(title)}</h1><p class="sub">${escapeHtml(subtitle)}</p>${alert}${form}<div class="foot"><a href="/">Ana sayfa</a><a href="mailto:${escapeHtml(siteContent.contactEmail)}">${escapeHtml(siteContent.contactEmail)}</a></div></main></body></html>`;
 }
 
 
@@ -1602,7 +1648,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360-web-pilot', version: '1.9.4', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
     }
 
     if (req.method === 'GET' && pathname === '/favicon.ico') {
@@ -1621,10 +1667,10 @@ const server = http.createServer(async (req, res) => {
       return sendHtml(res, 503, '<h1>Kadastro360 kurulumu tamamlanmadı</h1><p>Sunucuda TEST_PASSWORD ve SESSION_SECRET ayarlanmalıdır.</p>');
     }
 
-    const sessionUser = validSession(req);
+    const sessionUser = await validSession(req);
 
     if (req.method === 'GET' && pathname === '/') {
-      return sendHtml(res, 200, marketingPage({ user: sessionUser ? accounts.publicUser(sessionUser) : null }));
+      return sendHtml(res, 200, marketingPage({ user: sessionUser ? await accounts.publicUser(sessionUser) : null }));
     }
 
     if (req.method === 'GET' && pathname === '/login') {
@@ -1643,7 +1689,7 @@ const server = http.createServer(async (req, res) => {
         if (String(form.get('website') || '').trim()) {
           return sendHtml(res, 400, marketingPage({ requestMessage: 'Erişim talebi doğrulanamadı.' }));
         }
-        accounts.createAccessRequest({
+        await accounts.createAccessRequest({
           fullName: form.get('fullName') || '',
           company: form.get('company') || '',
           email: form.get('email') || '',
@@ -1651,13 +1697,13 @@ const server = http.createServer(async (req, res) => {
           note: form.get('note') || ''
         });
         return sendHtml(res, 200, marketingPage({
-          user: sessionUser ? accounts.publicUser(sessionUser) : null,
+          user: sessionUser ? await accounts.publicUser(sessionUser) : null,
           requestOk: true,
           requestMessage: 'Erişim talebiniz alındı. Uygun görülen test kullanıcılarına hesap açılacaktır.'
         }));
       } catch (error) {
         return sendHtml(res, 400, marketingPage({
-          user: sessionUser ? accounts.publicUser(sessionUser) : null,
+          user: sessionUser ? await accounts.publicUser(sessionUser) : null,
           requestMessage: error.message || 'Erişim talebi kaydedilemedi.'
         }));
       }
@@ -1670,7 +1716,7 @@ const server = http.createServer(async (req, res) => {
       if (loginBlocked(req, username)) {
         return sendHtml(res, 429, marketingPage({ loginMessage: 'Çok fazla başarısız giriş yapıldı. 15 dakika sonra tekrar deneyin.' }));
       }
-      const user = accounts.authenticate(username, password);
+      const user = await accounts.authenticate(username, password);
       if (!user) {
         recordLoginFailure(req, username);
         return sendHtml(res, 401, marketingPage({ loginMessage: 'Kullanıcı adı, parola veya hesap süresi geçersiz.' }));
@@ -1702,7 +1748,7 @@ const server = http.createServer(async (req, res) => {
       if (loginBlocked(req, failureName)) {
         return sendHtml(res, 429, adminLoginPage('Çok fazla başarısız yönetici girişi yapıldı. 15 dakika sonra tekrar deneyin.'));
       }
-      const user = accounts.authenticate(username, password);
+      const user = await accounts.authenticate(username, password);
       const pinOk = secureEqual(adminPin, ADMIN_PANEL_PIN);
       if (!user || user.role !== 'admin' || !pinOk) {
         recordLoginFailure(req, failureName);
@@ -1734,12 +1780,73 @@ const server = http.createServer(async (req, res) => {
       return res.end();
     }
 
+    if (req.method === 'GET' && pathname === '/parolami-unuttum') {
+      return sendHtml(res, 200, publicAccountFormPage({ mode: 'forgot' }));
+    }
+    if (req.method === 'POST' && pathname === '/parolami-unuttum') {
+      try {
+        if (!publicFormAllowed(req, 'password-reset')) {
+          return sendHtml(res, 429, publicAccountFormPage({ mode: 'forgot', message: 'Kısa sürede çok fazla istek gönderildi. Lütfen daha sonra tekrar deneyin.' }));
+        }
+        const form = await readFormBody(req);
+        const reset = await accounts.createPasswordReset(form.get('identifier') || '', RESET_TTL_HOURS);
+        if (reset) {
+          if (!mailer.enabled) throw new Error('E-posta servisi henüz hazır değil.');
+          await mailer.sendPasswordReset({
+            to: reset.user.email,
+            fullName: reset.user.fullName,
+            username: reset.user.username,
+            token: reset.token,
+            expiresAt: reset.expiresAt
+          });
+        }
+        return sendHtml(res, 200, publicAccountFormPage({ mode: 'forgot', ok: true, message: 'Bilgiler bir hesapla eşleşiyorsa parola yenileme bağlantısı e-posta adresine gönderildi.' }));
+      } catch (error) {
+        return sendHtml(res, 400, publicAccountFormPage({ mode: 'forgot', message: error.message || 'Parola yenileme isteği gönderilemedi.' }));
+      }
+    }
+    if (req.method === 'GET' && pathname === '/davet') {
+      return sendHtml(res, 200, publicAccountFormPage({ mode: 'invite', token: requestUrl.searchParams.get('token') || '' }));
+    }
+    if (req.method === 'POST' && pathname === '/davet') {
+      const form = await readFormBody(req);
+      const token = form.get('token') || '';
+      const password = form.get('password') || '';
+      const passwordAgain = form.get('passwordAgain') || '';
+      try {
+        if (password !== passwordAgain) throw new Error('Parolalar birbiriyle aynı değil.');
+        await accounts.completeInvite(token, password);
+        return sendHtml(res, 200, publicAccountFormPage({ mode: 'invite', ok: true, message: 'Hesabınız etkinleştirildi. Artık kullanıcı adınız ve yeni parolanızla giriş yapabilirsiniz.' }));
+      } catch (error) {
+        return sendHtml(res, 400, publicAccountFormPage({ mode: 'invite', token, message: error.message || 'Davet bağlantısı kullanılamadı.' }));
+      }
+    }
+    if (req.method === 'GET' && pathname === '/parola-yenile') {
+      return sendHtml(res, 200, publicAccountFormPage({ mode: 'reset', token: requestUrl.searchParams.get('token') || '' }));
+    }
+    if (req.method === 'POST' && pathname === '/parola-yenile') {
+      const form = await readFormBody(req);
+      const token = form.get('token') || '';
+      const password = form.get('password') || '';
+      const passwordAgain = form.get('passwordAgain') || '';
+      try {
+        if (password !== passwordAgain) throw new Error('Parolalar birbiriyle aynı değil.');
+        await accounts.resetPassword(token, password);
+        return sendHtml(res, 200, publicAccountFormPage({ mode: 'reset', ok: true, message: 'Parolanız yenilendi. Yeni parolanızla giriş yapabilirsiniz.' }));
+      } catch (error) {
+        return sendHtml(res, 400, publicAccountFormPage({ mode: 'reset', token, message: error.message || 'Parola yenilenemedi.' }));
+      }
+    }
+
     if (!sessionUser) {
       if (pathname.startsWith('/api/')) return sendJson(res, 401, { error: 'Oturum gerekli.' });
       res.writeHead(302, { Location: '/' }); return res.end();
     }
     if (req.method === 'GET' && (pathname === '/app' || pathname === '/index.html')) {
       return sendFile(res, path.join(ROOT, 'index.html'), 'text/html; charset=utf-8');
+    }
+    if (req.method === 'GET' && pathname === '/hesabim') {
+      return sendFile(res, path.join(ROOT, 'account.html'), 'text/html; charset=utf-8');
     }
     if (req.method === 'GET' && pathname === '/endeksa-utils.js') {
       return sendFile(res, path.join(ROOT, 'endeksa-utils.js'), 'application/javascript; charset=utf-8');
@@ -1752,10 +1859,18 @@ const server = http.createServer(async (req, res) => {
     }
     let match;
     if (req.method === 'GET' && pathname === '/api/me') {
-      return sendJson(res, 200, accounts.publicUser(sessionUser));
+      return sendJson(res, 200, await accounts.publicUser(sessionUser));
+    }
+    if (req.method === 'PATCH' && pathname === '/api/me') {
+      return sendJson(res, 200, { user: await accounts.updateProfile(sessionUser.username, await readJsonBody(req)) });
+    }
+    if (req.method === 'POST' && pathname === '/api/me/password') {
+      const body = await readJsonBody(req);
+      await accounts.changePassword(sessionUser.username, body.currentPassword, body.newPassword);
+      return sendJson(res, 200, { ok: true });
     }
     if (req.method === 'GET' && pathname === '/api/history') {
-      return sendJson(res, 200, { items: accounts.history(sessionUser.username, requestUrl.searchParams.get('limit') || 30) });
+      return sendJson(res, 200, { items: await accounts.history(sessionUser.username, requestUrl.searchParams.get('limit') || 30) });
     }
     if (req.method === 'GET' && pathname === '/api/services') {
       return sendJson(res, 200, { updatedAt: new Date().toISOString(), services: serviceHealth });
@@ -1843,25 +1958,59 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && pathname === '/api/admin/users') {
       if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
-      return sendJson(res, 200, { users: accounts.listUsers() });
+      return sendJson(res, 200, { users: await accounts.listUsers() });
     }
     if (req.method === 'POST' && pathname === '/api/admin/users') {
       if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
-      return sendJson(res, 201, { user: accounts.createUser(await readJsonBody(req)) });
+      return sendJson(res, 201, { user: await accounts.createUser(await readJsonBody(req)) });
     }
     match = pathname.match(/^\/api\/admin\/users\/([^/]+)$/);
     if (req.method === 'PATCH' && match) {
       if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
-      return sendJson(res, 200, { user: accounts.updateUser(decodeURIComponent(match[1]), await readJsonBody(req)) });
+      return sendJson(res, 200, { user: await accounts.updateUser(decodeURIComponent(match[1]), await readJsonBody(req)) });
     }
     if (req.method === 'GET' && pathname === '/api/admin/access-requests') {
       if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
-      return sendJson(res, 200, { requests: accounts.listAccessRequests(requestUrl.searchParams.get('limit') || 200) });
+      return sendJson(res, 200, { requests: await accounts.listAccessRequests(requestUrl.searchParams.get('limit') || 200) });
     }
     match = pathname.match(/^\/api\/admin\/access-requests\/(\d+)$/);
     if (req.method === 'PATCH' && match) {
       if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
-      return sendJson(res, 200, { request: accounts.updateAccessRequest(Number(match[1]), await readJsonBody(req)) });
+      return sendJson(res, 200, { request: await accounts.updateAccessRequest(Number(match[1]), await readJsonBody(req)) });
+    }
+    match = pathname.match(/^\/api\/admin\/access-requests\/(\d+)\/invite$/);
+    if (req.method === 'POST' && match) {
+      if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
+      if (!mailer.enabled) return sendJson(res, 503, { error: 'Resend e-posta ayarları tamamlanmadı.' });
+      const body = await readJsonBody(req);
+      const invitation = await accounts.prepareInviteFromRequest(Number(match[1]), {
+        username: body.username,
+        dailyQuota: body.dailyQuota,
+        trialDays: body.trialDays,
+        ttlHours: INVITE_TTL_HOURS
+      });
+      await mailer.sendInvite({
+        to: invitation.request.email,
+        fullName: invitation.request.fullName,
+        username: invitation.user.username,
+        token: invitation.token,
+        expiresAt: invitation.expiresAt
+      });
+      return sendJson(res, 200, {
+        ok: true,
+        user: invitation.user,
+        request: await accounts.getAccessRequest(Number(match[1])),
+        expiresAt: invitation.expiresAt
+      });
+    }
+    if (req.method === 'GET' && pathname === '/api/admin/site-content') {
+      if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
+      return sendJson(res, 200, { content: siteContent, mailEnabled: mailer.enabled, databaseProvider: accounts.provider });
+    }
+    if (req.method === 'PATCH' && pathname === '/api/admin/site-content') {
+      if (sessionUser.role !== 'admin' || !validAdminSession(req, sessionUser)) return sendJson(res, 403, { error: 'Korumalı yönetici oturumu gerekli.' });
+      siteContent = await accounts.updateSiteContent(await readJsonBody(req));
+      return sendJson(res, 200, { content: siteContent });
     }
     if (req.method === 'GET' && pathname === '/api/iller') {
       const result = await tkgmClient.getAdminList('province');
@@ -1901,7 +2050,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     async function handleParcelLookup({ mahalleId, blockNo, parcelNo, source }) {
-      const allowance = accounts.canQuery(sessionUser);
+      const allowance = await accounts.canQuery(sessionUser);
       if (!allowance.ok) {
         const quotaError = new Error(allowance.reason);
         quotaError.httpStatus = 429;
@@ -1925,7 +2074,7 @@ const server = http.createServer(async (req, res) => {
       if (feature?.geometry) {
         const props = feature.properties || {};
         const center = geometryCenter(feature.geometry);
-        accounts.logQuery({
+        await accounts.logQuery({
           username: sessionUser.username,
           province: firstProperty(props, ['ilAd','ilAdi','IL_AD','il']),
           district: firstProperty(props, ['ilceAd','ilceAdi','ILCE_AD','ilce']),
@@ -2059,15 +2208,28 @@ function verifyBrandAssets() {
   }
 }
 
-function startServer() {
+async function startServer() {
+  await accounts.init();
+  siteContent = await accounts.getSiteContent();
   verifyBrandAssets();
   server.listen(START_PORT, HOST, () => {
     activePort = START_PORT;
-    console.log(`Kadastro360 Web hazır: http://${HOST}:${activePort}`);
+    console.log(`Kadastro360 Web hazır: http://${HOST}:${activePort} · Veritabanı: ${accounts.provider} · E-posta: ${mailer.enabled ? 'aktif' : 'pasif'}`);
   });
 }
 
-if (require.main === module) startServer();
+if (require.main === module) {
+  startServer().catch(error => {
+    console.error('[BAŞLATMA HATASI]', error);
+    process.exitCode = 1;
+  });
+  const shutdown = async () => {
+    try { await accounts.close(); } catch {}
+    process.exit(0);
+  };
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
+}
 
 module.exports = {
   CATEGORY_QUERIES,

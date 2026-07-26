@@ -89,6 +89,9 @@ function waitForLine(child, pattern, timeoutMs = 10000) {
     cwd: __dirname,
     env: {
       ...process.env,
+      DATABASE_URL: '',
+      RESEND_API_KEY: '',
+      MAIL_FROM: '',
       HOST: '127.0.0.1',
       PORT: String(appPort),
       TEST_USERNAME: 'admin',
