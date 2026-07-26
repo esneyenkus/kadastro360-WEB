@@ -1648,7 +1648,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.0', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.1-admin-hotfix', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
     }
 
     if (req.method === 'GET' && pathname === '/favicon.ico') {
@@ -1748,11 +1748,25 @@ const server = http.createServer(async (req, res) => {
       if (loginBlocked(req, failureName)) {
         return sendHtml(res, 429, adminLoginPage('Çok fazla başarısız yönetici girişi yapıldı. 15 dakika sonra tekrar deneyin.'));
       }
-      const user = await accounts.authenticate(username, password);
-      const pinOk = secureEqual(adminPin, ADMIN_PANEL_PIN);
-      if (!user || user.role !== 'admin' || !pinOk) {
+      // Yönetici hesabı Render Environment değişkenleriyle yönetilir.
+      // Veritabanı taşıma/sıfırlama durumunda eski yönetici parolasının kilitlenmemesi için
+      // yönetici girişi doğrudan TEST_USERNAME, TEST_PASSWORD ve ADMIN_PANEL_PIN ile doğrulanır.
+      const configuredUsername = String(TEST_USERNAME || '').trim().toLocaleLowerCase('tr-TR');
+      const submittedUsername = String(username || '').trim().toLocaleLowerCase('tr-TR');
+      const credentialsOk = Boolean(TEST_PASSWORD)
+        && secureEqual(submittedUsername, configuredUsername)
+        && secureEqual(password, TEST_PASSWORD)
+        && secureEqual(adminPin, ADMIN_PANEL_PIN);
+      if (!credentialsOk) {
         recordLoginFailure(req, failureName);
         return sendHtml(res, 401, adminLoginPage('Yönetici bilgileri veya güvenlik kodu geçersiz.'));
+      }
+      // Ortam değişkenleri doğrulandıktan sonra veritabanındaki yönetici kaydını da aynı
+      // bilgilerle eşitle. Böylece SQLite/PostgreSQL geçişleri mevcut girişi bozmaz.
+      await accounts.seedAdmin();
+      const user = await accounts.getUser(TEST_USERNAME);
+      if (!user || user.role !== 'admin' || !user.active) {
+        return sendHtml(res, 503, adminLoginPage('Yönetici hesabı veritabanında hazırlanamadı. Lütfen yeniden deneyin.'));
       }
       clearLoginFailures(req, failureName);
       const sessionExpiresAt = Date.now() + SESSION_MAX_AGE_SECONDS * 1000;
