@@ -64,7 +64,7 @@ const { PNG } = require('pngjs');
   assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
   assert(server.includes('ADMIN_PANEL_PIN') && server.includes('validAdminSession') && server.includes("pathname === '/yonetim-giris'"), 'İkinci yönetici doğrulaması eksik.');
   assert(admin.includes('Gelen erişim talepleri') && admin.includes('/admin/access-requests'), 'Erişim talepleri yönetici ekranında gösterilmiyor.');
-  assert(server.includes("version: '2.0.0'"), 'Sunucu sürümü 2.0.0 değil.');
+  assert(server.includes("version: '2.0.1-admin-hotfix'"), 'Sunucu sürümü 2.0.1-admin-hotfix değil.');
   assert(!server.includes('Kadastro360 Web Pilot</div>') && !html.includes('<title>Kadastro360 — Web Pilot'), 'Görünür Web Pilot ifadesi kaldırılmamış.');
   assert(allCode.includes('info@kadastro360.com.tr') && server.includes('contactEmail'), 'İletişim e-posta alanı eksik.');
   assert(account.includes('history_key') && account.includes('ON CONFLICT(username,history_key)'), 'Mükerrer geçmiş engeli eksik.');
