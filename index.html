@@ -565,7 +565,7 @@ function renderOpenDataCatalog(data){
     const guide=item.category==='plan'?`<button type="button" class="plan-guide-btn" data-open-action="guide" data-item-id="${escapeHtml(item.id)}">Renk Rehberi</button>`:'';
     const focus=item.category==='plan'?`<button type="button" class="plan-focus-btn" data-open-action="focus" data-item-id="${escapeHtml(item.id)}">Plan Ölçeğine Git</button>`:'';
     const source=item.sourceUrl?`<a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Kaynak Sayfası ↗</a>`:'';
-    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Plan önce çalışan sabit parsel görünümüyle açılır; uygun olduğunda yakın görünüm daha net görüntüyle yenilenir. Yeni görüntü alınamazsa çalışan katman kaldırılmaz. Hazır katman boş dönerse resmî katman listesi kontrol edilir.</div>':'';
+    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Plan yalnızca haritada görünen alan için yüklenir. Zoom veya kaydırmada yeni görüntü hazır olduğunda eski görünüm tek parça hâlinde değiştirilir; bulanık genel plan ayrıca üst üste bindirilmez.</div>':'';
     card.innerHTML=`<div class="open-data-head"><div class="open-data-title">${escapeHtml(item.title)}</div><span class="open-data-kind ${kindClass}">${kindLabel}</span></div><div class="open-data-desc">${escapeHtml(item.description||'Kamuya açık veri kaynağı.')}<br><strong>Sağlayıcı:</strong> ${escapeHtml(item.provider||'Belirtilmedi')}</div>${rayicSummaryHtml(item)}<div class="open-data-fresh">${escapeHtml(openDataFreshness(item))}</div><div class="open-data-actions">${overlayButton}${focus}${guide}${source}</div>${directNote}<div class="open-data-load-status" aria-live="polite"></div>${openDataResourcesHtml(item)}`;
     list.appendChild(card);
   }
@@ -1194,31 +1194,35 @@ function clippedWmsLatLngBounds(item,bounds){
 
 function projectedWmsView(item,bounds,{overview=false}={}){
   let target=clippedWmsLatLngBounds(item,bounds);
-  const sw=L.CRS.EPSG3857.project(target.getSouthWest());
-  const ne=L.CRS.EPSG3857.project(target.getNorthEast());
+  let sw=L.CRS.EPSG3857.project(target.getSouthWest());
+  let ne=L.CRS.EPSG3857.project(target.getNorthEast());
   let minX=Math.min(sw.x,ne.x),maxX=Math.max(sw.x,ne.x),minY=Math.min(sw.y,ne.y),maxY=Math.max(sw.y,ne.y);
-  if(!overview&&item.category==='plan'){
-    const minHalfSpan=6000;
-    const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
-    if((maxX-minX)/2<minHalfSpan){minX=cx-minHalfSpan;maxX=cx+minHalfSpan;}
-    if((maxY-minY)/2<minHalfSpan){minY=cy-minHalfSpan;maxY=cy+minHalfSpan;}
+
+  // Görüntü yalnızca ekranda görünen alan için istenir. Önceki sürümde plan
+  // katmanları en az 12 km'lik sabit bir kareye zorlandığı için parsel çevresinde
+  // net bir kare, çevresinde ise büyütülmüş ve bulanık bir genel plan oluşuyordu.
+  // Küçük bir tampon, kaydırma sırasında kenar boşluğu bırakır; görüntü ölçeğini bozmaz.
+  if(!overview){
+    const spanX=Math.max(120,maxX-minX),spanY=Math.max(120,maxY-minY);
+    const padX=Math.max(40,spanX*.08),padY=Math.max(40,spanY*.08);
     target=clippedWmsLatLngBounds(item,L.latLngBounds(
-      L.CRS.EPSG3857.unproject(L.point(minX,minY)),
-      L.CRS.EPSG3857.unproject(L.point(maxX,maxY))
+      L.CRS.EPSG3857.unproject(L.point(minX-padX,minY-padY)),
+      L.CRS.EPSG3857.unproject(L.point(maxX+padX,maxY+padY))
     ));
-    const clippedSw=L.CRS.EPSG3857.project(target.getSouthWest());
-    const clippedNe=L.CRS.EPSG3857.project(target.getNorthEast());
-    minX=Math.min(clippedSw.x,clippedNe.x);maxX=Math.max(clippedSw.x,clippedNe.x);minY=Math.min(clippedSw.y,clippedNe.y);maxY=Math.max(clippedSw.y,clippedNe.y);
+    sw=L.CRS.EPSG3857.project(target.getSouthWest());
+    ne=L.CRS.EPSG3857.project(target.getNorthEast());
+    minX=Math.min(sw.x,ne.x);maxX=Math.max(sw.x,ne.x);minY=Math.min(sw.y,ne.y);maxY=Math.max(sw.y,ne.y);
   }
+
   const mapSize=store.map.getSize();
   let width,height;
   if(overview){
     const ratio=Math.max(.45,Math.min(2.8,(maxX-minX)/Math.max(1,maxY-minY)));
     width=1280;height=Math.max(480,Math.min(1024,Math.round(width/ratio)));
   }else{
-    const pixelRatio=Math.max(1.25,Math.min(2,Number(window.devicePixelRatio)||1));
-    width=Math.max(768,Math.min(1800,Math.round(mapSize.x*pixelRatio)));
-    height=Math.max(520,Math.min(1500,Math.round(mapSize.y*pixelRatio)));
+    const pixelRatio=Math.max(1.5,Math.min(2.25,Number(window.devicePixelRatio)||1));
+    width=Math.max(1024,Math.min(2048,Math.round(mapSize.x*pixelRatio)));
+    height=Math.max(720,Math.min(1800,Math.round(mapSize.y*pixelRatio)));
   }
   const centerX=(minX+maxX)/2,centerY=(minY+maxY)/2;
   const radiusMeters=Math.max((maxX-minX)/2,(maxY-minY)/2);
@@ -1229,8 +1233,8 @@ function projectedWmsView(item,bounds,{overview=false}={}){
   const center=L.CRS.EPSG3857.unproject(L.point(centerX,centerY));
   return {
     bounds:target,bbox:[minX,minY,maxX,maxY],width,height,center,
-    radiusKm:Math.max(3,Math.min(40,radiusMeters/1000)),serverBounds:squareBounds,
-    signature:[minX,minY,maxX,maxY].map(value=>Math.round(value/100)*100).join(':')+`:${width}x${height}`
+    radiusKm:Math.max(.2,Math.min(80,radiusMeters/1000)),serverBounds:squareBounds,
+    signature:[minX,minY,maxX,maxY].map(value=>Math.round(value/20)*20).join(':')+`:${width}x${height}`
   };
 }
 
@@ -1389,53 +1393,74 @@ async function loadRegionalOverviewLayer(item,attempt,group,controller,statusNod
 
 async function createPersistentViewportWmsLayer(item,statusNode,attempts){
   const group=L.layerGroup().addTo(store.map);
-  const controller={layer:group,item,current:null,overview:null,focus:null,disposed:false,attempt:null,focusTimer:null,focusRequestId:0,lastFocusSignature:''};
-  const clearFocus=()=>{controller.focus?.dispose?.();controller.focus=null;controller.lastFocusSignature='';};
-  const refreshFocus=async(force=false)=>{
+  const controller={layer:group,item,current:null,disposed:false,attempt:null,refreshTimer:null,requestId:0,lastSignature:'',bounds:null};
+
+  const loadCurrentViewport=async(force=false)=>{
     if(controller.disposed||!store.map||!layerOnMap(group))return false;
-    const zoom=store.map.getZoom();
-    if(zoom<13){clearFocus();return false;}
     const view=projectedWmsView(item,store.map.getBounds());
-    const signature=`z${zoom}:${view.signature}`;
-    if(!force&&signature===controller.lastFocusSignature)return false;
-    const requestId=++controller.focusRequestId;
-    controller.lastFocusSignature=signature;
+    const signature=`z${store.map.getZoom()}:${view.signature}`;
+    if(!force&&signature===controller.lastSignature)return false;
+    const requestId=++controller.requestId;
+    const candidateAttempts=controller.attempt?[controller.attempt]:attempts;
     try{
-      const result=await firstViewportSuccess(item,[controller.attempt],view,group);
-      if(controller.disposed||requestId!==controller.focusRequestId){result.dispose?.();return false;}
-      const old=controller.focus;controller.focus={...result,view};
-      try{result.layer.setOpacity?.(item.category==='ortho'?.88:.70);result.layer.setZIndex?.(270);result.layer.bringToFront?.();bringParcelToFront();}catch{}
-      old?.dispose?.();
-      if(statusNode){statusNode.className='open-data-load-status notice ok';statusNode.innerHTML='Plan katmanı açık. Yakın görünüm yüksek çözünürlükte yenilendi.<div class="scale-note">Uzak görünüm hızlı genel katmanı kullanır; zoom 13 ve üzerinde yalnızca ekrandaki alan netleştirilir. Eski görüntü yenisi hazır olana kadar korunur.</div>';}
+      const result=await firstViewportSuccess(item,candidateAttempts,view,group);
+      if(controller.disposed||requestId!==controller.requestId){result.dispose?.();return false;}
+      const previous=controller.current;
+      controller.current={...result,view};
+      controller.attempt=result.attempt;
+      controller.bounds=view.bounds;
+      controller.lastSignature=signature;
+      try{
+        result.layer.setOpacity?.(item.category==='ortho'?.88:.68);
+        result.layer.setZIndex?.(245);
+        result.layer.bringToFront?.();
+        bringParcelToFront();
+      }catch{}
+      // Yeni görüntü tamamen yüklendikten sonra eski görünüm kaldırılır. Böylece
+      // zoom ve kaydırmada boş ekran oluşmaz; iki farklı çözünürlük üst üste kalmaz.
+      previous?.dispose?.();
+      if(statusNode){
+        statusNode.className='open-data-load-status notice ok';
+        statusNode.innerHTML='Plan katmanı açık. Haritada görünen alan kendi ölçeğinde yenilendi.<div class="scale-note">Zoom veya kaydırma sonrasında yalnızca yeni görünüm hazır olduğunda eskisi değiştirilir; bulanık bölgesel görüntü ayrıca üst üste bindirilmez.</div>';
+      }
       return true;
     }catch(error){
-      if(requestId===controller.focusRequestId&&statusNode){statusNode.className='open-data-load-status notice warn';statusNode.innerHTML=`Genel plan açık; yüksek çözünürlüklü yakın görünüm alınamadı.<div class="scale-note">${escapeHtml(humanError(error))} Mevcut katman korunuyor.</div>`;}
+      if(requestId===controller.requestId&&statusNode){
+        statusNode.className=controller.current?'open-data-load-status notice warn':'open-data-load-status notice error';
+        statusNode.innerHTML=controller.current
+          ?`Yeni harita görünümü alınamadı; çalışan görünüm korunuyor.<div class="scale-note">${escapeHtml(humanError(error))}</div>`
+          :`Plan görüntüsü yüklenemedi.<div class="scale-note">${escapeHtml(humanError(error))}</div>`;
+      }
+      if(!controller.current)throw error;
       return false;
     }
   };
-  const scheduleFocus=(force=false)=>{clearTimeout(controller.focusTimer);controller.focusTimer=setTimeout(()=>refreshFocus(force),force?80:650);};
-  try{
-    const view=stableWmsView(item);
-    const initial=await firstViewportSuccess(item,attempts,view,group);
-    controller.current=initial;controller.attempt=initial.attempt;
-    controller.bounds=view.bounds;
-    try{initial.layer.setZIndex?.(245);initial.layer.bringToFront?.();}catch{}
-  }catch(error){try{store.map.removeLayer(group);}catch{}throw error;}
-  const mapRefresh=()=>scheduleFocus(false);
-  store.map.on('moveend zoomend',mapRefresh);
-  controller.refresh=force=>{scheduleFocus(Boolean(force));return Promise.resolve(true);};
-  controller.dispose=()=>{
-    if(controller.disposed)return;controller.disposed=true;clearTimeout(controller.focusTimer);controller.focusRequestId++;
-    store.map.off('moveend zoomend',mapRefresh);
-    controller.current?.dispose?.();controller.overview?.dispose?.();clearFocus();try{if(layerOnMap(group))store.map.removeLayer(group);}catch{}
+
+  const scheduleRefresh=(force=false)=>{
+    clearTimeout(controller.refreshTimer);
+    controller.refreshTimer=setTimeout(()=>loadCurrentViewport(force),force?80:520);
   };
-  controller.loadMode='adaptive-resolution-overview';
-  if(statusNode){
-    statusNode.className='open-data-load-status notice info';
-    statusNode.innerHTML='Net parsel çevresi açıldı; bölgesel genel görünüm arka planda tamamlanıyor…<div class="scale-note">Zoom 13 ve üzerinde yalnızca görünen alan daha yüksek çözünürlükte yenilenir; hızlı genel katman ve sınırlar korunur.</div>';
+
+  try{
+    await loadCurrentViewport(true);
+  }catch(error){
+    try{store.map.removeLayer(group);}catch{}
+    throw error;
   }
-  setTimeout(()=>loadRegionalOverviewLayer(item,controller.attempt,group,controller,statusNode),80);
-  scheduleFocus(true);
+
+  const mapRefresh=()=>scheduleRefresh(false);
+  store.map.on('moveend zoomend',mapRefresh);
+  controller.refresh=force=>{scheduleRefresh(Boolean(force));return Promise.resolve(true);};
+  controller.dispose=()=>{
+    if(controller.disposed)return;
+    controller.disposed=true;
+    clearTimeout(controller.refreshTimer);
+    controller.requestId++;
+    store.map.off('moveend zoomend',mapRefresh);
+    controller.current?.dispose?.();
+    try{if(layerOnMap(group))store.map.removeLayer(group);}catch{}
+  };
+  controller.loadMode='single-viewport-resolution';
   return controller;
 }
 

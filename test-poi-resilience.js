@@ -24,6 +24,7 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
   let phase = 'cache-success';
   let failedMarketRequests = 0;
   let failedSchoolRequests = 0;
+  let combinedCategoryQueries = 0;
   const mock = http.createServer((req, res) => {
     let body = '';
     req.on('data', chunk => { body += chunk; });
@@ -32,6 +33,8 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
       const isSchool = /school|kindergarten|college|university/.test(query);
       const isMarket = /supermarket|convenience|grocery|greengrocer/.test(query);
       const isHospital = /amenity"="hospital|healthcare"="hospital|building"="hospital/.test(query);
+      const categoryHits = [isSchool,isMarket,isHospital,/amenity"="bank/.test(query),/amenity"="atm/.test(query)].filter(Boolean).length;
+      if (categoryHits > 1) combinedCategoryQueries++;
 
       if (phase === 'cache-fail' && isSchool) {
         failedSchoolRequests++;
@@ -77,6 +80,10 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
     const initial = await getPoi(40.2, 27.2, '10000', 'school', null);
     assert(initial.items.some(item => item.type === 'school'), 'İlk başarılı canlı okul sonucu alınamadı.');
 
+    const isolatedTenKm = await getPoi(40.25, 27.25, '10000', 'all', null);
+    assert(isolatedTenKm.items.some(item => item.type === 'school'), '10 km tüm kategoriler aramasında okul bulunamadı.');
+    assert(combinedCategoryQueries <= 3, `10 km aramasında gereğinden fazla birleşik sorgu oluştu: ${combinedCategoryQueries}`);
+
     phase = 'cache-fail';
     const preserved = await getPoi(40.2, 27.2, '30000', 'school', null);
     assert(failedSchoolRequests >= 1, '30 km okul servis hatası tetiklenmedi.');
@@ -96,7 +103,7 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
   } finally {
     await close(mock);
   }
-  console.log('Kadastro360 30 km kategori yalıtımı, son başarılı sonuç koruma ve hastane sınıflandırma testi geçti.');
+  console.log('Kadastro360 10/30 km kategori yalıtımı, son başarılı sonuç koruma ve hastane sınıflandırma testi geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

@@ -77,7 +77,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360/2.0.5'
+  userAgent: 'Kadastro360/2.0.6'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -87,9 +87,11 @@ const OVERPASS_ENDPOINTS = (() => {
   const explicit = String(process.env.OVERPASS_BASE_URLS || '').split(',').map(value => value.trim()).filter(Boolean);
   if (explicit.length) return explicit.map((url, index) => ({ name: `Özel Overpass ${index + 1}`, url }));
   return [
-    { name: 'VK Maps Overpass', url: 'https://maps.mail.ru/osm/tools/overpass/api/interpreter' },
+    // Render çıkışlarında en kararlı iki global örnek önce denenir. VK Maps yedek
+    // olarak tutulur; tek bir sunucunun geçici sorunu bütün kategorileri düşürmez.
+    { name: 'Private.coffee Overpass', url: 'https://overpass.private.coffee/api/interpreter' },
     { name: 'FOSSGIS Overpass', url: 'https://overpass-api.de/api/interpreter' },
-    { name: 'Private.coffee Overpass', url: 'https://overpass.private.coffee/api/interpreter' }
+    { name: 'VK Maps Overpass', url: 'https://maps.mail.ru/osm/tools/overpass/api/interpreter' }
   ];
 })();
 
@@ -541,7 +543,7 @@ async function routeOne(origin, destination) {
         if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
         try {
           const payload = await fetchJson(url.toString(), {
-            headers: { 'User-Agent': 'Kadastro360/2.0.5', Accept: 'application/json' }
+            headers: { 'User-Agent': 'Kadastro360/2.0.6', Accept: 'application/json' }
           }, 9000);
           if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
             const route = payload.routes[0];
@@ -933,14 +935,14 @@ async function runOverpassSelectors(lat, lng, radius, selectors, options = {}) {
   for (const endpoint of endpoints) {
     const startedAt = Date.now();
     try {
-      const requestTimeoutMs = radius >= 20000 ? 15000 : radius >= 10000 ? 12000 : 8000;
+      const requestTimeoutMs = radius >= 20000 ? 18000 : radius >= 10000 ? 15000 : 11000;
       const data = await fetchJson(endpoint.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
           Accept: 'application/json',
           'Accept-Language': 'tr-TR,tr;q=0.9',
-          'User-Agent': 'Kadastro360/2.0.5 (kadastro360.com.tr)'
+          'User-Agent': 'Kadastro360/2.0.6 (kadastro360.com.tr)'
         },
         body
       }, requestTimeoutMs);
@@ -958,7 +960,7 @@ async function runOverpassSelectors(lat, lng, radius, selectors, options = {}) {
 
 async function runSelectorSetResilient(lat, lng, radius, selectors, depth = 0) {
   try {
-    const result = await runOverpassSelectors(lat, lng, radius, selectors, { bypassHealth: depth > 0, maxEndpoints: 2 });
+    const result = await runOverpassSelectors(lat, lng, radius, selectors, { bypassHealth: depth > 0, maxEndpoints: 3 });
     return {
       elements: Array.isArray(result.data?.elements) ? result.data.elements : [],
       providers: [result.endpoint],
@@ -1027,8 +1029,8 @@ async function mapLimit(values, limit, mapper) {
 }
 
 const POI_CATEGORY_BATCHES = [
-  ['school', 'market', 'mosque', 'pharmacy', 'hospital'],
-  ['bank', 'atm'],
+  ['school', 'market', 'mosque'],
+  ['pharmacy', 'hospital', 'bank', 'atm'],
   ['beach', 'bus_terminal', 'train_station', 'airport']
 ];
 
@@ -1052,30 +1054,64 @@ async function queryCategoriesAtRadius(lat, lng, radius, categories) {
     ? requested.map(key => [key])
     : POI_CATEGORY_BATCHES.map(batch => batch.filter(key => requested.includes(key))).filter(batch => batch.length);
 
-  // 20–30 km sorgularında her kategori ayrı çalışır. Bir ağır kategori zaman aşımına
-  // uğrarsa daha önce çalışan okul, market, eczane gibi kategoriler hata durumuna düşmez.
+  // 10 km'de hızlı küçük gruplar kullanılır. Bir grup geçici olarak hata verirse
+  // yalnızca o grupta bulunamayan kategoriler tek tek yeniden denenir. Böylece normal
+  // arama üç hafif istekle tamamlanır; tek bir ağır seçici diğer türleri düşürmez.
   const batchResults = await mapLimit(batches, radius > 10000 ? 2 : 3, async keys => {
-    const coreSelectors = selectorsForCategories(keys, 'core');
-    const core = await runSelectorSetResilient(lat, lng, radius, coreSelectors);
     const localMap = new Map();
-    mergeElementArray(localMap, core.elements);
-    const localProviders = new Set(core.providers);
-    const localWarnings = [...core.warnings];
-    const found = detectedCategorySet([...localMap.values()]);
-    const fallbackKeys = keys.filter(key => !found.has(key) && (CATEGORY_QUERIES[key].fallback || []).length && (radius <= 10000 || ['bank', 'atm'].includes(key)));
-    let successfulParts = core.successfulParts;
-    let failedParts = core.failedParts;
+    const localProviders = new Set();
+    const localWarnings = [];
+    const categoryStatus = new Map(keys.map(key => [key, 'pending']));
 
-    if (fallbackKeys.length) {
-      const fallback = await runSelectorSetResilient(lat, lng, radius, selectorsForCategories(fallbackKeys, 'fallback'));
-      mergeElementArray(localMap, fallback.elements);
-      fallback.providers.forEach(provider => localProviders.add(provider));
-      localWarnings.push(...fallback.warnings);
-      successfulParts += fallback.successfulParts;
-      failedParts += fallback.failedParts;
+    const absorbPart = result => {
+      mergeElementArray(localMap, result.elements);
+      result.providers.forEach(provider => localProviders.add(provider));
+      localWarnings.push(...result.warnings);
+    };
+
+    const core = await runSelectorSetResilient(lat, lng, radius, selectorsForCategories(keys, 'core'));
+    absorbPart(core);
+    let found = detectedCategorySet([...localMap.values()]);
+
+    if (core.failedParts === 0) {
+      keys.forEach(key => categoryStatus.set(key, 'success'));
+    } else {
+      keys.filter(key => found.has(key)).forEach(key => categoryStatus.set(key, 'success'));
+      const retryKeys = keys.filter(key => !found.has(key));
+      const retries = await mapLimit(retryKeys, 2, async key => {
+        const retry = await runSelectorSetResilient(lat, lng, radius, selectorsForCategories([key], 'core'));
+        return { key, retry };
+      });
+      for (const { key, retry } of retries) {
+        absorbPart(retry);
+        categoryStatus.set(key, retry.successfulParts > 0 ? 'success' : 'failed');
+      }
+      found = detectedCategorySet([...localMap.values()]);
     }
 
-    return { keys, elements: [...localMap.values()], providers: [...localProviders], warnings: localWarnings, successfulParts, failedParts };
+    // Temel sorgusu çalışan fakat kayıt bulamayan kategoriler için ad/marka tabanlı
+    // yedekler ayrı ayrı denenir. Yedek sorgunun geçici hatası, çalışan temel sorguyu
+    // başarısız durumuna çevirmemelidir.
+    const fallbackKeys = keys.filter(key => categoryStatus.get(key) !== 'failed'
+      && !found.has(key) && (CATEGORY_QUERIES[key].fallback || []).length);
+    const fallbackResults = await mapLimit(fallbackKeys, 2, async key => ({
+      key,
+      result: await runSelectorSetResilient(lat, lng, radius, selectorsForCategories([key], 'fallback'))
+    }));
+    for (const { key, result } of fallbackResults) {
+      absorbPart(result);
+      if (result.successfulParts === 0) {
+        localWarnings.push(`${CATEGORY_LABELS[key]} yedek sorgusu yanıt vermedi; temel sorgu sonucu korundu.`);
+      }
+    }
+
+    return {
+      keys,
+      elements: [...localMap.values()],
+      providers: [...localProviders],
+      warnings: localWarnings,
+      categoryStatus
+    };
   });
 
   for (const result of batchResults) {
@@ -1083,8 +1119,10 @@ async function queryCategoriesAtRadius(lat, lng, radius, categories) {
     result.providers.forEach(provider => providers.add(provider));
     const label = result.keys.map(key => CATEGORY_LABELS[key]).join(', ');
     warnings.push(...result.warnings.map(message => `${label}: ${message}`));
-    if (result.successfulParts > 0) result.keys.forEach(key => succeededCategories.add(key));
-    else result.keys.forEach(key => failedCategories.add(key));
+    for (const key of result.keys) {
+      if (result.categoryStatus.get(key) === 'failed') failedCategories.add(key);
+      else succeededCategories.add(key);
+    }
   }
 
   return {
@@ -1257,7 +1295,7 @@ async function getDistrictSearchAnchor(adminContext = {}) {
       headers: {
         Accept: 'application/json',
         'Accept-Language': 'tr-TR,tr;q=0.9',
-        'User-Agent': 'Kadastro360/2.0.5 (kadastro360.com.tr)'
+        'User-Agent': 'Kadastro360/2.0.6 (kadastro360.com.tr)'
       }
     }, 9000);
     if (!Array.isArray(rows) || !rows.length) return null;
@@ -1414,7 +1452,7 @@ function limitBalanced(items, category) {
 async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {}) {
   const context = normalizeAdminContext(adminContext);
   const geometryKey = geometry ? JSON.stringify(geometry).slice(0, 2000) : '';
-  const cacheKey = `poi-v204:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
+  const cacheKey = `poi-v206:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
   return cached(cacheKey, 30 * 60 * 1000, async () => {
     const startedAt = Date.now();
     const allCategories = Object.keys(CATEGORY_QUERIES);
@@ -1733,7 +1771,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.5-safe-wms-fallback', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.6-viewport-wms-poi-resilience', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
     }
 
     if (req.method === 'GET' && pathname === '/favicon.ico') {
