@@ -1,0 +1,9 @@
+Kadastro360 v2.0.8 - Yakın Yer Canlı Bağlantı Düzeltmesi
+
+- v2.0.6 ile düzeltilen harita/WMS çözünürlüğü dosyalarına dokunulmadı.
+- Tekirdağ döneminde çalışan VK Maps Overpass örneği sunucuda yeniden ilk sıraya alındı.
+- Her sunucuda POST başarısızsa aynı küçük sorgu GET ile tekrar denenir.
+- Render/bulut çıkışı bütün Overpass örneklerinden engellenirse tarayıcı, kullanıcının bağlantısından canlı Overpass sorgusu yapar.
+- Tarayıcıdan alınan OSM kayıtları yine Kadastro360 sunucusunda mevcut gerçek veri sınıflandırmasıyla işlenir.
+- Sahte, örnek veya tahmini yakın yer üretilmez.
+- Tarayıcı yedeği yalnızca normal sunucu aramasındaki bütün seçili kategoriler başarısız olduğunda devreye girer; çalışan alanların davranışı değiştirilmez.

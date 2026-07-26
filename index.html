@@ -2433,8 +2433,8 @@ async function mapLimitClient(values, limit, mapper){
   await Promise.all(workers);
 }
 
-async function fetchPoiCategory(category, radius){
-  return api('/poi',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+function poiRequestPayload(category, radius){
+  return {
     lat:store.parcelCenter.lat,
     lng:store.parcelCenter.lng,
     radius,
@@ -2443,7 +2443,94 @@ async function fetchPoiCategory(category, radius){
     province:store.il.selected?.name || '',
     district:store.ilce.selected?.name || '',
     neighborhood:store.mah.selected?.name || ''
-  })},105000);
+  };
+}
+
+function poiAllFailed(data, category){
+  const keys=category==='all'?PRIORITY_CATEGORIES:[category];
+  const items=Array.isArray(data?.data)?data.data:[];
+  return !items.length && keys.every(key=>data?.coverage?.[key]?.status==='failed');
+}
+
+async function directOverpassRequest(endpoints, query){
+  const errors=[];
+  for(const endpoint of endpoints){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),24000);
+    try{
+      const body=new URLSearchParams({data:query}).toString();
+      let response;
+      try{
+        response=await fetch(endpoint,{method:'POST',mode:'cors',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8','Accept':'application/json'},body,signal:controller.signal});
+        if(!response.ok)throw new Error(`POST HTTP ${response.status}`);
+      }catch(postError){
+        if(controller.signal.aborted)throw postError;
+        response=await fetch(`${endpoint}?data=${encodeURIComponent(query)}`,{method:'GET',mode:'cors',headers:{'Accept':'application/json'},signal:controller.signal});
+        if(!response.ok)throw new Error(`GET HTTP ${response.status}`);
+      }
+      const data=await response.json();
+      if(data?.remark) throw new Error(data.remark);
+      return Array.isArray(data?.elements)?data.elements:[];
+    }catch(error){
+      errors.push(`${new URL(endpoint).hostname}: ${error?.name==='AbortError'?'zaman aşımı':humanError(error)}`);
+    }finally{clearTimeout(timer);}
+  }
+  throw new Error(errors.join(' · ')||'Tarayıcı yakın yer servisine ulaşamadı.');
+}
+
+async function runBrowserPoiStage(category, radius, categories){
+  const payload=poiRequestPayload(category,radius);
+  const plan=await api('/poi-browser-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,categories})},30000);
+  const elementMap=new Map();
+  const successful=new Set();
+  for(const row of plan.queries||[]){
+    try{
+      const elements=await directOverpassRequest(plan.endpoints||[],row.query);
+      for(const element of elements){
+        const key=`${element.type||'x'}-${element.id}`;
+        if(!elementMap.has(key))elementMap.set(key,element);
+      }
+      (row.categories||[]).forEach(key=>successful.add(key));
+    }catch{}
+  }
+  return {elements:[...elementMap.values()],successfulCategories:[...successful]};
+}
+
+async function normalizeBrowserPoi(category, radius, elements, successfulCategories){
+  const payload=poiRequestPayload(category,radius);
+  return api('/poi-browser-normalize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,elements,successfulCategories})},45000);
+}
+
+async function fetchPoiBrowserFallback(category, radius){
+  const requested=category==='all'?PRIORITY_CATEGORIES:[category];
+  const firstRadius=radius==='auto'?10000:Math.max(300,Math.min(30000,Number(radius)||1000));
+  const first=await runBrowserPoiStage(category,firstRadius,requested);
+  let elements=[...first.elements];
+  let successful=new Set(first.successfulCategories);
+  let normalized=await normalizeBrowserPoi(category,firstRadius,elements,[...successful]);
+  if(radius==='auto'){
+    const missing=requested.filter(key=>!(normalized.data||[]).some(item=>item.type===key));
+    if(missing.length){
+      const second=await runBrowserPoiStage(category,30000,missing);
+      const map=new Map(elements.map(element=>[`${element.type||'x'}-${element.id}`,element]));
+      for(const element of second.elements)map.set(`${element.type||'x'}-${element.id}`,element);
+      elements=[...map.values()];
+      second.successfulCategories.forEach(key=>successful.add(key));
+      normalized=await normalizeBrowserPoi(category,30000,elements,[...successful]);
+      normalized.searchedRadii=[10000,30000];
+    }
+  }
+  normalized.browserFallback=true;
+  return normalized;
+}
+
+async function fetchPoiCategory(category, radius){
+  const payload=poiRequestPayload(category,radius);
+  try{
+    const data=await api('/poi',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)},105000);
+    if(!poiAllFailed(data,category))return data;
+  }catch{}
+  return fetchPoiBrowserFallback(category,radius);
 }
 
 function setPoiSectionOpen(section, open){
@@ -2646,8 +2733,9 @@ async function searchPoi(){
     renderPoiProgress(states,visible);
     renderPoiResults(items,{all:category==='all',category,states,data});
     const seconds=Math.max(.1,Number(data.elapsedMs||0)/1000).toFixed(1);
+    const fallbackText=data.browserFallback?' Tarayıcı bağlantısı üzerinden canlı OSM yedeği kullanıldı.':'';
     const preserved=(data.cachedFallbackCategories||[]).length;
-    setStatus(preserved?'warn':'ok',preserved?`${items.length} yakın yer listelendi; ${preserved} kategori için yeni servis isteği başarısız olduğundan son başarılı canlı sonuç korundu.`:`${items.length} yakın yer ${seconds} sn içinde listelendi. Aynı bölgedeki tekrar aramalar önbellekten hızlanır.`);
+    setStatus(preserved?'warn':'ok',preserved?`${items.length} yakın yer listelendi; ${preserved} kategori için yeni servis isteği başarısız olduğundan son başarılı canlı sonuç korundu.`:`${items.length} yakın yer ${seconds} sn içinde listelendi.${fallbackText} Aynı bölgedeki tekrar aramalar önbellekten hızlanır.`);
   }catch(error){
     if(poiRequestId!==store.poiRequestId)return;
     visible.forEach(key=>{states[key]={state:'failed',count:0,error:humanError(error)};});

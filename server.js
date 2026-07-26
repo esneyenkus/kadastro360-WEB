@@ -77,7 +77,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360/2.0.7'
+  userAgent: 'Kadastro360/2.0.8'
 });
 
 // Yakın yer sorguları bütün bölgelerde aynı canlı OSM akışını kullanır.
@@ -88,10 +88,10 @@ const OVERPASS_ENDPOINTS = (() => {
   const explicit = String(process.env.OVERPASS_BASE_URLS || '').split(',').map(value => value.trim()).filter(Boolean);
   if (explicit.length) return explicit.map((url, index) => ({ name: `Özel Overpass ${index + 1}`, url }));
   return [
+    // Tekirdağ'da çalışan sürümde ilk kullanılan küresel örnek tekrar birinci sıradadır.
+    { name: 'VK Maps Overpass', url: 'https://maps.mail.ru/osm/tools/overpass/api/interpreter' },
     { name: 'Private.coffee Overpass', url: 'https://overpass.private.coffee/api/interpreter' },
-    { name: 'FOSSGIS Overpass', url: 'https://overpass-api.de/api/interpreter' },
-    { name: 'FOSSGIS Gall', url: 'https://gall.openstreetmap.de/api/interpreter' },
-    { name: 'FOSSGIS Lambert', url: 'https://lambert.openstreetmap.de/api/interpreter' }
+    { name: 'FOSSGIS Overpass', url: 'https://overpass-api.de/api/interpreter' }
   ];
 })();
 
@@ -943,32 +943,57 @@ function recordOverpassFailure(endpoint) {
   overpassHealth.set(endpoint.url, health);
 }
 
+async function fetchOverpassTransport(endpoint, query, requestTimeoutMs) {
+  const headers = {
+    Accept: 'application/json',
+    'Accept-Language': 'tr-TR,tr;q=0.9',
+    Referer: 'https://kadastro360.com.tr/',
+    'User-Agent': 'Kadastro360/2.0.8 (https://kadastro360.com.tr; info@kadastro360.com.tr)'
+  };
+  const body = new URLSearchParams({ data: query }).toString();
+  const transportErrors = [];
+
+  try {
+    return await enqueueOverpassRequest(() => fetchJson(endpoint.url, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+      body
+    }, requestTimeoutMs));
+  } catch (error) {
+    transportErrors.push(`POST ${error.message}`);
+    const status = Number(error?.statusCode || 0);
+    const transportBlocked = !status || [400, 403, 405, 411, 413, 414, 415].includes(status);
+    // 429/5xx gerçek servis yoğunluğudur; aynı sunucuya GET ile ikinci yük bindirme.
+    if (!transportBlocked) throw error;
+  }
+
+  // Bazı bulut çıkışlarında POST kısıtlanırken aynı küçük sorgu GET ile cevaplanır.
+  // Sorgular kategori grupları halinde küçük tutulduğu için URL sınırı aşılmaz.
+  try {
+    const url = `${endpoint.url}?data=${encodeURIComponent(query)}`;
+    return await enqueueOverpassRequest(() => fetchJson(url, {
+      method: 'GET',
+      headers
+    }, requestTimeoutMs));
+  } catch (error) {
+    transportErrors.push(`GET ${error.message}`);
+  }
+
+  throw new Error(transportErrors.join(' / '));
+}
+
 async function runOverpassSelectors(lat, lng, radius, selectors, options = {}) {
   const query = buildOverpassQueryFromSelectors(lat, lng, radius, selectors);
-  const body = new URLSearchParams({ data: query }).toString();
   const errors = [];
   let endpoints = sortedOverpassEndpoints({ bypassHealth: options.bypassHealth === true });
-
-  // Önceki kategoride geçici hata oluşmuş olsa bile yeni kategoriyi tamamen
-  // engelleme. Hazır sunucu kalmadıysa bütün yedekleri yeniden sırayla dene.
   if (!endpoints.length) endpoints = sortedOverpassEndpoints({ bypassHealth: true });
   if (Number.isFinite(Number(options.maxEndpoints))) endpoints = endpoints.slice(0, Math.max(1, Number(options.maxEndpoints)));
 
   for (const endpoint of endpoints) {
     const startedAt = Date.now();
     try {
-      const requestTimeoutMs = radius >= 20000 ? 14000 : radius >= 10000 ? 12000 : 10000;
-      const data = await enqueueOverpassRequest(() => fetchJson(endpoint.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          Accept: 'application/json',
-          'Accept-Language': 'tr-TR,tr;q=0.9',
-          Referer: 'https://kadastro360.com.tr/',
-          'User-Agent': 'Kadastro360/2.0.7 (https://kadastro360.com.tr; info@kadastro360.com.tr)'
-        },
-        body
-      }, requestTimeoutMs));
+      const requestTimeoutMs = radius >= 20000 ? 18000 : radius >= 10000 ? 15000 : 12000;
+      const data = await fetchOverpassTransport(endpoint, query, requestTimeoutMs);
       if (data?.remark) throw new Error(`Overpass çalışma hatası: ${data.remark}`);
       recordOverpassSuccess(endpoint, Date.now() - startedAt);
       return { data, endpoint: endpoint.name };
@@ -1450,6 +1475,83 @@ function limitBalanced(items, category) {
     .slice(0, 180);
 }
 
+
+const BROWSER_OVERPASS_ENDPOINTS = [
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+  'https://overpass-api.de/api/interpreter'
+];
+
+function buildBrowserPoiPlan(lat, lng, radius, categories) {
+  const safeLat = Number(lat);
+  const safeLng = Number(lng);
+  const safeRadius = Math.max(300, Math.min(30000, Number(radius) || 10000));
+  if (!Number.isFinite(safeLat) || !Number.isFinite(safeLng)) throw new Error('Geçersiz parsel koordinatı.');
+  const requested = [...new Set(Array.isArray(categories) ? categories : [])].filter(key => CATEGORY_QUERIES[key]);
+  if (!requested.length) throw new Error('Geçerli yakın yer türü bulunamadı.');
+  const queries = POI_CATEGORY_BATCHES
+    .map(batch => batch.filter(key => requested.includes(key)))
+    .filter(batch => batch.length)
+    .map(keys => ({
+      categories: keys,
+      query: buildOverpassQueryFromSelectors(safeLat, safeLng, safeRadius, selectorsForCategories(keys, 'all'))
+        .replace(/out center tags qt;$/, 'out center tags qt 700;')
+    }));
+  return { endpoints: BROWSER_OVERPASS_ENDPOINTS, radius: safeRadius, queries };
+}
+
+function normalizeBrowserPoiElements({ lat, lng, radius, category, geometry, adminContext, elements, successfulCategories }) {
+  const safeLat = Number(lat);
+  const safeLng = Number(lng);
+  const safeRadius = Math.max(300, Math.min(30000, Number(radius) || 10000));
+  const selectedCategory = String(category || 'all');
+  const context = normalizeAdminContext(adminContext || {});
+  const requestedCategories = selectedCategory === 'all' ? Object.keys(CATEGORY_QUERIES) : [selectedCategory];
+  const successSet = new Set((successfulCategories || []).filter(key => requestedCategories.includes(key)));
+  const unique = new Map();
+  for (const element of Array.isArray(elements) ? elements.slice(0, 5000) : []) {
+    if (!element || typeof element !== 'object' || !element.id) continue;
+    const key = `${element.type || 'x'}-${element.id}`;
+    if (!unique.has(key)) unique.set(key, element);
+  }
+  const seenLocations = new Set();
+  let items = [...unique.values()]
+    .flatMap(element => itemsFromElement(element, safeLat, safeLng, geometry, selectedCategory, context))
+    .filter(item => item.centerDistance <= safeRadius * 1.03)
+    .filter(item => {
+      const key = `${item.type}|${item.lat.toFixed(6)}|${item.lng.toFixed(6)}`;
+      if (seenLocations.has(key)) return false;
+      seenLocations.add(key);
+      return true;
+    })
+    .sort(comparePoi);
+  items = limitBalanced(items, selectedCategory);
+  const counts = categoryCounts(items);
+  const coverage = {};
+  for (const key of requestedCategories) {
+    coverage[key] = {
+      radius: safeRadius,
+      status: (counts[key] || 0) > 0 ? 'found' : successSet.has(key) ? 'empty' : 'failed',
+      count: counts[key] || 0,
+      discoveredCount: counts[key] || 0,
+      browserFallback: true
+    };
+  }
+  return {
+    items,
+    elapsedMs: 0,
+    searchedRadii: [safeRadius],
+    maxRadius: safeRadius,
+    providers: ['Tarayıcı üzerinden canlı Overpass'],
+    warnings: [],
+    successfulCategories: [...successSet],
+    failedCategories: requestedCategories.filter(key => !successSet.has(key)),
+    cachedFallbackCategories: [],
+    coverage,
+    browserFallback: true
+  };
+}
+
 async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {}) {
   const context = normalizeAdminContext(adminContext);
   const geometryKey = geometry ? JSON.stringify(geometry).slice(0, 2000) : '';
@@ -1733,7 +1835,7 @@ function requestAllowed(req, pathname) {
   const ip = forwarded || req.socket.remoteAddress || 'unknown';
   const now = Date.now();
   const windowMs = 60_000;
-  const limit = pathname === '/api/poi' || pathname === '/api/terrain-analysis' || pathname === '/api/route' ? 20 : 120;
+  const limit = ['/api/poi','/api/poi-browser-plan','/api/poi-browser-normalize','/api/terrain-analysis','/api/route'].includes(pathname) ? 20 : 120;
   const key = `${ip}:${pathname}`;
   const current = requestWindows.get(key);
   if (!current || current.resetAt <= now) {
@@ -1755,7 +1857,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.7-stable-poi-queue', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.8-browser-overpass-fallback', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
     }
 
     if (req.method === 'GET' && pathname === '/favicon.ico') {
@@ -2265,6 +2367,33 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, result);
     }
 
+    if (req.method === 'POST' && pathname === '/api/poi-browser-plan') {
+      const body = await readJsonBody(req, 80_000);
+      const category = String(body.category || 'all');
+      const categories = Array.isArray(body.categories)
+        ? body.categories
+        : category === 'all' ? Object.keys(CATEGORY_QUERIES) : [category];
+      const result = buildBrowserPoiPlan(body.lat, body.lng, body.radius, categories);
+      return sendJson(res, 200, { success: true, ...result });
+    }
+
+    if (req.method === 'POST' && pathname === '/api/poi-browser-normalize') {
+      const body = await readJsonBody(req, 6_000_000);
+      const category = String(body.category || 'all');
+      if (category !== 'all' && !CATEGORY_QUERIES[category]) return sendJson(res, 400, { error: 'Geçersiz yakın yer türü.' });
+      const result = normalizeBrowserPoiElements({
+        lat: body.lat,
+        lng: body.lng,
+        radius: body.radius,
+        category,
+        geometry: body.geometry && typeof body.geometry === 'object' ? body.geometry : null,
+        adminContext: { province: body.province, district: body.district, neighborhood: body.neighborhood },
+        elements: body.elements,
+        successfulCategories: body.successfulCategories
+      });
+      return sendJson(res, 200, { success: true, data: result.items, ...result });
+    }
+
     if (req.method === 'POST' && pathname === '/api/poi') {
       const body = await readJsonBody(req);
       const lat = Number(body.lat);
@@ -2365,6 +2494,8 @@ module.exports = {
   runSelectorSetResilient,
   queryCategoriesAtRadius,
   getPoi,
+  buildBrowserPoiPlan,
+  normalizeBrowserPoiElements,
   getDistrictSearchAnchor,
   normalizeAdminContext,
   comparePoi,
