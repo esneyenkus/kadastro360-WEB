@@ -203,7 +203,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 
 
       <section class="pane" id="open-data-pane">
-        <div class="notice info"><strong>Hazır plan tek tıkla otomatik açılır.</strong> Önce parseli sorgulayın, ardından “Hazır Katmanları Getir” düğmesine basın. Plan, zoom seviyesine göre yeniden üretilen yüksek çözünürlüklü WMS karolarıyla açılır; eski bölgesel görüntü yakın ölçekte büyütülmez. Ek kaynaklar ayrı düğmeyle taranır. Şeffaf/boş WMS görüntüsü başarılı sayılmaz; bu görsel doğrulama Render yolu için yapılır. Render bağlantısı kapanırsa tarayıcı doğrudan resmî WMS görüntüsünü dener.</div>
+        <div class="notice info"><strong>Hazır plan tek tıkla otomatik açılır.</strong> Önce parseli sorgulayın, ardından “Hazır Katmanları Getir” düğmesine basın. Plan önce çalışan sabit parsel görünümüyle açılır; uygun olduğunda yakın görünüm arka planda daha net görüntüyle yenilenir. Yeni görüntü alınamazsa çalışan görünüm korunur. Ek kaynaklar ayrı düğmeyle taranır.</div>
         <div class="open-data-toolbar">
           <button class="primary" id="open-data-check" disabled>Hazır Katmanları Getir</button>
           <button class="open-data-clear" id="open-data-detailed" disabled>Ek Kaynakları Tara</button>
@@ -565,7 +565,7 @@ function renderOpenDataCatalog(data){
     const guide=item.category==='plan'?`<button type="button" class="plan-guide-btn" data-open-action="guide" data-item-id="${escapeHtml(item.id)}">Renk Rehberi</button>`:'';
     const focus=item.category==='plan'?`<button type="button" class="plan-focus-btn" data-open-action="focus" data-item-id="${escapeHtml(item.id)}">Plan Ölçeğine Git</button>`:'';
     const source=item.sourceUrl?`<a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Kaynak Sayfası ↗</a>`:'';
-    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Plan, her zoom seviyesinde resmî WMS servisinden 2× netlikte karo olarak yenilenir. Bölgesel düşük çözünürlüklü görsel yakın ölçekte büyütülmez. Hazır katman parsel merkezinde boş dönerse resmî katman listesi kontrol edilerek doğru pafta aranır.</div>':'';
+    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Plan önce çalışan sabit parsel görünümüyle açılır; uygun olduğunda yakın görünüm daha net görüntüyle yenilenir. Yeni görüntü alınamazsa çalışan katman kaldırılmaz. Hazır katman boş dönerse resmî katman listesi kontrol edilir.</div>':'';
     card.innerHTML=`<div class="open-data-head"><div class="open-data-title">${escapeHtml(item.title)}</div><span class="open-data-kind ${kindClass}">${kindLabel}</span></div><div class="open-data-desc">${escapeHtml(item.description||'Kamuya açık veri kaynağı.')}<br><strong>Sağlayıcı:</strong> ${escapeHtml(item.provider||'Belirtilmedi')}</div>${rayicSummaryHtml(item)}<div class="open-data-fresh">${escapeHtml(openDataFreshness(item))}</div><div class="open-data-actions">${overlayButton}${focus}${guide}${source}</div>${directNote}<div class="open-data-load-status" aria-live="polite"></div>${openDataResourcesHtml(item)}`;
     list.appendChild(card);
   }
@@ -711,90 +711,47 @@ function directLayerChildren(node,name){
 
 async function discoverBrowserWmsLayers(item){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),11000);
+  const timer=setTimeout(()=>controller.abort(),9000);
   try{
     const url=new URL(item.wms.baseUrl);
     url.searchParams.set('service','WMS');
     url.searchParams.set('request','GetCapabilities');
-    let response;
-    try{
-      response=await fetch(url.toString(),{signal:controller.signal,cache:'no-store',headers:{Accept:'application/xml,text/xml,*/*'}});
-      if(!response.ok)throw new Error(`GetCapabilities HTTP ${response.status}`);
-    }catch(directError){
-      clearTimeout(timer);
-      response=await fetch(`/api/open-data/wms-capabilities/${encodeURIComponent(item.wms?.key||item.id)}.xml`,{cache:'no-store',headers:{Accept:'application/xml,text/xml,*/*'}});
-      if(!response.ok)throw new Error(`WMS katman listesi alınamadı: HTTP ${response.status}`);
-    }
+    const response=await fetch(url.toString(),{signal:controller.signal,cache:'no-store',headers:{Accept:'application/xml,text/xml,*/*'}});
+    if(!response.ok) throw new Error(`GetCapabilities HTTP ${response.status}`);
     const text=await response.text();
     const xml=new DOMParser().parseFromString(text,'application/xml');
     if(xml.querySelector('parsererror')) throw new Error('GetCapabilities XML ayrıştırılamadı.');
     const root=xml.documentElement;
     const version=root?.getAttribute('version')||'1.1.1';
-    const parcel=store.parcelCenter;
-    const inheritedBounds=layer=>{
-      let current=layer;
-      while(current&&current.nodeType===1){
-        const ex=directLayerChildren(current,'EX_GeographicBoundingBox')[0];
-        if(ex){
-          const west=Number(directLayerChildren(ex,'westBoundLongitude')[0]?.textContent);
-          const east=Number(directLayerChildren(ex,'eastBoundLongitude')[0]?.textContent);
-          const south=Number(directLayerChildren(ex,'southBoundLatitude')[0]?.textContent);
-          const north=Number(directLayerChildren(ex,'northBoundLatitude')[0]?.textContent);
-          if([south,west,north,east].every(Number.isFinite))return [south,west,north,east];
-        }
-        const ll=directLayerChildren(current,'LatLonBoundingBox')[0];
-        if(ll){
-          const west=Number(ll.getAttribute('minx')),east=Number(ll.getAttribute('maxx'));
-          const south=Number(ll.getAttribute('miny')),north=Number(ll.getAttribute('maxy'));
-          if([south,west,north,east].every(Number.isFinite))return [south,west,north,east];
-        }
-        const crs84=directLayerChildren(current,'BoundingBox').find(node=>/CRS:84/i.test(node.getAttribute('CRS')||node.getAttribute('SRS')||''));
-        if(crs84){
-          const west=Number(crs84.getAttribute('minx')),east=Number(crs84.getAttribute('maxx'));
-          const south=Number(crs84.getAttribute('miny')),north=Number(crs84.getAttribute('maxy'));
-          if([south,west,north,east].every(Number.isFinite))return [south,west,north,east];
-        }
-        current=current.parentElement;
-        while(current&&current.localName!=='Layer')current=current.parentElement;
-      }
-      return null;
-    };
     const rows=[...xml.getElementsByTagNameNS('*','Layer')].map(layer=>{
       const name=directLayerChildren(layer,'Name')[0]?.textContent?.trim();
       const title=directLayerChildren(layer,'Title')[0]?.textContent?.trim()||'';
       const childCount=directLayerChildren(layer,'Layer').length;
-      const bounds=inheritedBounds(layer);
-      const containsParcel=Boolean(parcel&&bounds&&parcel.lat>=bounds[0]&&parcel.lat<=bounds[2]&&parcel.lng>=bounds[1]&&parcel.lng<=bounds[3]);
-      return name?{name,title,leaf:childCount===0,bounds,containsParcel}:null;
+      return name?{name,title,leaf:childCount===0}:null;
     }).filter(Boolean);
     const dedup=[...new Map(rows.map(row=>[row.name,row])).values()];
     const score=row=>{
       const hay=`${row.name} ${row.title}`;
-      let value=row.containsParcel?-30:0;
-      if(/plan|çevre|duzeni|düzeni|cdp|arazi|kentsel|sanayi|tarim|tarım|orman|ortofoto|image|raster|pafta/i.test(hay)) value-=8;
-      if(/^\d+$/.test(row.name)) value-=4;
-      if(!row.leaf)value+=4;
-      return value;
+      if(/plan|çevre|duzeni|düzeni|cdp|arazi|kentsel|sanayi|tarim|tarım|orman|ortofoto|image|raster/i.test(hay)) return 0;
+      if(/^\d+$/.test(row.name)) return 1;
+      return 2;
     };
-    dedup.sort((a,b)=>score(a)-score(b)||String(a.title).localeCompare(String(b.title),'tr'));
-    const leafRows=dedup.filter(row=>row.leaf);
-    const leafNames=leafRows.map(row=>row.name);
-    const localLeafNames=leafRows.filter(row=>row.containsParcel).map(row=>row.name);
+    dedup.sort((a,b)=>score(a)-score(b));
+    const leafNames=dedup.filter(row=>row.leaf).map(row=>row.name);
     const numericNames=leafNames.filter(name=>/^\d+$/.test(name)).sort((a,b)=>Number(a)-Number(b));
     const meaningful=leafNames.filter(name=>!/^(?:copyright|aciklama|açıklama|sinir|sınır|etiket)$/i.test(name));
     const compositeCandidates=[];
-    for(const names of [localLeafNames,numericNames,meaningful,leafNames]){
+    for(const names of [numericNames,meaningful,leafNames]){
       const limited=names.slice(0,120);
-      if(limited.length>1)compositeCandidates.push(limited.join(','));
+      if(limited.length>1) compositeCandidates.push(limited.join(','));
     }
     return {
       version,
       rows:dedup,
-      localLeafNames:[...new Set(localLeafNames)].slice(0,80),
-      leafNames:[...new Set([...localLeafNames,...leafNames])].slice(0,200),
-      compositeCandidates:[...new Set(compositeCandidates)].slice(0,4)
+      leafNames:[...new Set(leafNames)].slice(0,160),
+      compositeCandidates:[...new Set(compositeCandidates)].slice(0,3)
     };
-  }catch(error){return {version:null,rows:[],localLeafNames:[],leafNames:[],compositeCandidates:[],error:humanError(error)};}
+  }catch(error){return {version:null,rows:[],leafNames:[],compositeCandidates:[],error:humanError(error)};}
   finally{clearTimeout(timer);}
 }
 
@@ -804,8 +761,7 @@ function wmsAttempts(item,discovery={}){
     item.wms?.activeLayerName,
     item.wms?.layerName,
     ...(item.wms?.layerCandidates||[]),
-    ...(discovery.localLeafNames||[]).slice(0,20),
-    ...(discovery.leafNames||[]).slice(0,20)
+    ...(discovery.leafNames||[]).slice(0,8)
   ].filter(Boolean);
   const uniqueLayers=[...new Set(layers)].filter(name=>String(name).length<5000);
   const versions=[...new Set(['1.1.1',discovery.version,...(item.wms?.versionCandidates||[]),item.wms?.version,'1.3.0'].filter(Boolean))];
@@ -813,7 +769,7 @@ function wmsAttempts(item,discovery={}){
   for(const layerName of uniqueLayers){
     for(const version of versions){
       result.push({layerName,version});
-      if(result.length>=48) return result;
+      if(result.length>=20) return result;
     }
   }
   return result;
@@ -851,24 +807,18 @@ async function imageBitmapFromBlob(blob){
 function analyzeCanvasVisibility(context,width,height){
   const data=context.getImageData(0,0,width,height).data;
   const stride=Math.max(1,Math.floor(Math.sqrt((width*height)/70000)));
-  const centerLeft=Math.floor(width*.30),centerRight=Math.ceil(width*.70),centerTop=Math.floor(height*.30),centerBottom=Math.ceil(height*.70);
-  let sampled=0,visiblePixels=0,opaquePixels=0,variedPixels=0,centerSampled=0,centerVisiblePixels=0,centerOpaquePixels=0,first=null;
+  let sampled=0,visiblePixels=0,opaquePixels=0,variedPixels=0,first=null;
   for(let y=0;y<height;y+=stride){
     for(let x=0;x<width;x+=stride){
       const i=(y*width+x)*4,r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];sampled++;
-      const inCenter=x>=centerLeft&&x<centerRight&&y>=centerTop&&y<centerBottom;
-      if(inCenter)centerSampled++;
-      if(a>16){opaquePixels++;if(inCenter)centerOpaquePixels++;}
-      if(a>16&&!(r>246&&g>246&&b>246)){visiblePixels++;if(inCenter)centerVisiblePixels++;}
+      if(a>16) opaquePixels++;
+      if(a>16&&!(r>246&&g>246&&b>246)) visiblePixels++;
       if(a>16){const packed=(r<<16)|(g<<8)|b;if(first===null)first=packed;else if(Math.abs((packed&255)-(first&255))>5||Math.abs(((packed>>8)&255)-((first>>8)&255))>5||Math.abs(((packed>>16)&255)-((first>>16)&255))>5)variedPixels++;}
     }
   }
   const visibleRatio=sampled?visiblePixels/sampled:0;
   const variedRatio=sampled?variedPixels/sampled:0;
-  const centerVisibleRatio=centerSampled?centerVisiblePixels/centerSampled:0;
-  const visible=visiblePixels>=24&&(visibleRatio>=0.0008||variedRatio>=0.0008);
-  const centerVisible=centerVisiblePixels>=12&&centerVisibleRatio>=0.003;
-  return {visible,centerVisible,sampled,visiblePixels,visibleRatio,opaqueRatio:sampled?opaquePixels/sampled:0,variedRatio,centerSampled,centerVisiblePixels,centerVisibleRatio,centerOpaqueRatio:centerSampled?centerOpaquePixels/centerSampled:0};
+  return {visible:visiblePixels>=24&&(visibleRatio>=0.0008||variedRatio>=0.0008),sampled,visiblePixels,visibleRatio,opaqueRatio:sampled?opaquePixels/sampled:0,variedRatio};
 }
 
 async function probeWmsInBrowser(item,attempt){
@@ -886,8 +836,7 @@ async function probeWmsInBrowser(item,attempt){
     const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(image,0,0,width,height);
     const result=analyzeCanvasVisibility(context,width,height);
     try{image.close?.();}catch{}
-    const visible=result.visible&&(item.category!=='plan'||result.centerVisible);
-    return {...result,visible,state:visible?'visible':'blank',source:'browser'};
+    return {...result,state:result.visible?'visible':'blank',source:'browser'};
   }catch(error){return {state:'unknown',message:humanError(error),source:'browser'};}
   finally{clearTimeout(timer);}
 }
@@ -896,8 +845,8 @@ async function verifyWmsAttempt(item,attempt){
   const browserPromise=probeWmsInBrowser(item,attempt).catch(error=>({state:'unknown',message:humanError(error),source:'browser'}));
   const serverPromise=api('/open-data/wms-probe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     key:item.wms.key,layerName:attempt.layerName,version:attempt.version,
-    latitude:store.parcelCenter.lat,longitude:store.parcelCenter.lng,radiusKm:Number(item.wms?.probeRadiusKm)||6
-  })},27000).then(server=>({...server,state:server.visible?'visible':'blank',source:'server'})).catch(error=>({state:'unknown',message:humanError(error),source:'server'}));
+    latitude:store.parcelCenter.lat,longitude:store.parcelCenter.lng,radiusKm:Number(item.wms?.probeRadiusKm)||24
+  })},9000).then(server=>({...server,state:server.visible?'visible':'blank',source:'server'})).catch(error=>({state:'unknown',message:humanError(error),source:'server'}));
   return new Promise(resolve=>{
     const results=[];let completed=0,settled=false;
     const finish=row=>{
@@ -993,15 +942,14 @@ function fastWmsAttempts(item,discovery={}){
     item.wms?.activeLayerName,
     item.wms?.layerName,
     ...(item.wms?.layerCandidates||[]),
-    ...(discovery.localLeafNames||[]).slice(0,20),
-    ...(discovery.leafNames||[]).slice(0,16)
+    ...(discovery.leafNames||[]).slice(0,3)
   ].filter(Boolean);
   const versions=[choice?.version,'1.1.1',discovery.version,...(item.wms?.versionCandidates||[]),item.wms?.version,'1.3.0'].filter(Boolean);
   const result=[];
   for(const layerName of [...new Set(layers)]){
     for(const version of [...new Set(versions)]){
       result.push({layerName,version});
-      if(result.length>=36)return result;
+      if(result.length>=8)return result;
     }
   }
   return result;
@@ -1011,17 +959,16 @@ function proxyWmsTileUrl(item,attempt){
   const key=encodeURIComponent(item.wms?.key||item.id);
   const layers=encodeURIComponent(attempt.layerName);
   const version=encodeURIComponent(attempt.version||'1.1.1');
-  const size=Math.max(256,Math.min(512,Number(item.wms?.tileRequestSize)||512));
-  return `/api/open-data/wms-tile/${key}/{z}/{x}/{y}.png?layers=${layers}&version=${version}&size=${size}`;
+  return `/api/open-data/wms-tile/${key}/{z}/{x}/{y}.png?layers=${layers}&version=${version}&size=256`;
 }
 
 function waitForProxyWmsLayer(item,attempt){
   return new Promise((resolve,reject)=>{
     let settled=false,loaded=0,errors=0;
     const options={
-      pane:'openDataPane',tileSize:256,opacity:item.category==='ortho'?.84:.64,
-      attribution:'ULASAV / TUCBS Açık Veri',keepBuffer:2,updateWhenIdle:false,
-      updateWhenZooming:false,maxZoom:20,minZoom:4,crossOrigin:false,className:'k360-wms-retina-tile'
+      pane:'openDataPane',tileSize:256,opacity:item.category==='ortho'?.82:.58,
+      attribution:'ULASAV / TUCBS Açık Veri',keepBuffer:1,updateWhenIdle:true,
+      updateWhenZooming:false,maxZoom:19,crossOrigin:false
     };
     if(Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4){
       const [south,west,north,east]=item.wms.bounds;options.bounds=L.latLngBounds([[south,west],[north,east]]);
@@ -1034,7 +981,7 @@ function waitForProxyWmsLayer(item,attempt){
     const onLoad=()=>{loaded++;if(loaded>=1)finish(true);};
     const onError=()=>{errors++;if(errors>=2)finish(false,new Error('WMS karo servisi görüntü döndürmedi.'));};
     layer.on('tileload',onLoad);layer.on('tileerror',onError);
-    const timer=setTimeout(()=>finish(false,new Error('WMS karo katmanı zaman aşımına uğradı.')),23000);
+    const timer=setTimeout(()=>finish(false,new Error('WMS karo katmanı zaman aşımına uğradı.')),10000);
     layer.addTo(store.map);
   });
 }
@@ -1441,40 +1388,55 @@ async function loadRegionalOverviewLayer(item,attempt,group,controller,statusNod
 }
 
 async function createPersistentViewportWmsLayer(item,statusNode,attempts){
-  const unique=[...new Map((attempts||[]).map(row=>[`${row.layerName}|${row.version}`,row])).values()];
-  const errors=[];
-  for(const attempt of unique.slice(0,6)){
+  const group=L.layerGroup().addTo(store.map);
+  const controller={layer:group,item,current:null,overview:null,focus:null,disposed:false,attempt:null,focusTimer:null,focusRequestId:0,lastFocusSignature:''};
+  const clearFocus=()=>{controller.focus?.dispose?.();controller.focus=null;controller.lastFocusSignature='';};
+  const refreshFocus=async(force=false)=>{
+    if(controller.disposed||!store.map||!layerOnMap(group))return false;
+    const zoom=store.map.getZoom();
+    if(zoom<13){clearFocus();return false;}
+    const view=projectedWmsView(item,store.map.getBounds());
+    const signature=`z${zoom}:${view.signature}`;
+    if(!force&&signature===controller.lastFocusSignature)return false;
+    const requestId=++controller.focusRequestId;
+    controller.lastFocusSignature=signature;
     try{
-      const layer=await waitForProxyWmsLayer(item,attempt);
-      try{layer.setZIndex?.(245);layer.bringToFront?.();}catch{}
-      const maxUsefulZoom=Number(item.wms?.maxUsefulZoom)||14;
-      let lastScaleBand='';
-      const applyScale=()=>{
-        if(!store.map||!layerOnMap(layer))return;
-        const zoom=store.map.getZoom();
-        const close=zoom>maxUsefulZoom;
-        const band=close?'close':'normal';
-        try{layer.setOpacity?.(item.category==='ortho'?.84:(close ? .46 : .64));bringParcelToFront();}catch{}
-        if(lastScaleBand!==band&&statusNode){
-          lastScaleBand=band;
-          statusNode.className='open-data-load-status notice ok';
-          statusNode.innerHTML=close
-            ? 'Plan katmanı açık. Kaynak 1/100.000 üst ölçekli olduğu için çok yakın görünümde saydamlık azaltıldı; parsel sınırı üstte tutuldu.<div class="scale-note">Zoom değiştikçe resmî WMS karoları 2× çözünürlükte yeniden istenir; eski bölgesel ekran görüntüsü büyütülmez.</div>'
-            : 'Plan katmanı zoom seviyesine uygun, yüksek çözünürlüklü WMS karolarıyla açık.<div class="scale-note">Kaydırma ve yakınlaştırmada yalnızca görünen karolar yenilenir; bulanık bölgesel görüntü katmanı kullanılmaz.</div>';
-        }
-      };
-      store.map.on('zoomend',applyScale);
-      const row={
-        layer,item,attempt,visualVerified:true,loadMode:'retina-proxy-tiles',
-        bounds:Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4?L.latLngBounds([[item.wms.bounds[0],item.wms.bounds[1]],[item.wms.bounds[2],item.wms.bounds[3]]]):null,
-        refresh(force=false){try{if(force)layer.redraw?.();}catch{}return Promise.resolve(true);},
-        dispose(){store.map?.off('zoomend',applyScale);try{if(layerOnMap(layer))store.map.removeLayer(layer);}catch{}}
-      };
-      applyScale();
-      return row;
-    }catch(error){errors.push(humanError(error));}
+      const result=await firstViewportSuccess(item,[controller.attempt],view,group);
+      if(controller.disposed||requestId!==controller.focusRequestId){result.dispose?.();return false;}
+      const old=controller.focus;controller.focus={...result,view};
+      try{result.layer.setOpacity?.(item.category==='ortho'?.88:.70);result.layer.setZIndex?.(270);result.layer.bringToFront?.();bringParcelToFront();}catch{}
+      old?.dispose?.();
+      if(statusNode){statusNode.className='open-data-load-status notice ok';statusNode.innerHTML='Plan katmanı açık. Yakın görünüm yüksek çözünürlükte yenilendi.<div class="scale-note">Uzak görünüm hızlı genel katmanı kullanır; zoom 13 ve üzerinde yalnızca ekrandaki alan netleştirilir. Eski görüntü yenisi hazır olana kadar korunur.</div>';}
+      return true;
+    }catch(error){
+      if(requestId===controller.focusRequestId&&statusNode){statusNode.className='open-data-load-status notice warn';statusNode.innerHTML=`Genel plan açık; yüksek çözünürlüklü yakın görünüm alınamadı.<div class="scale-note">${escapeHtml(humanError(error))} Mevcut katman korunuyor.</div>`;}
+      return false;
+    }
+  };
+  const scheduleFocus=(force=false)=>{clearTimeout(controller.focusTimer);controller.focusTimer=setTimeout(()=>refreshFocus(force),force?80:650);};
+  try{
+    const view=stableWmsView(item);
+    const initial=await firstViewportSuccess(item,attempts,view,group);
+    controller.current=initial;controller.attempt=initial.attempt;
+    controller.bounds=view.bounds;
+    try{initial.layer.setZIndex?.(245);initial.layer.bringToFront?.();}catch{}
+  }catch(error){try{store.map.removeLayer(group);}catch{}throw error;}
+  const mapRefresh=()=>scheduleFocus(false);
+  store.map.on('moveend zoomend',mapRefresh);
+  controller.refresh=force=>{scheduleFocus(Boolean(force));return Promise.resolve(true);};
+  controller.dispose=()=>{
+    if(controller.disposed)return;controller.disposed=true;clearTimeout(controller.focusTimer);controller.focusRequestId++;
+    store.map.off('moveend zoomend',mapRefresh);
+    controller.current?.dispose?.();controller.overview?.dispose?.();clearFocus();try{if(layerOnMap(group))store.map.removeLayer(group);}catch{}
+  };
+  controller.loadMode='adaptive-resolution-overview';
+  if(statusNode){
+    statusNode.className='open-data-load-status notice info';
+    statusNode.innerHTML='Net parsel çevresi açıldı; bölgesel genel görünüm arka planda tamamlanıyor…<div class="scale-note">Zoom 13 ve üzerinde yalnızca görünen alan daha yüksek çözünürlükte yenilenir; hızlı genel katman ve sınırlar korunur.</div>';
   }
-  throw new Error([...new Set(errors.filter(Boolean))].join(' · ')||'Yüksek çözünürlüklü WMS karo katmanı yüklenemedi.');
+  setTimeout(()=>loadRegionalOverviewLayer(item,controller.attempt,group,controller,statusNode),80);
+  scheduleFocus(true);
+  return controller;
 }
 
 async function createSharpWmsLayer(item,statusNode){
@@ -1495,7 +1457,7 @@ async function createSharpWmsLayer(item,statusNode){
   if(discovery?.leafNames?.length||discovery?.compositeCandidates?.length){
     const extras=fastWmsAttempts(item,discovery)
       .filter(attempt=>!known.some(row=>row.layerName===attempt.layerName&&row.version===attempt.version))
-      .slice(0,24);
+      .slice(0,8);
     if(extras.length){
       try{
         const selected=await findVisibleWmsAttempt(item,extras,statusNode);
@@ -1507,10 +1469,7 @@ async function createSharpWmsLayer(item,statusNode){
     }
   }else if(discovery?.error)lastError=`${lastError} · Katman listesi: ${discovery.error}`;
 
-  if(item.category==='plan'){
-    throw new Error(`${lastError} Parsel merkezinde gerçek plan içeriği doğrulanamadığı için katman açık sayılmadı.`);
-  }
-  if(statusNode){statusNode.className='open-data-load-status notice warn';statusNode.textContent='Görüntü doğrulama servisi yanıt vermedi; ortofoto karo bağlantısı son kez deneniyor…';}
+  if(statusNode){statusNode.className='open-data-load-status notice warn';statusNode.textContent='Görüntü doğrulama servisleri yanıt vermedi; son kez doğrudan sabit görüntü deneniyor…';}
   try{
     const row=await createPersistentViewportWmsLayer(item,statusNode,known.slice(0,2));
     item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;
@@ -1547,11 +1506,11 @@ async function toggleOpenDataLayer(itemId,button){
     if(statusNode){
       statusNode.className='open-data-load-status notice ok';
       if(item.type==='wms'){
-        const modeText=row.loadMode==='retina-proxy-tiles'?'Plan, zoom seviyesine göre yenilenen 2× çözünürlüklü WMS karolarıyla yüklendi.':row.loadMode==='stable-pilot-snapshot'?'Plan, parsel çevresini kapsayan sabit görüntü olarak yüklendi.':'Resmî servis için yedek WMS modu açıldı.';
+        const modeText=['detail-plus-region-overview','adaptive-resolution-overview'].includes(row.loadMode)?'Plan, çalışan sabit görünüm ve güvenli ayrıntı yenilemesiyle yüklendi.':row.loadMode==='stable-pilot-snapshot'?'Plan, parsel çevresini kapsayan sabit görüntü olarak yüklendi.':'Resmî servis için yedek WMS modu açıldı.';
         statusNode.innerHTML=`${modeText}<div class="scale-note">Eski bölgesel görsel yakın ölçekte büyütülmez. Görünen alan karoları önbellekli olarak yenilenir ve parsel sınırı her zaman üstte tutulur.</div>`;
       }else statusNode.textContent='Katman yüklendi; mevcut harita konumu korundu.';
     }
-    updateOpenDataMapBadge();showMapActivity(row.loadMode==='retina-proxy-tiles'?'Katman hazır · Yüksek çözünürlüklü WMS karoları etkin':row.loadMode==='stable-pilot-snapshot'?'Katman hazır · Sabit pilot görünümü etkin':'Katman hazır · WMS yedek modu etkin','ok',2600);
+    updateOpenDataMapBadge();showMapActivity(['detail-plus-region-overview','adaptive-resolution-overview'].includes(row.loadMode)?'Katman hazır · Çalışan görünüm korundu':row.loadMode==='stable-pilot-snapshot'?'Katman hazır · Sabit pilot görünümü etkin':'Katman hazır · WMS yedek modu etkin','ok',2600);
   }catch(error){
     button.textContent='Tekrar Dene';showMapActivity(`Katman yüklenemedi: ${humanError(error)}`,'error',4200);
     if(statusNode){statusNode.className='open-data-load-status notice error';statusNode.textContent=`Katman eklenmedi: ${humanError(error)} Bu düğme katmanı yeniden indirmek için aktif bırakıldı.`;}

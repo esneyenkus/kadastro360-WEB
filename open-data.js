@@ -160,7 +160,7 @@ async function fetchBuffer(url, options = {}, timeoutMs = 10000, maxBytes = 8_00
       ...options,
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Kadastro360/2.0.4 (+retina-wms-tiles)',
+        'User-Agent': 'Kadastro360/2.0.5 (+safe-wms-fallback)',
         Accept: '*/*',
         ...(options.headers || {})
       }
@@ -259,24 +259,6 @@ function capabilitiesUrl(baseUrl) {
   return url.toString();
 }
 
-async function wmsCapabilitiesDocument(key) {
-  const config = WMS_CONFIGS.find(row => row.key === key);
-  if (!config) throw Object.assign(new Error('Açık veri WMS kaynağı bulunamadı.'), { httpStatus: 404 });
-  return cached(`wms-capabilities-document:${key}`, 6 * 60 * 60_000, async () => {
-    const { text } = await fetchText(capabilitiesUrl(config.baseUrl), {
-      headers: {
-        Accept: 'application/xml,text/xml,*/*',
-        Referer: 'https://kadastro360.com.tr/',
-        Origin: 'https://kadastro360.com.tr'
-      }
-    }, 15000, 5_000_000);
-    if (!/<(?:WMS_Capabilities|WMT_MS_Capabilities)\b/i.test(text) || !/<Layer\b/i.test(text)) {
-      throw new Error('WMS katman listesi geçerli XML döndürmedi.');
-    }
-    return { buffer: Buffer.from(text, 'utf8'), contentType: 'application/xml; charset=utf-8' };
-  });
-}
-
 async function resolveWms(config) {
   return cached(`wms:${config.key}`, 6 * 60 * 60_000, async () => {
     const { text } = await fetchText(capabilitiesUrl(config.baseUrl), {}, 12000, 4_000_000);
@@ -312,17 +294,15 @@ function directWmsDefinition(config, resolved = null) {
     bounds: config.bounds || null,
     supportsFeatureInfo: config.category === 'plan',
     recommendedZoom: config.category === 'plan' ? 10 : null,
-    probeRadiusKm: config.category === 'plan' ? 6 : 8,
+    probeRadiusKm: config.category === 'plan' ? 24 : 8,
     snapshotRadiusKm: config.category === 'plan' ? 6 : 8,
     snapshotSize: config.category === 'plan' ? 1280 : 768,
     stableRadiusKm: config.category === 'plan' ? 6 : 8,
     stableSize: config.category === 'plan' ? 1280 : 768,
-    tileRequestSize: config.category === 'plan' ? 512 : 384,
-    maxUsefulZoom: config.category === 'plan' ? 14 : 19,
     infoFormats: resolved?.infoFormats || [],
     legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
     verifiedAt: resolved?.verifiedAt || null,
-    loadMode: 'retina-proxy-tiles'
+    loadMode: 'stable-pilot-snapshot'
   };
 }
 
@@ -607,7 +587,7 @@ async function buildPilotCatalog({ province, district, detailed = false }) {
     licenseUrl: ULASAV_LICENSE,
     providerUrl: ULASAV_ROOT,
     catalogMode: detailed ? 'detailed' : 'quick',
-    wmsLoadMode: 'retina-proxy-tiles',
+    wmsLoadMode: 'stable-pilot-snapshot',
     supportedRegions: [
       'Kayseri: çevre düzeni planı ve idari sınırlar',
       'Tekirdağ / Çorlu: çevre düzeni planı ve belediye rayiç kayıtları',
@@ -628,19 +608,12 @@ function lonLatToMercator(lon, lat) {
 function analyzePngVisibility(buffer) {
   const png = PNG.sync.read(buffer, { skipRescale: true });
   const total = png.width * png.height;
-  if (!total) return { visible: false, centerVisible: false, reason: 'empty-image', width: png.width, height: png.height };
+  if (!total) return { visible: false, reason: 'empty-image', width: png.width, height: png.height };
   const stride = Math.max(1, Math.floor(Math.sqrt(total / 70000)));
-  const centerLeft = Math.floor(png.width * 0.30);
-  const centerRight = Math.ceil(png.width * 0.70);
-  const centerTop = Math.floor(png.height * 0.30);
-  const centerBottom = Math.ceil(png.height * 0.70);
   let sampled = 0;
   let visiblePixels = 0;
   let opaquePixels = 0;
   let variedPixels = 0;
-  let centerSampled = 0;
-  let centerVisiblePixels = 0;
-  let centerOpaquePixels = 0;
   let first = null;
   for (let y = 0; y < png.height; y += stride) {
     for (let x = 0; x < png.width; x += stride) {
@@ -650,18 +623,10 @@ function analyzePngVisibility(buffer) {
       const b = png.data[index + 2];
       const a = png.data[index + 3];
       sampled++;
-      const inCenter = x >= centerLeft && x < centerRight && y >= centerTop && y < centerBottom;
-      if (inCenter) centerSampled++;
-      if (a > 16) {
-        opaquePixels++;
-        if (inCenter) centerOpaquePixels++;
-      }
+      if (a > 16) opaquePixels++;
       const nearWhite = r > 246 && g > 246 && b > 246;
       const nearTransparent = a <= 16;
-      if (!nearTransparent && !nearWhite) {
-        visiblePixels++;
-        if (inCenter) centerVisiblePixels++;
-      }
+      if (!nearTransparent && !nearWhite) visiblePixels++;
       if (!nearTransparent) {
         const packed = (r << 16) | (g << 8) | b;
         if (first === null) first = packed;
@@ -672,26 +637,8 @@ function analyzePngVisibility(buffer) {
   const visibleRatio = sampled ? visiblePixels / sampled : 0;
   const opaqueRatio = sampled ? opaquePixels / sampled : 0;
   const variedRatio = sampled ? variedPixels / sampled : 0;
-  const centerVisibleRatio = centerSampled ? centerVisiblePixels / centerSampled : 0;
-  const centerOpaqueRatio = centerSampled ? centerOpaquePixels / centerSampled : 0;
   const visible = visiblePixels >= 24 && (visibleRatio >= 0.0008 || variedRatio >= 0.0008);
-  const centerVisible = centerVisiblePixels >= 12 && centerVisibleRatio >= 0.003;
-  return {
-    visible,
-    centerVisible,
-    width: png.width,
-    height: png.height,
-    sampled,
-    visiblePixels,
-    visibleRatio,
-    opaqueRatio,
-    variedRatio,
-    centerSampled,
-    centerVisiblePixels,
-    centerVisibleRatio,
-    centerOpaqueRatio,
-    reason: visible ? (centerVisible ? 'center-visual-content' : 'content-outside-center') : 'transparent-or-empty'
-  };
+  return { visible, width: png.width, height: png.height, sampled, visiblePixels, visibleRatio, opaqueRatio, variedRatio, reason: visible ? 'visual-content' : 'transparent-or-empty' };
 }
 
 function wmsMapUrl(config, { layerName, version = '1.1.1', latitude, longitude, radiusKm = 24, width = 512, height = 512 }) {
@@ -716,14 +663,13 @@ async function wmsProbe({ key, layerName, version, latitude, longitude, radiusKm
   if (!layerName || String(layerName).length > 5000) throw new Error('Geçersiz WMS katman adı.');
   if (!Number.isFinite(Number(latitude)) || !Number.isFinite(Number(longitude))) throw new Error('Geçersiz parsel koordinatı.');
   const url = wmsMapUrl(config, { layerName: String(layerName), version: version === '1.3.0' ? '1.3.0' : '1.1.1', latitude: Number(latitude), longitude: Number(longitude), radiusKm: Number(radiusKm) || config.probeRadiusKm || 24 });
-  const { buffer, contentType } = await fetchBufferRetry(url, { headers: { Referer: 'https://kadastro360.com.tr/', Origin: 'https://kadastro360.com.tr' } }, 12000, 5_000_000, 2);
+  const { buffer, contentType } = await fetchBuffer(url, {}, 16000, 5_000_000);
   if (!/image\/png/i.test(contentType) && buffer.slice(1, 4).toString() !== 'PNG') {
     const text = decodeBuffer(buffer).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 700);
     throw new Error(text || 'WMS görüntü yerine geçersiz cevap döndürdü.');
   }
   const analysis = analyzePngVisibility(buffer);
-  const visible = config.category === 'plan' ? analysis.visible && analysis.centerVisible : analysis.visible;
-  return { ...analysis, visible, layerName: String(layerName), version: version === '1.3.0' ? '1.3.0' : '1.1.1', checkedAt: new Date().toISOString() };
+  return { ...analysis, layerName: String(layerName), version: version === '1.3.0' ? '1.3.0' : '1.1.1', checkedAt: new Date().toISOString() };
 }
 
 
@@ -758,10 +704,10 @@ async function wmsSnapshot({ key, layerName, version, latitude, longitude, radiu
       width: safeSize,
       height: safeSize
     });
-    const result = await fetchBufferRetry(url, { headers: { Referer: 'https://kadastro360.com.tr/', Origin: 'https://kadastro360.com.tr' } }, 15000, 12_000_000, 2);
+    const result = await fetchBufferRetry(url, { headers: { Referer: 'https://kadastro360.com.tr/', Origin: 'https://kadastro360.com.tr' } }, 18000, 12_000_000, 2);
     const analysis = validateWmsImage(result.buffer, result.contentType, 'WMS sabit plan görüntüsü');
-    if (!analysis.visible || (config.category === 'plan' && !analysis.centerVisible)) {
-      throw Object.assign(new Error('Bu parsel çevresinde katman görüntüsü boş; yalnızca uzaktaki plan parçası başarılı sayılmadı.'), { httpStatus: 422 });
+    if (!analysis.visible) {
+      throw Object.assign(new Error('Bu parsel çevresinde katman görüntüsü boş veya şeffaf döndü.'), { httpStatus: 422 });
     }
     return {
       buffer: result.buffer,
@@ -907,7 +853,7 @@ async function wmsTile({ key, layerName, version, z, x, y, size = 512 }) {
   else params.SRS = 'EPSG:3857';
   for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
 
-  const result = await fetchBufferRetry(url.toString(), { headers: { Referer: 'https://kadastro360.com.tr/', Origin: 'https://kadastro360.com.tr' } }, 10000, 6_000_000, 2);
+  const result = await fetchBuffer(url.toString(), {}, 14000, 4_000_000);
   const isPng = /image\/png/i.test(result.contentType) || result.buffer.slice(1, 4).toString() === 'PNG';
   if (!isPng) {
     const text = decodeBuffer(result.buffer).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 500);
@@ -935,7 +881,6 @@ module.exports = {
   buildPilotCatalog,
   analyzePngVisibility,
   wmsProbe,
-  wmsCapabilitiesDocument,
   fetchGeoJson,
   wmsFeatureInfo,
   wmsSnapshot,

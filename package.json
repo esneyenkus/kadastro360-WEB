@@ -1,8 +1,8 @@
 {
   "name": "kadastro360-web-pilot",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "private": true,
-  "description": "Kadastro360 yüksek çözünürlüklü dinamik WMS, ilçe öncelikli yakın yerler ve servis hata dayanıklılığı güncellemesi.",
+  "description": "Kadastro360 çalışan WMS görünümünü koruyan güvenli geri dönüş ve yakın yer dayanıklılığı güncellemesi.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
