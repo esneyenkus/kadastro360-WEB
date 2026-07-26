@@ -9,7 +9,7 @@ dns.setDefaultResultOrder('ipv4first');
 const { analyzeTerrain } = require('./terrain');
 const { AccountStore, DEFAULT_SITE_CONTENT } = require('./account-store');
 const { KadastroMailer } = require('./mailer');
-const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo, wmsProbe, wmsSnapshot, wmsLegend, wmsTile } = require('./open-data');
+const { buildPilotCatalog, fetchGeoJson, wmsFeatureInfo, wmsProbe, wmsCapabilitiesDocument, wmsSnapshot, wmsLegend, wmsTile } = require('./open-data');
 const { TKGMClient, sourcesFromEnvironment } = require('./tkgm-client');
 
 const HOST = process.env.HOST || '0.0.0.0';
@@ -77,7 +77,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360-Web-Pilot/1.9.4'
+  userAgent: 'Kadastro360/2.0.4'
 });
 
 // OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
@@ -101,6 +101,8 @@ const overpassHealth = new Map(
 );
 
 const cache = new Map();
+const poiSuccessfulCategoryCache = new Map();
+const POI_SUCCESS_CACHE_TTL_MS = 30 * 60 * 1000;
 
 
 function escapeHtml(value) {
@@ -539,7 +541,7 @@ async function routeOne(origin, destination) {
         if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
         try {
           const payload = await fetchJson(url.toString(), {
-            headers: { 'User-Agent': 'Kadastro360-Web-Pilot/1.9.4', Accept: 'application/json' }
+            headers: { 'User-Agent': 'Kadastro360/2.0.4', Accept: 'application/json' }
           }, 9000);
           if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
             const route = payload.routes[0];
@@ -594,7 +596,7 @@ async function getRoadRoutes(body) {
 
 const CATEGORY_LABELS = {
   school: 'Okul', market: 'Market', mosque: 'Cami', bank: 'Banka', atm: 'ATM',
-  beach: 'Sahil / Plaj', pharmacy: 'Eczane', hospital: 'Hastane / Sağlık',
+  beach: 'Sahil / Plaj', pharmacy: 'Eczane', hospital: 'Hastane',
   bus_terminal: 'Otogar', train_station: 'Tren Garı / İstasyonu', airport: 'Havaalanı'
 };
 const BANK_BRAND_PATTERN = '(ziraat|ziraat bankasi|ziraat bankası|vakifbank|vakıfbank|vakif katilim|vakıf katılım|halkbank|halk bankasi|halk bankası|akbank|garanti|garanti bbva|teb|qnb|qnb finansbank|denizbank|ing|yapi kredi|yapı kredi|is bankasi|iş bankası|sekerbank|şekerbank|kuveyt turk|kuveyt türk|turkiye finans|türkiye finans|albaraka|ptt)';
@@ -672,11 +674,14 @@ const CATEGORY_QUERIES = {
   },
   hospital: {
     core: [
-      'nwr["amenity"~"^(hospital|clinic|doctors|health_post)$"]',
-      'nwr["healthcare"~"^(hospital|clinic|doctor|centre|health_centre|health_post)$"]',
-      'nwr["building"~"^(hospital|clinic)$"]'
+      'nwr["amenity"="hospital"]',
+      'nwr["healthcare"="hospital"]',
+      'nwr["building"="hospital"]'
     ],
-    fallback: []
+    fallback: [
+      'nwr["amenity"~"^(clinic|doctors)$"]["name"~"(hastane|tıp merkezi|tip merkezi|medical center|sağlık merkezi|saglik merkezi)",i]',
+      'nwr["healthcare"~"^(clinic|doctor|centre|health_centre)$"]["name"~"(hastane|tıp merkezi|tip merkezi|medical center|sağlık merkezi|saglik merkezi)",i]'
+    ]
   },
   bus_terminal: {
     core: [
@@ -787,12 +792,12 @@ function detectionsForTags(tags = {}) {
     add('pharmacy', 'Orta', shop === 'chemist' ? 'shop=chemist' : 'Yalnızca ad eczane olarak eşleşti');
   }
 
-  if (['hospital', 'clinic', 'doctors', 'health_post'].includes(amenity)) {
-    add('hospital', 'Yüksek', `amenity=${amenity}`);
-  } else if (['hospital', 'clinic', 'doctor', 'centre', 'health_centre', 'health_post'].includes(healthcare)) {
-    add('hospital', 'Yüksek', `healthcare=${healthcare}`);
-  } else if (['hospital', 'clinic'].includes(building)) {
-    add('hospital', 'Orta', `building=${building}`);
+  const hospitalName = /\b(hastane|devlet hastanesi|şehir hastanesi|sehir hastanesi|tıp merkezi|tip merkezi|medical center|sağlık merkezi|saglik merkezi)\b/.test(text);
+  const privatePracticeName = /\b(muayenehane|doktor|dr\.?|diş|dis|dental|poliklinik|klinik)\b/.test(text) && !hospitalName;
+  if (amenity === 'hospital' || healthcare === 'hospital' || building === 'hospital') {
+    add('hospital', 'Yüksek', amenity === 'hospital' ? 'amenity=hospital' : (healthcare === 'hospital' ? 'healthcare=hospital' : 'building=hospital'));
+  } else if (!privatePracticeName && hospitalName && (['clinic', 'doctors'].includes(amenity) || ['clinic', 'doctor', 'centre', 'health_centre'].includes(healthcare))) {
+    add('hospital', 'Orta', 'Kurumsal hastane veya tıp merkezi adıyla doğrulandı');
   }
 
   if (amenity === 'bus_station') {
@@ -874,7 +879,8 @@ function buildOverpassQueryFromSelectors(lat, lng, radius, selectors) {
     .map(value => Number(value).toFixed(6))
     .join(',');
   const clauses = selectors.map(selector => `${selector}(${box});`);
-  return `[out:json][timeout:14][maxsize:67108864];(${clauses.join('')});out center tags qt;`;
+  const timeoutSeconds = radius >= 20000 ? 25 : radius >= 10000 ? 20 : 16;
+  return `[out:json][timeout:${timeoutSeconds}][maxsize:67108864];(${clauses.join('')});out center tags qt;`;
 }
 
 function buildOverpassQuery(lat, lng, radius, categories, mode = 'core') {
@@ -927,16 +933,17 @@ async function runOverpassSelectors(lat, lng, radius, selectors, options = {}) {
   for (const endpoint of endpoints) {
     const startedAt = Date.now();
     try {
+      const requestTimeoutMs = radius >= 20000 ? 15000 : radius >= 10000 ? 12000 : 8000;
       const data = await fetchJson(endpoint.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
           Accept: 'application/json',
           'Accept-Language': 'tr-TR,tr;q=0.9',
-          'User-Agent': 'Parsel-Egim-Yakin-Rehber/1.5 (+local-windows-app)'
+          'User-Agent': 'Kadastro360/2.0.4 (kadastro360.com.tr)'
         },
         body
-      }, 6000);
+      }, requestTimeoutMs);
       if (data?.remark) throw new Error(`Overpass çalışma hatası: ${data.remark}`);
       recordOverpassSuccess(endpoint, Date.now() - startedAt);
       return { data, endpoint: endpoint.name };
@@ -951,7 +958,7 @@ async function runOverpassSelectors(lat, lng, radius, selectors, options = {}) {
 
 async function runSelectorSetResilient(lat, lng, radius, selectors, depth = 0) {
   try {
-    const result = await runOverpassSelectors(lat, lng, radius, selectors, { bypassHealth: depth > 0, maxEndpoints: depth > 0 ? 1 : 2 });
+    const result = await runOverpassSelectors(lat, lng, radius, selectors, { bypassHealth: depth > 0, maxEndpoints: 2 });
     return {
       elements: Array.isArray(result.data?.elements) ? result.data.elements : [],
       providers: [result.endpoint],
@@ -961,7 +968,7 @@ async function runSelectorSetResilient(lat, lng, radius, selectors, depth = 0) {
     };
   } catch (error) {
     const transient = /504|502|503|429|zaman aşımı|timeout|çalışma hatası|runtime/i.test(String(error.message || error));
-    const canSplit = selectors.length > 1 && depth < 1 && radius <= 10000 && transient;
+    const canSplit = selectors.length > 1 && depth < 2 && radius <= 30000 && transient;
     if (!canSplit) {
       return {
         elements: [],
@@ -1041,11 +1048,13 @@ async function queryCategoriesAtRadius(lat, lng, radius, categories) {
   const providers = new Set();
   const succeededCategories = new Set();
   const failedCategories = new Set();
-  const batches = POI_CATEGORY_BATCHES
-    .map(batch => batch.filter(key => requested.includes(key)))
-    .filter(batch => batch.length);
+  const batches = radius > 10000
+    ? requested.map(key => [key])
+    : POI_CATEGORY_BATCHES.map(batch => batch.filter(key => requested.includes(key))).filter(batch => batch.length);
 
-  const batchResults = await mapLimit(batches, 3, async keys => {
+  // 20–30 km sorgularında her kategori ayrı çalışır. Bir ağır kategori zaman aşımına
+  // uğrarsa daha önce çalışan okul, market, eczane gibi kategoriler hata durumuna düşmez.
+  const batchResults = await mapLimit(batches, radius > 10000 ? 2 : 3, async keys => {
     const coreSelectors = selectorsForCategories(keys, 'core');
     const core = await runSelectorSetResilient(lat, lng, radius, coreSelectors);
     const localMap = new Map();
@@ -1248,7 +1257,7 @@ async function getDistrictSearchAnchor(adminContext = {}) {
       headers: {
         Accept: 'application/json',
         'Accept-Language': 'tr-TR,tr;q=0.9',
-        'User-Agent': 'Kadastro360-Web-Pilot/1.9.4 (kadastro360.com.tr)'
+        'User-Agent': 'Kadastro360/2.0.4 (kadastro360.com.tr)'
       }
     }, 9000);
     if (!Array.isArray(rows) || !rows.length) return null;
@@ -1266,6 +1275,48 @@ async function getDistrictSearchAnchor(adminContext = {}) {
       boundingbox: Array.isArray(selected.boundingbox) ? selected.boundingbox.map(Number) : null
     };
   });
+}
+
+function pointInsideDistrictBoundingBox(lat, lng, districtAnchor) {
+  const box = Array.isArray(districtAnchor?.boundingbox) ? districtAnchor.boundingbox.map(Number) : null;
+  if (!box || box.length !== 4 || !box.every(Number.isFinite)) return null;
+  const [south, north, west, east] = box;
+  return Number(lat) >= Math.min(south, north) && Number(lat) <= Math.max(south, north)
+    && Number(lng) >= Math.min(west, east) && Number(lng) <= Math.max(west, east);
+}
+
+function poiSuccessfulCacheKey(lat, lng, category, scope, context = {}) {
+  return [
+    Number(lat).toFixed(4), Number(lng).toFixed(4), category, scope,
+    normalizeSearchText(context.province), normalizeSearchText(context.district)
+  ].join(':');
+}
+
+function rememberSuccessfulPoiCategory(lat, lng, category, scope, context, radius, elements) {
+  const matched = (elements || []).filter(element => detectionForTags(element.tags || {}, category));
+  if (!matched.length) return;
+  const key = poiSuccessfulCacheKey(lat, lng, category, scope, context);
+  poiSuccessfulCategoryCache.set(key, {
+    elements: matched.map(element => ({ ...element })),
+    radius: Number(radius) || 0,
+    expiresAt: Date.now() + POI_SUCCESS_CACHE_TTL_MS
+  });
+  while (poiSuccessfulCategoryCache.size > 220) {
+    const oldest = poiSuccessfulCategoryCache.keys().next().value;
+    poiSuccessfulCategoryCache.delete(oldest);
+  }
+}
+
+function readSuccessfulPoiCategory(lat, lng, category, scope, context, requestedRadius) {
+  const key = poiSuccessfulCacheKey(lat, lng, category, scope, context);
+  const row = poiSuccessfulCategoryCache.get(key);
+  if (!row || row.expiresAt <= Date.now()) {
+    if (row) poiSuccessfulCategoryCache.delete(key);
+    return null;
+  }
+  // Daha dar önceki arama sonucu, daha geniş yeni arama başarısız olduğunda
+  // güvenli biçimde korunabilir; sonuç yeni 30 km sonucuymuş gibi etiketlenmez.
+  return { ...row, requestedRadius: Number(requestedRadius) || 0 };
 }
 
 function itemFromElement(element, originLat, originLng, geometry, preferredCategory = null, adminContext = {}) {
@@ -1340,25 +1391,30 @@ function categoryCounts(items) {
   }, {});
 }
 
+const POI_DISPLAY_LIMITS = {
+  school: 20, market: 20, mosque: 25, pharmacy: 20, hospital: 12,
+  bank: 15, atm: 15, beach: 15, bus_terminal: 10, train_station: 10, airport: 8
+};
+
 function limitBalanced(items, category) {
   const ordered = [...items].sort(comparePoi);
-  if (category !== 'all') return ordered.slice(0, 120);
+  if (category !== 'all') return ordered.slice(0, Math.max(20, POI_DISPLAY_LIMITS[category] || 40));
   const perType = new Map();
   for (const item of ordered) {
     const list = perType.get(item.type) || [];
-    if (list.length < 60) list.push(item);
+    if (list.length < (POI_DISPLAY_LIMITS[item.type] || 20)) list.push(item);
     perType.set(item.type, list);
   }
   return [...perType.values()]
     .flat()
     .sort(comparePoi)
-    .slice(0, 400);
+    .slice(0, 180);
 }
 
 async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {}) {
   const context = normalizeAdminContext(adminContext);
   const geometryKey = geometry ? JSON.stringify(geometry).slice(0, 2000) : '';
-  const cacheKey = `poi-v191:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
+  const cacheKey = `poi-v204:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
   return cached(cacheKey, 30 * 60 * 1000, async () => {
     const startedAt = Date.now();
     const allCategories = Object.keys(CATEGORY_QUERIES);
@@ -1369,15 +1425,16 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
     const providers = new Set();
     const successfulCategories = new Set();
     const failedCategories = new Set();
+    const cachedFallbackCategories = new Set();
     const coverage = {};
-    const districtAnchorPromise = radiusMode === 'auto' && context.province && context.district
+    const districtAnchorPromise = context.province && context.district
       ? getDistrictSearchAnchor(context).catch(error => {
           warnings.push(`İlçe merkezi bulunamadı: ${error.message}`);
           return null;
         })
       : Promise.resolve(null);
 
-    const absorb = (result, radius, scope = 'parcel') => {
+    const absorb = (result, radius, scope = 'parcel', searchLat = lat, searchLng = lng) => {
       mergeElements(elementMap, { elements: result.elements }, scope);
       searchedRadii.push(radius);
       result.warnings.forEach(warning => warnings.push(warning));
@@ -1385,9 +1442,20 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
       result.succeededCategories.forEach(key => {
         successfulCategories.add(key);
         failedCategories.delete(key);
+        rememberSuccessfulPoiCategory(searchLat, searchLng, key, scope, context, radius, result.elements);
       });
       result.failedCategories.forEach(key => {
-        if (!successfulCategories.has(key)) failedCategories.add(key);
+        if (successfulCategories.has(key)) return;
+        const previous = readSuccessfulPoiCategory(searchLat, searchLng, key, scope, context, radius);
+        if (previous?.elements?.length) {
+          mergeElements(elementMap, { elements: previous.elements }, scope);
+          successfulCategories.add(key);
+          cachedFallbackCategories.add(key);
+          failedCategories.delete(key);
+          warnings.push(`${CATEGORY_LABELS[key]}: yeni servis isteği yanıt vermedi; son başarılı canlı sonuç korundu.`);
+        } else {
+          failedCategories.add(key);
+        }
       });
     };
 
@@ -1395,7 +1463,7 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
       const radius = Math.max(300, Math.min(30000, Number(radiusMode) || 1000));
       const result = await queryCategoriesAtRadius(lat, lng, radius, requestedCategories);
       absorb(result, radius);
-      for (const key of requestedCategories) coverage[key] = { radius, status: result.failedCategories.has(key) ? 'failed' : 'checked' };
+      for (const key of requestedCategories) coverage[key] = { radius, status: failedCategories.has(key) ? 'failed' : cachedFallbackCategories.has(key) ? 'cached' : 'checked' };
     } else {
       let pending = [...requestedCategories];
       for (const radius of [10000, 20000, 30000]) {
@@ -1420,7 +1488,7 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
         for (const key of pending) {
           const maxRadiusForCategory = POI_MAX_RADIUS[key] || 10000;
           if (found.has(key)) {
-            coverage[key] = { radius, status: 'found' };
+            coverage[key] = { radius, status: cachedFallbackCategories.has(key) ? 'cached' : 'found' };
           } else if (eligible.includes(key) && result.failedCategories.has(key)) {
             coverage[key] = { radius, status: 'failed' };
           } else if (radius >= maxRadiusForCategory) {
@@ -1441,23 +1509,23 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
     if (radiusMode === 'auto' && context.province && context.district) {
       const parcelItems = [...elementMap.values()]
         .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all', context));
-      const districtPriorityCategories = new Set(['bank', 'atm', 'pharmacy', 'hospital', 'bus_terminal', 'train_station', 'airport']);
+      const districtPriorityCategories = new Set(['school', 'market', 'mosque', 'bank', 'atm', 'pharmacy', 'hospital', 'bus_terminal', 'train_station', 'airport']);
       districtFallbackCategories = requestedCategories.filter(key => {
         if (!districtPriorityCategories.has(key)) return false;
         const rows = parcelItems.filter(item => item.type === key);
-        if (['bank', 'atm'].includes(key)) return true;
         if (!rows.length) return true;
         const nearest = [...rows].sort(comparePoi)[0];
-        return nearest.districtMatch === false || nearest.centerDistance > 15000;
+        if (['bank', 'atm'].includes(key) && nearest.districtMatch !== true) return true;
+        return nearest.districtMatch === false || nearest.centerDistance > 12000;
       });
       if (districtFallbackCategories.length) {
         districtAnchor = await districtAnchorPromise;
         if (districtAnchor) {
           let pendingDistrict = [...districtFallbackCategories];
-          for (const radius of [12000, 30000]) {
+          for (const radius of [8000, 18000]) {
             if (!pendingDistrict.length) break;
             const result = await queryCategoriesAtRadius(districtAnchor.lat, districtAnchor.lng, radius, pendingDistrict);
-            absorb(result, radius, 'district-center');
+            absorb(result, radius, 'district-center', districtAnchor.lat, districtAnchor.lng);
             const centerItems = [...elementMap.values()]
               .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all', context))
               .filter(item => item.searchScope === 'district-center');
@@ -1472,6 +1540,10 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
       }
     }
 
+    if (!districtAnchor && context.province && context.district) {
+      districtAnchor = await districtAnchorPromise;
+    }
+
     const maxRadius = searchedRadii.length ? Math.max(...searchedRadii) : 0;
     const seenLocations = new Set();
     let items = [...elementMap.values()]
@@ -1484,6 +1556,18 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
         return true;
       })
       .sort(comparePoi);
+
+    if (districtAnchor?.boundingbox) {
+      items = items.map(item => {
+        const inside = pointInsideDistrictBoundingBox(item.lat, item.lng, districtAnchor);
+        if (inside === null) return item;
+        if (item.searchScope === 'district-center' || item.districtMatch === null) return { ...item, districtMatch: inside };
+        if (item.districtMatch === true && inside === false) return { ...item, districtMatch: false };
+        return item;
+      });
+      const strictDistrictTypes = new Set(['school', 'market', 'mosque', 'pharmacy', 'hospital', 'bank', 'atm', 'bus_terminal']);
+      items = items.filter(item => !(strictDistrictTypes.has(item.type) && item.districtMatch === false));
+    }
 
     const preferredTypeState = new Map();
     for (const item of items) {
@@ -1533,6 +1617,7 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
       providers: [...providers],
       partial: failedCategories.size > 0 && successfulCategories.size > 0,
       failedCategories: [...failedCategories],
+      cachedFallbackCategories: [...cachedFallbackCategories],
       warnings: [...new Set(warnings)].slice(0, 8),
       coverage,
       counts: shownCounts,
@@ -1648,7 +1733,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.1-admin-hotfix', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.4-map-poi-fix', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
     }
 
     if (req.method === 'GET' && pathname === '/favicon.ico') {
@@ -1889,6 +1974,13 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && pathname === '/api/services') {
       return sendJson(res, 200, { updatedAt: new Date().toISOString(), services: serviceHealth });
     }
+    let capabilitiesMatch = pathname.match(/^\/api\/open-data\/wms-capabilities\/([^/]+)\.xml$/);
+    if (req.method === 'GET' && capabilitiesMatch) {
+      const result = await wmsCapabilitiesDocument(decodeURIComponent(capabilitiesMatch[1]));
+      markService('openData', true, 'WMS katman listesi yedek bağlantı üzerinden alındı.');
+      return sendBinary(res, 200, result.buffer, result.contentType, { 'Cache-Control': 'private, max-age=21600' });
+    }
+
     let snapshotMatch = pathname.match(/^\/api\/open-data\/wms-snapshot\/([^/]+)\.png$/);
     if (req.method === 'GET' && snapshotMatch) {
       const result = await wmsSnapshot({
@@ -1936,7 +2028,7 @@ const server = http.createServer(async (req, res) => {
       const district = String(requestUrl.searchParams.get('district') || '').trim();
       if (!province) return sendJson(res, 400, { error: 'Açık veri kontrolü için il gereklidir.' });
       const result = await buildPilotCatalog({ province, district, detailed: requestUrl.searchParams.get('mode') === 'detailed' });
-      markService('openData', true, `${province}${district ? ` / ${district}` : ''} için kaynak listesi hazırlandı. Eşleşen WMS planı parsel çevresinde tek sabit görüntü olarak yüklenir.`);
+      markService('openData', true, `${province}${district ? ` / ${district}` : ''} için kaynak listesi hazırlandı. Eşleşen WMS planı parsel merkezinde doğrulanır ve dinamik yüksek çözünürlüklü karolarla yüklenir.`);
       return sendJson(res, 200, result);
     }
     if (req.method === 'GET' && pathname === '/api/open-data/geojson') {

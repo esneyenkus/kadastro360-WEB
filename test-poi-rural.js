@@ -29,7 +29,7 @@ function requestedElements(query, radius) {
 
   // Kırsal örnek: 10 km içinde yalnızca cami ve sağlık noktası var.
   add(query.includes('place_of_worship'), { type:'node', id:1, lat:40.050, lon:27.050, tags:{ amenity:'place_of_worship', religion:'muslim', name:'Köy Camii' } });
-  add(query.includes('healthcare') || query.includes('hospital|clinic'), { type:'node', id:2, lat:40.070, lon:27.070, tags:{ amenity:'clinic', name:'Aile Sağlığı Merkezi' } });
+  add(query.includes('amenity%22=%22hospital') || query.includes('amenity"="hospital') || query.includes('healthcare"="hospital'), { type:'node', id:2, lat:40.070, lon:27.070, tags:{ amenity:'hospital', name:'İlçe Devlet Hastanesi' } });
 
   // Okul, market, eczane, banka ve ATM ilçe merkezinde yaklaşık 20 km uzakta.
   add(farEnough && query.includes('school|kindergarten'), { type:'node', id:3, lat:40.140, lon:27.140, tags:{ amenity:'school', name:'İlçe Okulu' } });

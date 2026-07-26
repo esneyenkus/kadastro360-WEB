@@ -77,7 +77,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 .map-runtime-status{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1450;display:none;align-items:center;gap:8px;max-width:min(520px,calc(100% - 120px));padding:8px 12px;border-radius:9px;background:rgba(23,33,43,.92);color:#fff;font-size:10px;font-weight:750;box-shadow:0 7px 25px rgba(0,0,0,.22);pointer-events:none}.map-runtime-status.show{display:flex}.map-runtime-status.ok{background:rgba(14,107,81,.94)}.map-runtime-status.error{background:rgba(139,45,34,.94)}.map-runtime-status.loading:before{content:"";width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex:0 0 auto}
 .compare-control{position:absolute;right:12px;top:12px;z-index:1300;display:none;align-items:center;gap:5px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:9px;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,.12)}.compare-control.show{display:flex}.compare-control button{border:0;border-radius:6px;padding:6px 8px;background:#fff;font-size:9px;font-weight:800;cursor:pointer;color:var(--text)}.compare-control .compare-main{background:#fff5e8;color:#8a4c00}.compare-control .compare-main.off{background:#f1f3f5;color:#687583}.compare-control .compare-clear{border-left:1px solid var(--line);border-radius:0 6px 6px 0;color:#8b2d22}
 .parcel-locator-wrapper{background:transparent;border:0}.parcel-locator{--locator-size:34px;width:var(--locator-size);height:var(--locator-size);margin-left:calc(var(--locator-size) / -2);margin-top:calc(var(--locator-size) / -2);border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.96);border:3px solid #e33737;box-shadow:0 0 0 4px rgba(227,55,55,.18),0 5px 18px rgba(0,0,0,.3);transition:width .16s,height .16s,margin .16s,opacity .16s;animation:parcelPulse 1.6s ease-out infinite}.parcel-locator:before{content:"";width:32%;height:32%;border-radius:50%;background:#e33737}.parcel-locator-label{position:absolute;left:50%;top:calc(var(--locator-size) + 5px);transform:translateX(-50%);background:#17212b;color:#fff;border-radius:5px;padding:3px 5px;font:800 8px/1 Arial;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.24)}@keyframes parcelPulse{0%{box-shadow:0 0 0 0 rgba(227,55,55,.38),0 5px 18px rgba(0,0,0,.3)}70%{box-shadow:0 0 0 12px rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}100%{box-shadow:0 0 0 0 rgba(227,55,55,0),0 5px 18px rgba(0,0,0,.3)}}
-.leaflet-openData-pane{mix-blend-mode:normal}.leaflet-parcelHalo-pane,.leaflet-parcel-pane,.leaflet-locator-pane{pointer-events:none}.leaflet-comparison-pane{pointer-events:auto}
+.leaflet-openData-pane{mix-blend-mode:normal}.k360-wms-retina-tile{image-rendering:auto;backface-visibility:hidden;transform:translateZ(0)}.leaflet-parcelHalo-pane,.leaflet-parcel-pane,.leaflet-locator-pane{pointer-events:none}.leaflet-comparison-pane{pointer-events:auto}
 .legend-window{position:fixed;right:20px;top:86px;z-index:5100;width:min(400px,calc(100vw - 28px));max-height:min(78vh,720px);display:none}.legend-window.open{display:block}.legend-window .modal-card{width:100%;max-height:min(78vh,720px);overflow:auto;border:1px solid #cfd8e1;border-radius:12px;background:#fff;box-shadow:0 16px 50px rgba(0,0,0,.25)}.legend-window .modal-head{position:sticky;top:0;z-index:2;background:#fff;cursor:move;user-select:none;touch-action:none}.legend-drag-hint{margin-left:auto;margin-right:8px;font-size:8px;color:var(--muted);font-weight:700}.legend-window .modal-body{padding:12px}.legend-window.dragging{opacity:.96}.legend-window.dragging .modal-card{box-shadow:0 22px 65px rgba(0,0,0,.32)}.legend-row{cursor:zoom-in;transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease}.legend-row:hover{transform:translateY(-1px);border-color:#7796d1;box-shadow:0 4px 12px rgba(38,79,150,.12)}.legend-official img.ready{cursor:zoom-in}.legend-preview-modal{position:fixed;inset:0;z-index:5400;display:none;place-items:center;background:rgba(15,28,37,.66);padding:18px}.legend-preview-modal.open{display:grid}.legend-preview-card{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 28px 90px rgba(0,0,0,.4)}.legend-preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}.legend-preview-head h3{margin:0;font-size:16px}.legend-preview-close{border:0;background:#eef2f4;width:34px;height:34px;border-radius:9px;font-size:20px;cursor:pointer}.legend-preview-body{padding:18px}.legend-preview-sample{width:min(420px,100%);height:250px;margin:0 auto 14px;border:2px solid rgba(0,0,0,.26);border-radius:12px;background:#fff;position:relative;overflow:hidden}.legend-preview-image{display:none;max-width:100%;max-height:68vh;margin:0 auto 14px;border:1px solid var(--line);border-radius:10px;background:#fff}.legend-preview-image.ready{display:block}.legend-preview-detail{font-size:13px;line-height:1.65;color:var(--muted);text-align:center}.legend-preview-note{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff8e7;color:#70520f;font-size:11px;line-height:1.55}
 .session-compare-note{font-size:9px;color:#7b4b0b;background:#fff7eb;border:1px solid #f0d2a6;border-radius:7px;padding:7px;margin:7px 0;line-height:1.45}
 @media(max-width:820px){.compare-control{top:54px;right:8px}.map-runtime-status{top:54px;max-width:calc(100% - 20px)}.legend-window{left:8px!important;right:8px!important;top:70px!important;width:auto;max-height:72vh}.legend-drag-hint{display:none}}
@@ -146,7 +146,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
             <option value="atm">ATM</option>
             <option value="beach">Sahil / Plaj</option>
             <option value="pharmacy">Eczane</option>
-            <option value="hospital">Hastane / Sağlık</option>
+            <option value="hospital">Hastane</option>
             <option value="bus_terminal">Otogar</option>
             <option value="train_station">Tren Garı / İstasyonu</option>
             <option value="airport">Havaalanı</option>
@@ -203,7 +203,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 
 
       <section class="pane" id="open-data-pane">
-        <div class="notice info"><strong>Hazır plan tek tıkla otomatik açılır.</strong> Önce parseli sorgulayın, ardından “Hazır Katmanları Getir” düğmesine basın. Plan önce hızlı bölgesel görünüm ve net parsel çevresiyle açılır; zoom 13 ve üzerinde yalnızca ekranda görünen alan arka planda daha yüksek çözünürlükte yenilenir. Ek kaynaklar ayrı düğmeyle taranır. Şeffaf/boş WMS görüntüsü başarılı sayılmaz; bu görsel doğrulama Render yolu için yapılır. Render bağlantısı kapanırsa tarayıcı doğrudan resmî WMS görüntüsünü dener.</div>
+        <div class="notice info"><strong>Hazır plan tek tıkla otomatik açılır.</strong> Önce parseli sorgulayın, ardından “Hazır Katmanları Getir” düğmesine basın. Plan, zoom seviyesine göre yeniden üretilen yüksek çözünürlüklü WMS karolarıyla açılır; eski bölgesel görüntü yakın ölçekte büyütülmez. Ek kaynaklar ayrı düğmeyle taranır. Şeffaf/boş WMS görüntüsü başarılı sayılmaz; bu görsel doğrulama Render yolu için yapılır. Render bağlantısı kapanırsa tarayıcı doğrudan resmî WMS görüntüsünü dener.</div>
         <div class="open-data-toolbar">
           <button class="primary" id="open-data-check" disabled>Hazır Katmanları Getir</button>
           <button class="open-data-clear" id="open-data-detailed" disabled>Ek Kaynakları Tara</button>
@@ -318,7 +318,7 @@ const PLAN_SPECIAL_LEGEND_ITEMS = [
 ];
 const CATEGORY_ICONS = {school:'🏫',market:'🛒',mosque:'🕌',bank:'🏦',atm:'🏧',beach:'🏖️',pharmacy:'💊',hospital:'🏥',bus_terminal:'🚌',train_station:'🚆',airport:'✈️'};
 const PRIORITY_CATEGORIES = ['school','market','mosque','pharmacy','hospital','bank','atm','beach','bus_terminal','train_station','airport'];
-const CATEGORY_NAMES = {school:'Okul',market:'Market',mosque:'Cami',bank:'Banka',atm:'ATM',beach:'Sahil / Plaj',pharmacy:'Eczane',hospital:'Hastane / Sağlık',bus_terminal:'Otogar',train_station:'Tren Garı / İstasyonu',airport:'Havaalanı'};
+const CATEGORY_NAMES = {school:'Okul',market:'Market',mosque:'Cami',bank:'Banka',atm:'ATM',beach:'Sahil / Plaj',pharmacy:'Eczane',hospital:'Hastane',bus_terminal:'Otogar',train_station:'Tren Garı / İstasyonu',airport:'Havaalanı'};
 const CATEGORY_LABELS = {all:'yakındaki okul market cami eczane hastane banka ATM sahil otogar tren garı havaalanı',school:'okul',market:'market',mosque:'cami',bank:'banka',atm:'ATM',beach:'sahil plaj',pharmacy:'eczane',hospital:'hastane sağlık merkezi',bus_terminal:'otogar otobüs terminali',train_station:'tren garı tren istasyonu',airport:'havaalanı havalimanı'};
 const store = {
   il:{items:[],selected:null}, ilce:{items:[],selected:null}, mah:{items:[],selected:null},
@@ -565,7 +565,7 @@ function renderOpenDataCatalog(data){
     const guide=item.category==='plan'?`<button type="button" class="plan-guide-btn" data-open-action="guide" data-item-id="${escapeHtml(item.id)}">Renk Rehberi</button>`:'';
     const focus=item.category==='plan'?`<button type="button" class="plan-focus-btn" data-open-action="focus" data-item-id="${escapeHtml(item.id)}">Plan Ölçeğine Git</button>`:'';
     const source=item.sourceUrl?`<a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">Kaynak Sayfası ↗</a>`:'';
-    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Plan önce parsel çevresinde hızlı ayrıntı görüntüsüyle açılır; ardından plan bölgesinin tamamını kapsayan genel görünüm arka planda eklenir. Zoom/pan sırasında yeniden WMS isteği gönderilmez. Hazır katman boş dönerse resmî katman listesi bir kez kontrol edilerek görünür katman seçilir.</div>':'';
+    const directNote=item.type==='wms'?'<div class="notice info" style="margin-top:7px">Plan, her zoom seviyesinde resmî WMS servisinden 2× netlikte karo olarak yenilenir. Bölgesel düşük çözünürlüklü görsel yakın ölçekte büyütülmez. Hazır katman parsel merkezinde boş dönerse resmî katman listesi kontrol edilerek doğru pafta aranır.</div>':'';
     card.innerHTML=`<div class="open-data-head"><div class="open-data-title">${escapeHtml(item.title)}</div><span class="open-data-kind ${kindClass}">${kindLabel}</span></div><div class="open-data-desc">${escapeHtml(item.description||'Kamuya açık veri kaynağı.')}<br><strong>Sağlayıcı:</strong> ${escapeHtml(item.provider||'Belirtilmedi')}</div>${rayicSummaryHtml(item)}<div class="open-data-fresh">${escapeHtml(openDataFreshness(item))}</div><div class="open-data-actions">${overlayButton}${focus}${guide}${source}</div>${directNote}<div class="open-data-load-status" aria-live="polite"></div>${openDataResourcesHtml(item)}`;
     list.appendChild(card);
   }
@@ -711,47 +711,90 @@ function directLayerChildren(node,name){
 
 async function discoverBrowserWmsLayers(item){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),9000);
+  const timer=setTimeout(()=>controller.abort(),11000);
   try{
     const url=new URL(item.wms.baseUrl);
     url.searchParams.set('service','WMS');
     url.searchParams.set('request','GetCapabilities');
-    const response=await fetch(url.toString(),{signal:controller.signal,cache:'no-store',headers:{Accept:'application/xml,text/xml,*/*'}});
-    if(!response.ok) throw new Error(`GetCapabilities HTTP ${response.status}`);
+    let response;
+    try{
+      response=await fetch(url.toString(),{signal:controller.signal,cache:'no-store',headers:{Accept:'application/xml,text/xml,*/*'}});
+      if(!response.ok)throw new Error(`GetCapabilities HTTP ${response.status}`);
+    }catch(directError){
+      clearTimeout(timer);
+      response=await fetch(`/api/open-data/wms-capabilities/${encodeURIComponent(item.wms?.key||item.id)}.xml`,{cache:'no-store',headers:{Accept:'application/xml,text/xml,*/*'}});
+      if(!response.ok)throw new Error(`WMS katman listesi alınamadı: HTTP ${response.status}`);
+    }
     const text=await response.text();
     const xml=new DOMParser().parseFromString(text,'application/xml');
     if(xml.querySelector('parsererror')) throw new Error('GetCapabilities XML ayrıştırılamadı.');
     const root=xml.documentElement;
     const version=root?.getAttribute('version')||'1.1.1';
+    const parcel=store.parcelCenter;
+    const inheritedBounds=layer=>{
+      let current=layer;
+      while(current&&current.nodeType===1){
+        const ex=directLayerChildren(current,'EX_GeographicBoundingBox')[0];
+        if(ex){
+          const west=Number(directLayerChildren(ex,'westBoundLongitude')[0]?.textContent);
+          const east=Number(directLayerChildren(ex,'eastBoundLongitude')[0]?.textContent);
+          const south=Number(directLayerChildren(ex,'southBoundLatitude')[0]?.textContent);
+          const north=Number(directLayerChildren(ex,'northBoundLatitude')[0]?.textContent);
+          if([south,west,north,east].every(Number.isFinite))return [south,west,north,east];
+        }
+        const ll=directLayerChildren(current,'LatLonBoundingBox')[0];
+        if(ll){
+          const west=Number(ll.getAttribute('minx')),east=Number(ll.getAttribute('maxx'));
+          const south=Number(ll.getAttribute('miny')),north=Number(ll.getAttribute('maxy'));
+          if([south,west,north,east].every(Number.isFinite))return [south,west,north,east];
+        }
+        const crs84=directLayerChildren(current,'BoundingBox').find(node=>/CRS:84/i.test(node.getAttribute('CRS')||node.getAttribute('SRS')||''));
+        if(crs84){
+          const west=Number(crs84.getAttribute('minx')),east=Number(crs84.getAttribute('maxx'));
+          const south=Number(crs84.getAttribute('miny')),north=Number(crs84.getAttribute('maxy'));
+          if([south,west,north,east].every(Number.isFinite))return [south,west,north,east];
+        }
+        current=current.parentElement;
+        while(current&&current.localName!=='Layer')current=current.parentElement;
+      }
+      return null;
+    };
     const rows=[...xml.getElementsByTagNameNS('*','Layer')].map(layer=>{
       const name=directLayerChildren(layer,'Name')[0]?.textContent?.trim();
       const title=directLayerChildren(layer,'Title')[0]?.textContent?.trim()||'';
       const childCount=directLayerChildren(layer,'Layer').length;
-      return name?{name,title,leaf:childCount===0}:null;
+      const bounds=inheritedBounds(layer);
+      const containsParcel=Boolean(parcel&&bounds&&parcel.lat>=bounds[0]&&parcel.lat<=bounds[2]&&parcel.lng>=bounds[1]&&parcel.lng<=bounds[3]);
+      return name?{name,title,leaf:childCount===0,bounds,containsParcel}:null;
     }).filter(Boolean);
     const dedup=[...new Map(rows.map(row=>[row.name,row])).values()];
     const score=row=>{
       const hay=`${row.name} ${row.title}`;
-      if(/plan|çevre|duzeni|düzeni|cdp|arazi|kentsel|sanayi|tarim|tarım|orman|ortofoto|image|raster/i.test(hay)) return 0;
-      if(/^\d+$/.test(row.name)) return 1;
-      return 2;
+      let value=row.containsParcel?-30:0;
+      if(/plan|çevre|duzeni|düzeni|cdp|arazi|kentsel|sanayi|tarim|tarım|orman|ortofoto|image|raster|pafta/i.test(hay)) value-=8;
+      if(/^\d+$/.test(row.name)) value-=4;
+      if(!row.leaf)value+=4;
+      return value;
     };
-    dedup.sort((a,b)=>score(a)-score(b));
-    const leafNames=dedup.filter(row=>row.leaf).map(row=>row.name);
+    dedup.sort((a,b)=>score(a)-score(b)||String(a.title).localeCompare(String(b.title),'tr'));
+    const leafRows=dedup.filter(row=>row.leaf);
+    const leafNames=leafRows.map(row=>row.name);
+    const localLeafNames=leafRows.filter(row=>row.containsParcel).map(row=>row.name);
     const numericNames=leafNames.filter(name=>/^\d+$/.test(name)).sort((a,b)=>Number(a)-Number(b));
     const meaningful=leafNames.filter(name=>!/^(?:copyright|aciklama|açıklama|sinir|sınır|etiket)$/i.test(name));
     const compositeCandidates=[];
-    for(const names of [numericNames,meaningful,leafNames]){
+    for(const names of [localLeafNames,numericNames,meaningful,leafNames]){
       const limited=names.slice(0,120);
-      if(limited.length>1) compositeCandidates.push(limited.join(','));
+      if(limited.length>1)compositeCandidates.push(limited.join(','));
     }
     return {
       version,
       rows:dedup,
-      leafNames:[...new Set(leafNames)].slice(0,160),
-      compositeCandidates:[...new Set(compositeCandidates)].slice(0,3)
+      localLeafNames:[...new Set(localLeafNames)].slice(0,80),
+      leafNames:[...new Set([...localLeafNames,...leafNames])].slice(0,200),
+      compositeCandidates:[...new Set(compositeCandidates)].slice(0,4)
     };
-  }catch(error){return {version:null,rows:[],leafNames:[],compositeCandidates:[],error:humanError(error)};}
+  }catch(error){return {version:null,rows:[],localLeafNames:[],leafNames:[],compositeCandidates:[],error:humanError(error)};}
   finally{clearTimeout(timer);}
 }
 
@@ -761,7 +804,8 @@ function wmsAttempts(item,discovery={}){
     item.wms?.activeLayerName,
     item.wms?.layerName,
     ...(item.wms?.layerCandidates||[]),
-    ...(discovery.leafNames||[]).slice(0,8)
+    ...(discovery.localLeafNames||[]).slice(0,20),
+    ...(discovery.leafNames||[]).slice(0,20)
   ].filter(Boolean);
   const uniqueLayers=[...new Set(layers)].filter(name=>String(name).length<5000);
   const versions=[...new Set(['1.1.1',discovery.version,...(item.wms?.versionCandidates||[]),item.wms?.version,'1.3.0'].filter(Boolean))];
@@ -769,7 +813,7 @@ function wmsAttempts(item,discovery={}){
   for(const layerName of uniqueLayers){
     for(const version of versions){
       result.push({layerName,version});
-      if(result.length>=20) return result;
+      if(result.length>=48) return result;
     }
   }
   return result;
@@ -807,18 +851,24 @@ async function imageBitmapFromBlob(blob){
 function analyzeCanvasVisibility(context,width,height){
   const data=context.getImageData(0,0,width,height).data;
   const stride=Math.max(1,Math.floor(Math.sqrt((width*height)/70000)));
-  let sampled=0,visiblePixels=0,opaquePixels=0,variedPixels=0,first=null;
+  const centerLeft=Math.floor(width*.30),centerRight=Math.ceil(width*.70),centerTop=Math.floor(height*.30),centerBottom=Math.ceil(height*.70);
+  let sampled=0,visiblePixels=0,opaquePixels=0,variedPixels=0,centerSampled=0,centerVisiblePixels=0,centerOpaquePixels=0,first=null;
   for(let y=0;y<height;y+=stride){
     for(let x=0;x<width;x+=stride){
       const i=(y*width+x)*4,r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];sampled++;
-      if(a>16) opaquePixels++;
-      if(a>16&&!(r>246&&g>246&&b>246)) visiblePixels++;
+      const inCenter=x>=centerLeft&&x<centerRight&&y>=centerTop&&y<centerBottom;
+      if(inCenter)centerSampled++;
+      if(a>16){opaquePixels++;if(inCenter)centerOpaquePixels++;}
+      if(a>16&&!(r>246&&g>246&&b>246)){visiblePixels++;if(inCenter)centerVisiblePixels++;}
       if(a>16){const packed=(r<<16)|(g<<8)|b;if(first===null)first=packed;else if(Math.abs((packed&255)-(first&255))>5||Math.abs(((packed>>8)&255)-((first>>8)&255))>5||Math.abs(((packed>>16)&255)-((first>>16)&255))>5)variedPixels++;}
     }
   }
   const visibleRatio=sampled?visiblePixels/sampled:0;
   const variedRatio=sampled?variedPixels/sampled:0;
-  return {visible:visiblePixels>=24&&(visibleRatio>=0.0008||variedRatio>=0.0008),sampled,visiblePixels,visibleRatio,opaqueRatio:sampled?opaquePixels/sampled:0,variedRatio};
+  const centerVisibleRatio=centerSampled?centerVisiblePixels/centerSampled:0;
+  const visible=visiblePixels>=24&&(visibleRatio>=0.0008||variedRatio>=0.0008);
+  const centerVisible=centerVisiblePixels>=12&&centerVisibleRatio>=0.003;
+  return {visible,centerVisible,sampled,visiblePixels,visibleRatio,opaqueRatio:sampled?opaquePixels/sampled:0,variedRatio,centerSampled,centerVisiblePixels,centerVisibleRatio,centerOpaqueRatio:centerSampled?centerOpaquePixels/centerSampled:0};
 }
 
 async function probeWmsInBrowser(item,attempt){
@@ -836,7 +886,8 @@ async function probeWmsInBrowser(item,attempt){
     const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(image,0,0,width,height);
     const result=analyzeCanvasVisibility(context,width,height);
     try{image.close?.();}catch{}
-    return {...result,state:result.visible?'visible':'blank',source:'browser'};
+    const visible=result.visible&&(item.category!=='plan'||result.centerVisible);
+    return {...result,visible,state:visible?'visible':'blank',source:'browser'};
   }catch(error){return {state:'unknown',message:humanError(error),source:'browser'};}
   finally{clearTimeout(timer);}
 }
@@ -845,8 +896,8 @@ async function verifyWmsAttempt(item,attempt){
   const browserPromise=probeWmsInBrowser(item,attempt).catch(error=>({state:'unknown',message:humanError(error),source:'browser'}));
   const serverPromise=api('/open-data/wms-probe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     key:item.wms.key,layerName:attempt.layerName,version:attempt.version,
-    latitude:store.parcelCenter.lat,longitude:store.parcelCenter.lng,radiusKm:Number(item.wms?.probeRadiusKm)||24
-  })},9000).then(server=>({...server,state:server.visible?'visible':'blank',source:'server'})).catch(error=>({state:'unknown',message:humanError(error),source:'server'}));
+    latitude:store.parcelCenter.lat,longitude:store.parcelCenter.lng,radiusKm:Number(item.wms?.probeRadiusKm)||6
+  })},27000).then(server=>({...server,state:server.visible?'visible':'blank',source:'server'})).catch(error=>({state:'unknown',message:humanError(error),source:'server'}));
   return new Promise(resolve=>{
     const results=[];let completed=0,settled=false;
     const finish=row=>{
@@ -942,14 +993,15 @@ function fastWmsAttempts(item,discovery={}){
     item.wms?.activeLayerName,
     item.wms?.layerName,
     ...(item.wms?.layerCandidates||[]),
-    ...(discovery.leafNames||[]).slice(0,3)
+    ...(discovery.localLeafNames||[]).slice(0,20),
+    ...(discovery.leafNames||[]).slice(0,16)
   ].filter(Boolean);
   const versions=[choice?.version,'1.1.1',discovery.version,...(item.wms?.versionCandidates||[]),item.wms?.version,'1.3.0'].filter(Boolean);
   const result=[];
   for(const layerName of [...new Set(layers)]){
     for(const version of [...new Set(versions)]){
       result.push({layerName,version});
-      if(result.length>=8)return result;
+      if(result.length>=36)return result;
     }
   }
   return result;
@@ -959,16 +1011,17 @@ function proxyWmsTileUrl(item,attempt){
   const key=encodeURIComponent(item.wms?.key||item.id);
   const layers=encodeURIComponent(attempt.layerName);
   const version=encodeURIComponent(attempt.version||'1.1.1');
-  return `/api/open-data/wms-tile/${key}/{z}/{x}/{y}.png?layers=${layers}&version=${version}&size=256`;
+  const size=Math.max(256,Math.min(512,Number(item.wms?.tileRequestSize)||512));
+  return `/api/open-data/wms-tile/${key}/{z}/{x}/{y}.png?layers=${layers}&version=${version}&size=${size}`;
 }
 
 function waitForProxyWmsLayer(item,attempt){
   return new Promise((resolve,reject)=>{
     let settled=false,loaded=0,errors=0;
     const options={
-      pane:'openDataPane',tileSize:256,opacity:item.category==='ortho'?.82:.58,
-      attribution:'ULASAV / TUCBS Açık Veri',keepBuffer:1,updateWhenIdle:true,
-      updateWhenZooming:false,maxZoom:19,crossOrigin:false
+      pane:'openDataPane',tileSize:256,opacity:item.category==='ortho'?.84:.64,
+      attribution:'ULASAV / TUCBS Açık Veri',keepBuffer:2,updateWhenIdle:false,
+      updateWhenZooming:false,maxZoom:20,minZoom:4,crossOrigin:false,className:'k360-wms-retina-tile'
     };
     if(Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4){
       const [south,west,north,east]=item.wms.bounds;options.bounds=L.latLngBounds([[south,west],[north,east]]);
@@ -981,7 +1034,7 @@ function waitForProxyWmsLayer(item,attempt){
     const onLoad=()=>{loaded++;if(loaded>=1)finish(true);};
     const onError=()=>{errors++;if(errors>=2)finish(false,new Error('WMS karo servisi görüntü döndürmedi.'));};
     layer.on('tileload',onLoad);layer.on('tileerror',onError);
-    const timer=setTimeout(()=>finish(false,new Error('WMS karo katmanı zaman aşımına uğradı.')),10000);
+    const timer=setTimeout(()=>finish(false,new Error('WMS karo katmanı zaman aşımına uğradı.')),23000);
     layer.addTo(store.map);
   });
 }
@@ -1388,55 +1441,40 @@ async function loadRegionalOverviewLayer(item,attempt,group,controller,statusNod
 }
 
 async function createPersistentViewportWmsLayer(item,statusNode,attempts){
-  const group=L.layerGroup().addTo(store.map);
-  const controller={layer:group,item,current:null,overview:null,focus:null,disposed:false,attempt:null,focusTimer:null,focusRequestId:0,lastFocusSignature:''};
-  const clearFocus=()=>{controller.focus?.dispose?.();controller.focus=null;controller.lastFocusSignature='';};
-  const refreshFocus=async(force=false)=>{
-    if(controller.disposed||!store.map||!layerOnMap(group))return false;
-    const zoom=store.map.getZoom();
-    if(zoom<13){clearFocus();return false;}
-    const view=projectedWmsView(item,store.map.getBounds());
-    const signature=`z${zoom}:${view.signature}`;
-    if(!force&&signature===controller.lastFocusSignature)return false;
-    const requestId=++controller.focusRequestId;
-    controller.lastFocusSignature=signature;
+  const unique=[...new Map((attempts||[]).map(row=>[`${row.layerName}|${row.version}`,row])).values()];
+  const errors=[];
+  for(const attempt of unique.slice(0,6)){
     try{
-      const result=await firstViewportSuccess(item,[controller.attempt],view,group);
-      if(controller.disposed||requestId!==controller.focusRequestId){result.dispose?.();return false;}
-      const old=controller.focus;controller.focus={...result,view};
-      try{result.layer.setOpacity?.(item.category==='ortho'?.88:.70);result.layer.setZIndex?.(270);result.layer.bringToFront?.();bringParcelToFront();}catch{}
-      old?.dispose?.();
-      if(statusNode){statusNode.className='open-data-load-status notice ok';statusNode.innerHTML='Plan katmanı açık. Yakın görünüm yüksek çözünürlükte yenilendi.<div class="scale-note">Uzak görünüm hızlı genel katmanı kullanır; zoom 13 ve üzerinde yalnızca ekrandaki alan netleştirilir. Eski görüntü yenisi hazır olana kadar korunur.</div>';}
-      return true;
-    }catch(error){
-      if(requestId===controller.focusRequestId&&statusNode){statusNode.className='open-data-load-status notice warn';statusNode.innerHTML=`Genel plan açık; yüksek çözünürlüklü yakın görünüm alınamadı.<div class="scale-note">${escapeHtml(humanError(error))} Mevcut katman korunuyor.</div>`;}
-      return false;
-    }
-  };
-  const scheduleFocus=(force=false)=>{clearTimeout(controller.focusTimer);controller.focusTimer=setTimeout(()=>refreshFocus(force),force?80:650);};
-  try{
-    const view=stableWmsView(item);
-    const initial=await firstViewportSuccess(item,attempts,view,group);
-    controller.current=initial;controller.attempt=initial.attempt;
-    controller.bounds=view.bounds;
-    try{initial.layer.setZIndex?.(245);initial.layer.bringToFront?.();}catch{}
-  }catch(error){try{store.map.removeLayer(group);}catch{}throw error;}
-  const mapRefresh=()=>scheduleFocus(false);
-  store.map.on('moveend zoomend',mapRefresh);
-  controller.refresh=force=>{scheduleFocus(Boolean(force));return Promise.resolve(true);};
-  controller.dispose=()=>{
-    if(controller.disposed)return;controller.disposed=true;clearTimeout(controller.focusTimer);controller.focusRequestId++;
-    store.map.off('moveend zoomend',mapRefresh);
-    controller.current?.dispose?.();controller.overview?.dispose?.();clearFocus();try{if(layerOnMap(group))store.map.removeLayer(group);}catch{}
-  };
-  controller.loadMode='adaptive-resolution-overview';
-  if(statusNode){
-    statusNode.className='open-data-load-status notice info';
-    statusNode.innerHTML='Net parsel çevresi açıldı; bölgesel genel görünüm arka planda tamamlanıyor…<div class="scale-note">Zoom 13 ve üzerinde yalnızca görünen alan daha yüksek çözünürlükte yenilenir; hızlı genel katman ve sınırlar korunur.</div>';
+      const layer=await waitForProxyWmsLayer(item,attempt);
+      try{layer.setZIndex?.(245);layer.bringToFront?.();}catch{}
+      const maxUsefulZoom=Number(item.wms?.maxUsefulZoom)||14;
+      let lastScaleBand='';
+      const applyScale=()=>{
+        if(!store.map||!layerOnMap(layer))return;
+        const zoom=store.map.getZoom();
+        const close=zoom>maxUsefulZoom;
+        const band=close?'close':'normal';
+        try{layer.setOpacity?.(item.category==='ortho'?.84:(close ? .46 : .64));bringParcelToFront();}catch{}
+        if(lastScaleBand!==band&&statusNode){
+          lastScaleBand=band;
+          statusNode.className='open-data-load-status notice ok';
+          statusNode.innerHTML=close
+            ? 'Plan katmanı açık. Kaynak 1/100.000 üst ölçekli olduğu için çok yakın görünümde saydamlık azaltıldı; parsel sınırı üstte tutuldu.<div class="scale-note">Zoom değiştikçe resmî WMS karoları 2× çözünürlükte yeniden istenir; eski bölgesel ekran görüntüsü büyütülmez.</div>'
+            : 'Plan katmanı zoom seviyesine uygun, yüksek çözünürlüklü WMS karolarıyla açık.<div class="scale-note">Kaydırma ve yakınlaştırmada yalnızca görünen karolar yenilenir; bulanık bölgesel görüntü katmanı kullanılmaz.</div>';
+        }
+      };
+      store.map.on('zoomend',applyScale);
+      const row={
+        layer,item,attempt,visualVerified:true,loadMode:'retina-proxy-tiles',
+        bounds:Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4?L.latLngBounds([[item.wms.bounds[0],item.wms.bounds[1]],[item.wms.bounds[2],item.wms.bounds[3]]]):null,
+        refresh(force=false){try{if(force)layer.redraw?.();}catch{}return Promise.resolve(true);},
+        dispose(){store.map?.off('zoomend',applyScale);try{if(layerOnMap(layer))store.map.removeLayer(layer);}catch{}}
+      };
+      applyScale();
+      return row;
+    }catch(error){errors.push(humanError(error));}
   }
-  setTimeout(()=>loadRegionalOverviewLayer(item,controller.attempt,group,controller,statusNode),80);
-  scheduleFocus(true);
-  return controller;
+  throw new Error([...new Set(errors.filter(Boolean))].join(' · ')||'Yüksek çözünürlüklü WMS karo katmanı yüklenemedi.');
 }
 
 async function createSharpWmsLayer(item,statusNode){
@@ -1457,7 +1495,7 @@ async function createSharpWmsLayer(item,statusNode){
   if(discovery?.leafNames?.length||discovery?.compositeCandidates?.length){
     const extras=fastWmsAttempts(item,discovery)
       .filter(attempt=>!known.some(row=>row.layerName===attempt.layerName&&row.version===attempt.version))
-      .slice(0,8);
+      .slice(0,24);
     if(extras.length){
       try{
         const selected=await findVisibleWmsAttempt(item,extras,statusNode);
@@ -1469,7 +1507,10 @@ async function createSharpWmsLayer(item,statusNode){
     }
   }else if(discovery?.error)lastError=`${lastError} · Katman listesi: ${discovery.error}`;
 
-  if(statusNode){statusNode.className='open-data-load-status notice warn';statusNode.textContent='Görüntü doğrulama servisleri yanıt vermedi; son kez doğrudan sabit görüntü deneniyor…';}
+  if(item.category==='plan'){
+    throw new Error(`${lastError} Parsel merkezinde gerçek plan içeriği doğrulanamadığı için katman açık sayılmadı.`);
+  }
+  if(statusNode){statusNode.className='open-data-load-status notice warn';statusNode.textContent='Görüntü doğrulama servisi yanıt vermedi; ortofoto karo bağlantısı son kez deneniyor…';}
   try{
     const row=await createPersistentViewportWmsLayer(item,statusNode,known.slice(0,2));
     item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;
@@ -1506,11 +1547,11 @@ async function toggleOpenDataLayer(itemId,button){
     if(statusNode){
       statusNode.className='open-data-load-status notice ok';
       if(item.type==='wms'){
-        const modeText=['detail-plus-region-overview','adaptive-resolution-overview'].includes(row.loadMode)?'Plan, hızlı genel görünüm ve yakın zoomda uyarlamalı yüksek çözünürlükle yüklendi.':row.loadMode==='stable-pilot-snapshot'?'Plan, parsel çevresini kapsayan sabit görüntü olarak yüklendi.':'Resmî servis görünüm görüntüsü vermediği için yedek WMS modu açıldı.';
-        statusNode.innerHTML=`${modeText}<div class="scale-note">Katman haritada sabit kalır; yarım yükleme ve her zoom hareketinde yeniden bekleme engellenmiştir. Parsel sınırı her zaman üstte tutulur.</div>`;
+        const modeText=row.loadMode==='retina-proxy-tiles'?'Plan, zoom seviyesine göre yenilenen 2× çözünürlüklü WMS karolarıyla yüklendi.':row.loadMode==='stable-pilot-snapshot'?'Plan, parsel çevresini kapsayan sabit görüntü olarak yüklendi.':'Resmî servis için yedek WMS modu açıldı.';
+        statusNode.innerHTML=`${modeText}<div class="scale-note">Eski bölgesel görsel yakın ölçekte büyütülmez. Görünen alan karoları önbellekli olarak yenilenir ve parsel sınırı her zaman üstte tutulur.</div>`;
       }else statusNode.textContent='Katman yüklendi; mevcut harita konumu korundu.';
     }
-    updateOpenDataMapBadge();showMapActivity(['detail-plus-region-overview','adaptive-resolution-overview'].includes(row.loadMode)?'Katman hazır · Ayrıntı ve bölgesel görünüm etkin':row.loadMode==='stable-pilot-snapshot'?'Katman hazır · Sabit pilot görünümü etkin':'Katman hazır · WMS yedek modu etkin','ok',2600);
+    updateOpenDataMapBadge();showMapActivity(row.loadMode==='retina-proxy-tiles'?'Katman hazır · Yüksek çözünürlüklü WMS karoları etkin':row.loadMode==='stable-pilot-snapshot'?'Katman hazır · Sabit pilot görünümü etkin':'Katman hazır · WMS yedek modu etkin','ok',2600);
   }catch(error){
     button.textContent='Tekrar Dene';showMapActivity(`Katman yüklenemedi: ${humanError(error)}`,'error',4200);
     if(statusNode){statusNode.className='open-data-load-status notice error';statusNode.textContent=`Katman eklenmedi: ${humanError(error)} Bu düğme katmanı yeniden indirmek için aktif bırakıldı.`;}
@@ -2546,6 +2587,12 @@ function renderPoiResults(items, context = {}){
     warning.textContent = `Diğer kategoriler korunarak kısmi sonuç gösteriliyor. Yanıt alınamayan türler: ${failed.join(', ')}.`;
     output.appendChild(warning);
   }
+  const cachedTypes=(context.data?.cachedFallbackCategories||[]).map(key=>CATEGORY_NAMES[key]||key);
+  if(cachedTypes.length){
+    const preserved=document.createElement('div');preserved.className='notice info';
+    preserved.textContent=`Yeni servis isteği yanıt vermeyen kategorilerde son başarılı canlı sonuç korundu: ${cachedTypes.join(', ')}. Bu kayıtlar yeni aramanın sonucuymuş gibi gösterilmez.`;
+    output.appendChild(preserved);
+  }
 
   const parcelBounds = store.parcelLayer?.getBounds();
   const mapBounds = parcelBounds?.isValid() ? parcelBounds : L.latLngBounds([store.parcelCenter]);
@@ -2585,9 +2632,12 @@ function renderPoiResults(items, context = {}){
 }
 
 async function searchPoi(){
-  if(!store.parcelCenter){ setStatus('error','Önce parsel sorgulayın.'); return; }
+  if(!store.parcelCenter){setStatus('error','Önce parsel sorgulayın.');return;}
   setLayerVisibility('poi',true);
-  clearPoi();
+  clearSelectionGraphics();
+  clearRoadRoutes(true);
+  const previousItems=[...(store.poiItems||[])];
+  const previousMeta=store.poiSearchMeta;
   const poiRequestId=++store.poiRequestId;
   const category=$('poi-category').value;
   const radius=$('poi-radius').value;
@@ -2595,8 +2645,11 @@ async function searchPoi(){
   const visible=category==='all'?PRIORITY_CATEGORIES:[category];
   const states=Object.fromEntries(visible.map(key=>[key,{state:'searching',count:0}]));
   renderPoiProgress(states,visible);
-  $('poi-output').innerHTML=`<div class="empty"><div class="big">⏳</div>${category==='all'?'Yakın yerler tek toplu ve önbellekli taramayla aranıyor…':`${CATEGORY_NAMES[category]} aranıyor…`}</div>`;
-  setStatus('loading',category==='all'?'Yakın yerler hızlı toplu taramayla aranıyor…':`${CATEGORY_NAMES[category]} aranıyor…`);
+  document.querySelectorAll('.poi-search-runtime').forEach(node=>node.remove());
+  const runtime=document.createElement('div');runtime.className='notice info poi-search-runtime';
+  runtime.textContent=category==='all'?'Yeni yakın yer taraması yapılıyor. Mevcut başarılı sonuçlar yeni yanıt hazır olana kadar korunur.':`${CATEGORY_NAMES[category]} için yeni tarama yapılıyor. Mevcut başarılı sonuç yeni yanıt hazır olana kadar korunur.`;
+  $('poi-output').prepend(runtime);
+  setStatus('loading',category==='all'?'Yakın yerler kategori kategori aranıyor…':`${CATEGORY_NAMES[category]} aranıyor…`);
   try{
     const data=await fetchPoiCategory(category,radius);
     if(poiRequestId!==store.poiRequestId)return;
@@ -2609,14 +2662,25 @@ async function searchPoi(){
     renderPoiProgress(states,visible);
     renderPoiResults(items,{all:category==='all',category,states,data});
     const seconds=Math.max(.1,Number(data.elapsedMs||0)/1000).toFixed(1);
-    setStatus('ok',`${items.length} yakın yer ${seconds} sn içinde listelendi. Aynı bölgedeki tekrar aramalar önbellekten hızlanır.`);
+    const preserved=(data.cachedFallbackCategories||[]).length;
+    setStatus(preserved?'warn':'ok',preserved?`${items.length} yakın yer listelendi; ${preserved} kategori için yeni servis isteği başarısız olduğundan son başarılı canlı sonuç korundu.`:`${items.length} yakın yer ${seconds} sn içinde listelendi. Aynı bölgedeki tekrar aramalar önbellekten hızlanır.`);
   }catch(error){
     if(poiRequestId!==store.poiRequestId)return;
     visible.forEach(key=>{states[key]={state:'failed',count:0,error:humanError(error)};});
     renderPoiProgress(states,visible);
-    renderPoiResults([],{all:category==='all',category,states});
+    runtime.remove();
+    if(previousItems.length){
+      store.poiItems=previousItems;store.poiSearchMeta=previousMeta;
+      const warning=document.createElement('div');warning.className='notice warn poi-search-runtime';
+      warning.textContent=`Yeni ${radius==='auto'?'akıllı':`${Math.round(Number(radius)/1000)} km`} arama tamamlanamadı: ${humanError(error)} Önceki başarılı canlı sonuçlar korunuyor.`;
+      $('poi-output').prepend(warning);
+      setStatus('warn','Yeni yakın yer araması tamamlanamadı; önceki başarılı sonuçlar korunuyor.');
+    }else{
+      renderPoiResults([],{all:category==='all',category,states});
+    }
   }finally{
     if(poiRequestId!==store.poiRequestId)return;
+    document.querySelectorAll('.poi-search-runtime').forEach((node,index)=>{if(index>0)node.remove();});
     $('poi-btn').disabled=!store.parcelCenter;
     updateGooglePoiLink();
   }

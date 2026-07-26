@@ -5,7 +5,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { PNG } = require('pngjs');
-const { WMS_CONFIGS, wmsTile, wmsSnapshot, wmsLegend, tileMercatorBounds } = require('./open-data');
+const { WMS_CONFIGS, wmsCapabilitiesDocument, wmsTile, wmsSnapshot, wmsLegend, tileMercatorBounds } = require('./open-data');
 
 function listen(server) {
   return new Promise((resolve, reject) => {
@@ -15,22 +15,49 @@ function listen(server) {
 }
 function close(server) { return new Promise(resolve => server.close(resolve)); }
 
-(async () => {
-  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-  assert(html.includes('externalWmsViewportUrl') && html.includes('createPersistentViewportWmsLayer'), 'Sabit tarayıcı ImageOverlay akışı eksik.');
-  assert(html.includes("'browser-viewport'") && html.includes("'server-viewport-cache'"), 'Hibrit sabit görüntü modları eksik.');
-  assert(html.includes('stableWmsView') && html.includes('findVisibleWmsAttempt'), 'Sabit görünüm ve görünür katman doğrulaması eksik.');
-  assert(html.includes("loadMode:'browser-tile-emergency'"), 'Acil WMS karo yedeği eksik.');
-  assert(html.includes('legend-preview-modal') && html.includes('openLegendPreview'), 'Lejant büyütme penceresi eksik.');
-
-  const png = new PNG({ width: 256, height: 256 });
+function solidPng(size) {
+  const png = new PNG({ width: size, height: size });
   for (let i = 0; i < png.data.length; i += 4) {
     png.data[i] = 255; png.data[i + 1] = 250; png.data[i + 2] = 38; png.data[i + 3] = 255;
   }
-  const body = PNG.sync.write(png);
+  return PNG.sync.write(png);
+}
+
+function edgeOnlyPng(size) {
+  const png = new PNG({ width: size, height: size });
+  png.data.fill(0);
+  const edgeHeight = Math.max(8, Math.floor(size * 0.18));
+  for (let y = 0; y < edgeHeight; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      png.data[i] = 110; png.data[i + 1] = 70; png.data[i + 2] = 35; png.data[i + 3] = 255;
+    }
+  }
+  return PNG.sync.write(png);
+}
+
+(async () => {
+  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  assert(html.includes('waitForProxyWmsLayer') && html.includes('createPersistentViewportWmsLayer'), 'Dinamik proxy WMS karo akışı eksik.');
+  assert(html.includes('/api/open-data/wms-capabilities/') && html.includes('localLeafNames'), 'CORS engelinde çalışan WMS katman keşfi yedeği eksik.');
+  assert(html.includes("loadMode:'retina-proxy-tiles'") && html.includes('k360-wms-retina-tile'), 'Yüksek çözünürlüklü WMS karo modu eksik.');
+  assert(html.includes('size=${size}') && html.includes('tileRequestSize'), '2× WMS karo boyutu eksik.');
+  assert(html.includes('Parsel merkezinde gerçek plan içeriği doğrulanamadığı için katman açık sayılmadı'), 'Boş parsel merkezini reddeden kontrol eksik.');
+  assert(html.includes('legend-preview-modal') && html.includes('openLegendPreview'), 'Lejant büyütme penceresi eksik.');
+
   const requests = [];
   const mock = http.createServer((req, res) => {
     requests.push(req.url);
+    const url = new URL(req.url, 'http://127.0.0.1');
+    const requestName = url.searchParams.get('REQUEST') || url.searchParams.get('request') || '';
+    if (/GetCapabilities/i.test(requestName)) {
+      const xml = '<?xml version="1.0"?><WMS_Capabilities version="1.1.1"><Capability><Layer><Title>Kök</Title><Layer><Name>0</Name><Title>Genel Plan</Title></Layer><Layer><Name>malkara-pafta</Name><Title>Malkara Plan Paftası</Title><LatLonBoundingBox minx="26.5" miny="40.7" maxx="27.5" maxy="41.2"/></Layer></Layer></Capability></WMS_Capabilities>';
+      res.writeHead(200, { 'Content-Type':'application/xml', 'Content-Length':Buffer.byteLength(xml) });
+      return res.end(xml);
+    }
+    const width = Math.max(64, Math.min(1024, Number(url.searchParams.get('WIDTH')) || 512));
+    const layer = url.searchParams.get('LAYERS') || url.searchParams.get('layer') || '';
+    const body = /edgeonly/i.test(layer) ? edgeOnlyPng(width) : solidPng(width);
     res.writeHead(200, { 'Content-Type': 'image/png', 'Content-Length': body.length });
     res.end(body);
   });
@@ -39,33 +66,43 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
   const original = config.baseUrl;
   config.baseUrl = `http://127.0.0.1:${port}/wms`;
   try {
+    const capabilities = await wmsCapabilitiesDocument('cdp-ysk');
+    assert(/malkara-pafta/.test(capabilities.buffer.toString('utf8')), 'Sunucu üzerinden WMS alt katman listesi alınamadı.');
+
+    const beforeTile = requests.length;
     const bounds = tileMercatorBounds(8, 148, 96);
     assert.strictEqual(bounds.length, 4);
     assert(bounds.every(Number.isFinite), 'Karo BBOX hesaplaması geçersiz.');
-    const first = await wmsTile({ key: 'cdp-ysk', layerName: '0', version: '1.1.1', z: 8, x: 148, y: 96, size: 256 });
+
+    const first = await wmsTile({ key: 'cdp-ysk', layerName: '0', version: '1.1.1', z: 8, x: 148, y: 96, size: 512 });
     assert.strictEqual(first.cache, 'MISS');
     assert.strictEqual(first.contentType, 'image/png');
     assert(first.buffer.length > 0, 'WMS karo gövdesi boş döndü.');
     const decoded = PNG.sync.read(first.buffer);
-    assert.strictEqual(decoded.width, 256, 'WMS karo genişliği beklenen değer değil.');
-    assert.strictEqual(decoded.height, 256, 'WMS karo yüksekliği beklenen değer değil.');
-    const second = await wmsTile({ key: 'cdp-ysk', layerName: '0', version: '1.1.1', z: 8, x: 148, y: 96, size: 256 });
+    assert.strictEqual(decoded.width, 512, 'WMS karo genişliği 2× çözünürlükte değil.');
+    assert.strictEqual(decoded.height, 512, 'WMS karo yüksekliği 2× çözünürlükte değil.');
+
+    const second = await wmsTile({ key: 'cdp-ysk', layerName: '0', version: '1.1.1', z: 8, x: 148, y: 96, size: 512 });
     assert.strictEqual(second.cache, 'HIT', 'İkinci WMS karo isteği önbellekten gelmedi.');
-    assert.strictEqual(requests.length, 1, 'Önbellek WMS kaynağına ikinci kez istek gönderdi.');
-    assert(/REQUEST=GetMap/i.test(requests[0]) && /WIDTH=256/i.test(requests[0]) && /BBOX=/i.test(requests[0]), 'WMS karo parametreleri eksik.');
+    assert.strictEqual(requests.length, beforeTile + 1, 'Önbellek WMS kaynağına ikinci kez istek gönderdi.');
+    assert(/REQUEST=GetMap/i.test(requests[beforeTile]) && /WIDTH=512/i.test(requests[beforeTile]) && /BBOX=/i.test(requests[beforeTile]), '2× WMS karo parametreleri eksik.');
     await assert.rejects(() => wmsTile({ key: 'cdp-ysk', layerName: '0&bad=1', version: '1.1.1', z: 8, x: 148, y: 96 }), /Geçersiz/);
 
     const beforeSnapshot = requests.length;
     const snapshot = await wmsSnapshot({
       key: 'cdp-ysk', layerName: '0', version: '1.1.1',
-      latitude: 39.7, longitude: 35.2, radiusKm: 14, size: 1024
+      latitude: 39.7, longitude: 35.2, radiusKm: 6, size: 1024
     });
     assert.strictEqual(snapshot.contentType, 'image/png');
-    assert.strictEqual(snapshot.analysis.visible, true, 'Sabit WMS plan görüntüsü görünür olmalı.');
-    assert.strictEqual(requests.length, beforeSnapshot + 1, 'Sabit WMS görüntüsü tek kaynak isteğiyle alınmalı.');
-    assert(/REQUEST=GetMap/i.test(requests.at(-1)) && /WIDTH=1024/i.test(requests.at(-1)), 'Sabit WMS görüntü parametreleri eksik.');
-    await wmsSnapshot({ key: 'cdp-ysk', layerName: '0', version: '1.1.1', latitude: 39.7, longitude: 35.2, radiusKm: 14, size: 1024 });
-    assert.strictEqual(requests.length, beforeSnapshot + 1, 'Sabit WMS görüntüsü önbellekten gelmedi.');
+    assert.strictEqual(snapshot.analysis.visible, true, 'Plan görüntüsü görünür olmalı.');
+    assert.strictEqual(snapshot.analysis.centerVisible, true, 'Parsel merkezi görünür olmalı.');
+    assert.strictEqual(requests.length, beforeSnapshot + 1, 'Plan doğrulama görüntüsü tek kaynak isteğiyle alınmalı.');
+    assert(/REQUEST=GetMap/i.test(requests.at(-1)) && /WIDTH=1024/i.test(requests.at(-1)), 'Plan doğrulama parametreleri eksik.');
+
+    await assert.rejects(() => wmsSnapshot({
+      key: 'cdp-ysk', layerName: 'edgeonly', version: '1.1.1',
+      latitude: 39.7, longitude: 35.2, radiusKm: 6, size: 512
+    }), /merkezinde|boş|görünür/i, 'Yalnızca uzakta içerik bulunan plan reddedilmelidir.');
 
     const beforeLegend = requests.length;
     const legend = await wmsLegend({ key: 'cdp-ysk', layerName: '0', version: '1.1.1' });
@@ -76,7 +113,7 @@ function close(server) { return new Promise(resolve => server.close(resolve)); }
     config.baseUrl = original;
     await close(mock);
   }
-  console.log('Kadastro360 WMS sabit pilot görünümü, görünür katman doğrulaması, lejant ve önbellek testi geçti.');
+  console.log('Kadastro360 2× WMS karo, merkez görünürlük, önbellek ve lejant testi geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;
