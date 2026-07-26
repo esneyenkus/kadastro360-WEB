@@ -1,0 +1,18 @@
+KADASTRO360 v2.0.7 - YAKIN YER KARARLILIK GÜNCELLEMESİ
+
+Bu paket tam proje değildir. Mevcut v2.0.6 üzerine yalnızca değişen dosyaları içerir.
+Harita/WMS görüntüleme koduna dokunulmamıştır; v2.0.6'da düzelmiş çözünürlük aynen korunur.
+
+Düzeltmeler:
+- Tekirdağ'da çalışan yakın yer sorgu düzeni bütün illerde aynı hale getirildi.
+- Render üzerinden Overpass istekleri paralel değil, sırayla gönderilir.
+- 10 km hızlı arama; eksik sonuçlarda seçilen ilçe merkezi; kalan türlerde tek 30 km genişletme uygulanır.
+- Eski 10 + 20 + 30 km ve çift ilçe turunun oluşturduğu aşırı istek yükü kaldırıldı.
+- Bir kategorinin servis hatası diğer kategorilerin sonucunu silmez.
+- Private.coffee, FOSSGIS ve bağımsız Gall/Lambert yedekleri sırayla kullanılır.
+- VK Maps yedeği kaldırıldı.
+- Canlı sonuç önbelleği, ilçe önceliği ve hastane/klinik ayrımı korunur.
+
+Yükleme:
+ZIP içindeki tüm dosyaları GitHub deposunun ana dizinine birlikte yükleyin.
+Başka dosya silmeyin.

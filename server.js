@@ -77,21 +77,21 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360/2.0.6'
+  userAgent: 'Kadastro360/2.0.7'
 });
 
-// OpenStreetMap Wiki'de listelenen global Overpass örnekleri.
-// Aynı sorguyu bütün sunuculara aynı anda göndermiyoruz. Küçük sorgular sırayla
-// denenir; böylece 504 durumunda ikinci sunucuya geçilir ve ortak servisler gereksiz yüklenmez.
+// Yakın yer sorguları bütün bölgelerde aynı canlı OSM akışını kullanır.
+// Render'ın ortak çıkış IP'sinden paralel istek göndermek 429/504 üretebildiği için
+// istekler aşağıdaki kuyrukta tek tek yürütülür. FOSSGIS'in iki bağımsız sunucusu,
+// DNS yönlendirmesinde sorun olduğunda resmî dokümantasyondaki güvenli yedeklerdir.
 const OVERPASS_ENDPOINTS = (() => {
   const explicit = String(process.env.OVERPASS_BASE_URLS || '').split(',').map(value => value.trim()).filter(Boolean);
   if (explicit.length) return explicit.map((url, index) => ({ name: `Özel Overpass ${index + 1}`, url }));
   return [
-    // Render çıkışlarında en kararlı iki global örnek önce denenir. VK Maps yedek
-    // olarak tutulur; tek bir sunucunun geçici sorunu bütün kategorileri düşürmez.
     { name: 'Private.coffee Overpass', url: 'https://overpass.private.coffee/api/interpreter' },
     { name: 'FOSSGIS Overpass', url: 'https://overpass-api.de/api/interpreter' },
-    { name: 'VK Maps Overpass', url: 'https://maps.mail.ru/osm/tools/overpass/api/interpreter' }
+    { name: 'FOSSGIS Gall', url: 'https://gall.openstreetmap.de/api/interpreter' },
+    { name: 'FOSSGIS Lambert', url: 'https://lambert.openstreetmap.de/api/interpreter' }
   ];
 })();
 
@@ -105,6 +105,28 @@ const overpassHealth = new Map(
 const cache = new Map();
 const poiSuccessfulCategoryCache = new Map();
 const POI_SUCCESS_CACHE_TTL_MS = 30 * 60 * 1000;
+const OVERPASS_REQUEST_GAP_MS = Math.max(0, Math.min(2000, Number(process.env.OVERPASS_REQUEST_GAP_MS) || 220));
+let overpassQueueTail = Promise.resolve();
+let overpassLastFinishedAt = 0;
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
+}
+
+function enqueueOverpassRequest(task) {
+  const run = async () => {
+    const waitMs = OVERPASS_REQUEST_GAP_MS - (Date.now() - overpassLastFinishedAt);
+    if (waitMs > 0) await sleep(waitMs);
+    try {
+      return await task();
+    } finally {
+      overpassLastFinishedAt = Date.now();
+    }
+  };
+  const scheduled = overpassQueueTail.then(run, run);
+  overpassQueueTail = scheduled.catch(() => undefined);
+  return scheduled;
+}
 
 
 function escapeHtml(value) {
@@ -543,7 +565,7 @@ async function routeOne(origin, destination) {
         if (snapRadius) url.searchParams.set('radiuses', `${snapRadius};${snapRadius}`);
         try {
           const payload = await fetchJson(url.toString(), {
-            headers: { 'User-Agent': 'Kadastro360/2.0.6', Accept: 'application/json' }
+            headers: { 'User-Agent': 'Kadastro360/2.0.7', Accept: 'application/json' }
           }, 9000);
           if (payload?.code === 'Ok' && Array.isArray(payload.routes) && payload.routes[0]?.geometry) {
             const route = payload.routes[0];
@@ -935,17 +957,18 @@ async function runOverpassSelectors(lat, lng, radius, selectors, options = {}) {
   for (const endpoint of endpoints) {
     const startedAt = Date.now();
     try {
-      const requestTimeoutMs = radius >= 20000 ? 18000 : radius >= 10000 ? 15000 : 11000;
-      const data = await fetchJson(endpoint.url, {
+      const requestTimeoutMs = radius >= 20000 ? 14000 : radius >= 10000 ? 12000 : 10000;
+      const data = await enqueueOverpassRequest(() => fetchJson(endpoint.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
           Accept: 'application/json',
           'Accept-Language': 'tr-TR,tr;q=0.9',
-          'User-Agent': 'Kadastro360/2.0.6 (kadastro360.com.tr)'
+          Referer: 'https://kadastro360.com.tr/',
+          'User-Agent': 'Kadastro360/2.0.7 (https://kadastro360.com.tr; info@kadastro360.com.tr)'
         },
         body
-      }, requestTimeoutMs);
+      }, requestTimeoutMs));
       if (data?.remark) throw new Error(`Overpass çalışma hatası: ${data.remark}`);
       recordOverpassSuccess(endpoint, Date.now() - startedAt);
       return { data, endpoint: endpoint.name };
@@ -960,7 +983,7 @@ async function runOverpassSelectors(lat, lng, radius, selectors, options = {}) {
 
 async function runSelectorSetResilient(lat, lng, radius, selectors, depth = 0) {
   try {
-    const result = await runOverpassSelectors(lat, lng, radius, selectors, { bypassHealth: depth > 0, maxEndpoints: 3 });
+    const result = await runOverpassSelectors(lat, lng, radius, selectors, { bypassHealth: depth > 0, maxEndpoints: 4 });
     return {
       elements: Array.isArray(result.data?.elements) ? result.data.elements : [],
       providers: [result.endpoint],
@@ -1029,14 +1052,15 @@ async function mapLimit(values, limit, mapper) {
 }
 
 const POI_CATEGORY_BATCHES = [
+  // Tekirdağ'da kararlı çalışan küçük toplu sorgu düzeni bütün illerde aynıdır.
   ['school', 'market', 'mosque'],
-  ['pharmacy', 'hospital', 'bank', 'atm'],
+  ['pharmacy', 'hospital'],
+  ['bank', 'atm'],
   ['beach', 'bus_terminal', 'train_station', 'airport']
 ];
 
-// Kırsal parsellerde okul, market, eczane, banka ve ATM çoğu zaman ilçe
-// merkezinde 10 km'den daha uzakta kalır. Akıllı arama bu türleri erken
-// 'yok' saymaz; sonuç bulunmayan her kategori 30 km'ye kadar bağımsız genişler.
+// Kırsal parsellerde sonuç bulunmayan türler ilçe merkezi ve en fazla 30 km
+// çevresinde yeniden aranır. Sonuç bulunmuş kategori tekrar sorgulanmaz.
 const POI_MAX_RADIUS = {
   school: 30000, market: 30000, mosque: 30000, pharmacy: 30000,
   hospital: 30000, bank: 30000, atm: 30000,
@@ -1050,78 +1074,55 @@ async function queryCategoriesAtRadius(lat, lng, radius, categories) {
   const providers = new Set();
   const succeededCategories = new Set();
   const failedCategories = new Set();
-  const batches = radius > 10000
-    ? requested.map(key => [key])
-    : POI_CATEGORY_BATCHES.map(batch => batch.filter(key => requested.includes(key))).filter(batch => batch.length);
+  const batches = POI_CATEGORY_BATCHES
+    .map(batch => batch.filter(key => requested.includes(key)))
+    .filter(batch => batch.length);
 
-  // 10 km'de hızlı küçük gruplar kullanılır. Bir grup geçici olarak hata verirse
-  // yalnızca o grupta bulunamayan kategoriler tek tek yeniden denenir. Böylece normal
-  // arama üç hafif istekle tamamlanır; tek bir ağır seçici diğer türleri düşürmez.
-  const batchResults = await mapLimit(batches, radius > 10000 ? 2 : 3, async keys => {
-    const localMap = new Map();
-    const localProviders = new Set();
-    const localWarnings = [];
-    const categoryStatus = new Map(keys.map(key => [key, 'pending']));
-
-    const absorbPart = result => {
-      mergeElementArray(localMap, result.elements);
-      result.providers.forEach(provider => localProviders.add(provider));
-      localWarnings.push(...result.warnings);
-    };
-
+  // Kamu Overpass sunucuları paralel istekleri aynı Render IP'si için sınırlayabilir.
+  // Bu nedenle gruplar kesinlikle sırayla çalışır; bir grubun hatası diğerini düşürmez.
+  for (const keys of batches) {
     const core = await runSelectorSetResilient(lat, lng, radius, selectorsForCategories(keys, 'core'));
-    absorbPart(core);
-    let found = detectedCategorySet([...localMap.values()]);
+    mergeElementArray(elementMap, core.elements);
+    core.providers.forEach(provider => providers.add(provider));
+    const label = keys.map(key => CATEGORY_LABELS[key]).join(', ');
+    warnings.push(...core.warnings.map(message => `${label}: ${message}`));
 
+    let foundAfterCore = detectedCategorySet([...elementMap.values()]);
     if (core.failedParts === 0) {
-      keys.forEach(key => categoryStatus.set(key, 'success'));
+      // Sorgu cevap verdi; kayıt bulunmaması servis hatası değildir.
+      keys.forEach(key => succeededCategories.add(key));
     } else {
-      keys.filter(key => found.has(key)).forEach(key => categoryStatus.set(key, 'success'));
-      const retryKeys = keys.filter(key => !found.has(key));
-      const retries = await mapLimit(retryKeys, 2, async key => {
+      // Birleşik grubun yalnızca bir parçası hata verdiyse bulunan kategoriler
+      // korunur, eksik kategoriler sırayla ve tek kez doğrulanır. Paralel istek yoktur.
+      for (const key of keys) {
+        if (foundAfterCore.has(key)) {
+          succeededCategories.add(key);
+          continue;
+        }
         const retry = await runSelectorSetResilient(lat, lng, radius, selectorsForCategories([key], 'core'));
-        return { key, retry };
-      });
-      for (const { key, retry } of retries) {
-        absorbPart(retry);
-        categoryStatus.set(key, retry.successfulParts > 0 ? 'success' : 'failed');
+        mergeElementArray(elementMap, retry.elements);
+        retry.providers.forEach(provider => providers.add(provider));
+        warnings.push(...retry.warnings.map(message => `${CATEGORY_LABELS[key]} tekrar: ${message}`));
+        if (retry.successfulParts > 0) succeededCategories.add(key);
+        else failedCategories.add(key);
       }
-      found = detectedCategorySet([...localMap.values()]);
+      foundAfterCore = detectedCategorySet([...elementMap.values()]);
     }
 
-    // Temel sorgusu çalışan fakat kayıt bulamayan kategoriler için ad/marka tabanlı
-    // yedekler ayrı ayrı denenir. Yedek sorgunun geçici hatası, çalışan temel sorguyu
-    // başarısız durumuna çevirmemelidir.
-    const fallbackKeys = keys.filter(key => categoryStatus.get(key) !== 'failed'
-      && !found.has(key) && (CATEGORY_QUERIES[key].fallback || []).length);
-    const fallbackResults = await mapLimit(fallbackKeys, 2, async key => ({
-      key,
-      result: await runSelectorSetResilient(lat, lng, radius, selectorsForCategories([key], 'fallback'))
-    }));
-    for (const { key, result } of fallbackResults) {
-      absorbPart(result);
-      if (result.successfulParts === 0) {
-        localWarnings.push(`${CATEGORY_LABELS[key]} yedek sorgusu yanıt vermedi; temel sorgu sonucu korundu.`);
-      }
-    }
+    const fallbackKeys = keys.filter(key =>
+      succeededCategories.has(key)
+      && !foundAfterCore.has(key)
+      && (CATEGORY_QUERIES[key].fallback || []).length
+      && radius <= 10000
+    );
 
-    return {
-      keys,
-      elements: [...localMap.values()],
-      providers: [...localProviders],
-      warnings: localWarnings,
-      categoryStatus
-    };
-  });
-
-  for (const result of batchResults) {
-    mergeElementArray(elementMap, result.elements);
-    result.providers.forEach(provider => providers.add(provider));
-    const label = result.keys.map(key => CATEGORY_LABELS[key]).join(', ');
-    warnings.push(...result.warnings.map(message => `${label}: ${message}`));
-    for (const key of result.keys) {
-      if (result.categoryStatus.get(key) === 'failed') failedCategories.add(key);
-      else succeededCategories.add(key);
+    // Ad/marka tabanlı pahalı yedek taramalar yalnızca ilk 10 km'de ve tek toplu
+    // istek olarak yapılır. 20/30 km'de onlarca sorgu üretip servisi kilitlemez.
+    if (fallbackKeys.length) {
+      const fallback = await runSelectorSetResilient(lat, lng, radius, selectorsForCategories(fallbackKeys, 'fallback'));
+      mergeElementArray(elementMap, fallback.elements);
+      fallback.providers.forEach(provider => providers.add(provider));
+      warnings.push(...fallback.warnings.map(message => `${fallbackKeys.map(key => CATEGORY_LABELS[key]).join(', ')} yedek: ${message}`));
     }
   }
 
@@ -1295,7 +1296,7 @@ async function getDistrictSearchAnchor(adminContext = {}) {
       headers: {
         Accept: 'application/json',
         'Accept-Language': 'tr-TR,tr;q=0.9',
-        'User-Agent': 'Kadastro360/2.0.6 (kadastro360.com.tr)'
+        'User-Agent': 'Kadastro360/2.0.7 (https://kadastro360.com.tr; info@kadastro360.com.tr)'
       }
     }, 9000);
     if (!Array.isArray(rows) || !rows.length) return null;
@@ -1452,7 +1453,7 @@ function limitBalanced(items, category) {
 async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {}) {
   const context = normalizeAdminContext(adminContext);
   const geometryKey = geometry ? JSON.stringify(geometry).slice(0, 2000) : '';
-  const cacheKey = `poi-v206:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
+  const cacheKey = `poi-v207:${lat.toFixed(5)}:${lng.toFixed(5)}:${radiusMode}:${category}:${normalizeSearchText(context.province)}:${normalizeSearchText(context.district)}:${geometryKey}`;
   return cached(cacheKey, 30 * 60 * 1000, async () => {
     const startedAt = Date.now();
     const allCategories = Object.keys(CATEGORY_QUERIES);
@@ -1497,90 +1498,77 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
       });
     };
 
+    const foundTypes = (scope = null, radius = null) => {
+      const rows = [...elementMap.values()]
+        .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all', context))
+        .filter(item => !scope || item.searchScope === scope)
+        .filter(item => radius === null || item.searchScope === 'district-center' || item.centerDistance <= radius * 1.03);
+      return new Set(rows.map(item => item.type));
+    };
+
+    let districtAnchor = null;
+    let districtFallbackCategories = [];
+
     if (radiusMode !== 'auto') {
       const radius = Math.max(300, Math.min(30000, Number(radiusMode) || 1000));
       const result = await queryCategoriesAtRadius(lat, lng, radius, requestedCategories);
       absorb(result, radius);
-      for (const key of requestedCategories) coverage[key] = { radius, status: failedCategories.has(key) ? 'failed' : cachedFallbackCategories.has(key) ? 'cached' : 'checked' };
+      const found = foundTypes(null, radius);
+      for (const key of requestedCategories) {
+        coverage[key] = {
+          radius,
+          status: found.has(key) ? (cachedFallbackCategories.has(key) ? 'cached' : 'found')
+            : failedCategories.has(key) ? 'failed' : 'empty'
+        };
+      }
     } else {
-      let pending = [...requestedCategories];
-      for (const radius of [10000, 20000, 30000]) {
-        if (!pending.length) break;
-        const eligible = pending.filter(key => radius <= (POI_MAX_RADIUS[key] || 10000));
-        for (const key of pending.filter(key => !eligible.includes(key))) {
-          coverage[key] = coverage[key] || { radius: POI_MAX_RADIUS[key] || 10000, status: 'empty' };
-        }
-        if (!eligible.length) {
-          pending = pending.filter(key => !coverage[key]);
-          continue;
-        }
-        const result = await queryCategoriesAtRadius(lat, lng, radius, eligible);
-        absorb(result, radius);
-
-        const currentItems = [...elementMap.values()]
-          .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all', context))
-          .filter(item => item.centerDistance <= radius * 1.03);
-        const found = new Set(currentItems.map(item => item.type));
-
-        const nextPending = [];
-        for (const key of pending) {
-          const maxRadiusForCategory = POI_MAX_RADIUS[key] || 10000;
-          if (found.has(key)) {
-            coverage[key] = { radius, status: cachedFallbackCategories.has(key) ? 'cached' : 'found' };
-          } else if (eligible.includes(key) && result.failedCategories.has(key)) {
-            coverage[key] = { radius, status: 'failed' };
-          } else if (radius >= maxRadiusForCategory) {
-            coverage[key] = { radius: maxRadiusForCategory, status: 'empty' };
-          } else {
-            nextPending.push(key);
-          }
-        }
-        pending = nextPending;
+      // 1) Tekirdağ'da çalışan aynı hızlı başlangıç: bütün kategoriler parselin 10 km
+      // çevresinde küçük toplu sorgularla tek kez aranır.
+      const firstRadius = 10000;
+      const first = await queryCategoriesAtRadius(lat, lng, firstRadius, requestedCategories);
+      absorb(first, firstRadius);
+      let found = foundTypes(null, firstRadius);
+      let pending = requestedCategories.filter(key => !found.has(key));
+      for (const key of requestedCategories.filter(key => found.has(key))) {
+        coverage[key] = { radius: firstRadius, status: cachedFallbackCategories.has(key) ? 'cached' : 'found' };
       }
-    }
 
-    // Parsel ilçe merkezine uzaksa salt dairesel arama, komşu ilçedeki daha yakın
-    // kayıtları seçebilir. Eksik veya 15 km'den uzak kritik türler için seçilen
-    // ilçe merkezinde ikinci bir canlı OSM taraması yapılır ve aynı ilçe önceliklenir.
-    let districtAnchor = null;
-    let districtFallbackCategories = [];
-    if (radiusMode === 'auto' && context.province && context.district) {
-      const parcelItems = [...elementMap.values()]
-        .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all', context));
-      const districtPriorityCategories = new Set(['school', 'market', 'mosque', 'bank', 'atm', 'pharmacy', 'hospital', 'bus_terminal', 'train_station', 'airport']);
-      districtFallbackCategories = requestedCategories.filter(key => {
-        if (!districtPriorityCategories.has(key)) return false;
-        const rows = parcelItems.filter(item => item.type === key);
-        if (!rows.length) return true;
-        const nearest = [...rows].sort(comparePoi)[0];
-        if (['bank', 'atm'].includes(key) && nearest.districtMatch !== true) return true;
-        return nearest.districtMatch === false || nearest.centerDistance > 12000;
-      });
-      if (districtFallbackCategories.length) {
-        districtAnchor = await districtAnchorPromise;
-        if (districtAnchor) {
-          let pendingDistrict = [...districtFallbackCategories];
-          for (const radius of [8000, 18000]) {
-            if (!pendingDistrict.length) break;
-            const result = await queryCategoriesAtRadius(districtAnchor.lat, districtAnchor.lng, radius, pendingDistrict);
-            absorb(result, radius, 'district-center', districtAnchor.lat, districtAnchor.lng);
-            const centerItems = [...elementMap.values()]
-              .flatMap(element => itemsFromElement(element, lat, lng, geometry, 'all', context))
-              .filter(item => item.searchScope === 'district-center');
-            pendingDistrict = pendingDistrict.filter(key => !centerItems.some(item => item.type === key));
-            for (const key of districtFallbackCategories) {
-              if (centerItems.some(item => item.type === key)) {
-                coverage[key] = { ...(coverage[key] || {}), status: 'found', districtRadius: radius, districtFallback: true };
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (!districtAnchor && context.province && context.district) {
+      // 2) Kırsal parselde eksik temel hizmetler önce seçilen ilçe merkezinde tek
+      // 12 km taramayla aranır. Komşu ilçeye atlamak yerine seçilen ilçe korunur.
       districtAnchor = await districtAnchorPromise;
+      const districtPriority = new Set(['school', 'market', 'mosque', 'pharmacy', 'hospital', 'bank', 'atm', 'bus_terminal', 'train_station', 'airport']);
+      districtFallbackCategories = pending.filter(key => districtPriority.has(key));
+      if (districtAnchor && districtFallbackCategories.length) {
+        const districtRadius = 10000;
+        const districtResult = await queryCategoriesAtRadius(districtAnchor.lat, districtAnchor.lng, districtRadius, districtFallbackCategories);
+        absorb(districtResult, districtRadius, 'district-center', districtAnchor.lat, districtAnchor.lng);
+        const districtFound = foundTypes('district-center');
+        for (const key of districtFallbackCategories.filter(key => districtFound.has(key))) {
+          coverage[key] = { radius: firstRadius, districtRadius, districtFallback: true, status: 'found' };
+        }
+        pending = pending.filter(key => !districtFound.has(key));
+      }
+
+      // 3) İlçe merkezinde de bulunmayan türler yalnızca bir kez 30 km'ye genişler.
+      // Eski 10+20+30 ve iki ayrı ilçe turu kaldırıldı; servis aynı aramada onlarca
+      // paralel istekle boğulmaz.
+      if (pending.length) {
+        const finalRadius = 30000;
+        const finalResult = await queryCategoriesAtRadius(lat, lng, finalRadius, pending);
+        absorb(finalResult, finalRadius);
+        found = foundTypes(null, finalRadius);
+        for (const key of pending) {
+          coverage[key] = {
+            ...(coverage[key] || {}),
+            radius: finalRadius,
+            status: found.has(key) ? (cachedFallbackCategories.has(key) ? 'cached' : 'found')
+              : failedCategories.has(key) ? 'failed' : 'empty'
+          };
+        }
+      }
     }
+
+    if (!districtAnchor && context.province && context.district) districtAnchor = await districtAnchorPromise;
 
     const maxRadius = searchedRadii.length ? Math.max(...searchedRadii) : 0;
     const seenLocations = new Set();
@@ -1616,22 +1604,19 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
     }
     items = items.filter(item => {
       const state = preferredTypeState.get(item.type) || {};
-      if (state.hasDistrictCenter) {
-        return item.searchScope === 'district-center' || item.districtMatch === true;
-      }
+      if (state.hasDistrictCenter) return item.searchScope === 'district-center' || item.districtMatch === true;
       if (state.hasDistrictTrue) return item.districtMatch !== false;
-      if (['bank', 'atm'].includes(item.type) && item.centerDistance > 40000 && item.districtMatch !== true && item.searchScope !== 'district-center') {
-        return false;
-      }
+      if (['bank', 'atm'].includes(item.type) && item.centerDistance > 40000 && item.districtMatch !== true && item.searchScope !== 'district-center') return false;
       return true;
     });
+
     const discoveredCounts = categoryCounts(items);
     items = limitBalanced(items, category);
     const shownCounts = categoryCounts(items);
     const truncatedCategories = requestedCategories.filter(key => (discoveredCounts[key] || 0) > (shownCounts[key] || 0));
 
     if (!items.length && successfulCategories.size === 0 && failedCategories.size) {
-      throw new Error('Yakın yer servislerinin tamamı yanıt vermedi. Küçük sorgular ve yedek sunucular da denendi.');
+      throw new Error('Yakın yer servislerinin tamamı yanıt vermedi. Sorgular sıraya alındı ve bağımsız yedek sunucular denendi.');
     }
 
     for (const key of requestedCategories) {
@@ -1667,7 +1652,6 @@ async function getPoi(lat, lng, radiusMode, category, geometry, adminContext = {
     };
   });
 }
-
 
 function firstProperty(object, keys) {
   for (const key of keys) {
@@ -1771,7 +1755,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.6-viewport-wms-poi-resilience', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.7-stable-poi-queue', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
     }
 
     if (req.method === 'GET' && pathname === '/favicon.ico') {

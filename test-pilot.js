@@ -64,7 +64,7 @@ const { PNG } = require('pngjs');
   assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
   assert(server.includes('ADMIN_PANEL_PIN') && server.includes('validAdminSession') && server.includes("pathname === '/yonetim-giris'"), 'İkinci yönetici doğrulaması eksik.');
   assert(admin.includes('Gelen erişim talepleri') && admin.includes('/admin/access-requests'), 'Erişim talepleri yönetici ekranında gösterilmiyor.');
-  assert(server.includes("version: '2.0.6-viewport-wms-poi-resilience'"), 'Sunucu sürümü 2.0.6-viewport-wms-poi-resilience değil.');
+  assert(server.includes("version: '2.0.7-stable-poi-queue'"), 'Sunucu sürümü 2.0.7-stable-poi-queue değil.');
   assert(!server.includes('Kadastro360 Web Pilot</div>') && !html.includes('<title>Kadastro360 — Web Pilot'), 'Görünür Web Pilot ifadesi kaldırılmamış.');
   assert(allCode.includes('info@kadastro360.com.tr') && server.includes('contactEmail'), 'İletişim e-posta alanı eksik.');
   assert(account.includes('history_key') && account.includes('ON CONFLICT(username,history_key)'), 'Mükerrer geçmiş engeli eksik.');
@@ -149,7 +149,7 @@ const { PNG } = require('pngjs');
   assert(ysk?.wms?.snapshotSize === 1280, 'Plan görünüm çözünürlük ayarı eksik.');
   assert(catalog.wmsLoadMode === 'single-viewport-resolution' && catalog.catalogMode === 'quick', 'Katalog görünür alan WMS yükleme modu eksik.');
 
-  console.log('Kadastro360 v2.0.6 tek görünür alan WMS, yakın yer kategori yalıtımı ve kurumsal özellikler doğrulaması geçti.');
+  console.log('Kadastro360 v2.0.7 çalışan WMS korunumu, sıralı yakın yer kuyruğu ve kurumsal özellikler doğrulaması geçti.');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;
