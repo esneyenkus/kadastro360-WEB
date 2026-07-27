@@ -1,0 +1,23 @@
+KADASTRO360 - YALNIZCA YÖNETİCİYE AÇIK PASİF MOD
+
+Bu paket mevcut çalışan v2.0.8 harita ve yakın yer sistemini değiştirmez.
+Yalnızca erişim kapısı ekler.
+
+1) ZIP içindeki server.js dosyasını GitHub ana dizinine yükleyin.
+2) Render otomatik deploy tamamlandıktan sonra servis > Environment > Edit bölümüne girin.
+3) Şu değişkeni ekleyin:
+   PRIVATE_MODE = true
+4) İsteğe bağlı açıklama:
+   PRIVATE_MODE_MESSAGE = Kamu kurumlarıyla veri kullanım ve entegrasyon görüşmeleri devam etmektedir. Sistem geçici olarak halka açık kullanıma kapalıdır.
+5) Save, rebuild, and deploy ile kaydedin.
+
+Yönetici erişimi:
+https://kadastro360.com.tr/yonetim-giris
+
+Yönetici kullanıcı adı + parola + ADMIN_PANEL_PIN ile giriş yapın.
+Yönetici girişinden sonra /admin ve /app çalışır.
+Diğer kullanıcılar, eski oturumları olsa bile uygulama ve API'lere erişemez.
+
+Tekrar halka açmak için yalnızca:
+PRIVATE_MODE = false
+olarak değiştirip kaydedin. Başka dosya geri yüklemeyin.
