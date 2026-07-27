@@ -1,0 +1,9 @@
+Kadastro360 v2.0.8.1 — Pasif Mod Render Düzeltmesi
+
+1. ZIP içindeki server.js dosyasını GitHub deposunun ana dizinine yükleyin.
+2. Mevcut server.js dosyasının değiştirilmesini onaylayın.
+3. Başka dosya silmeyin veya değiştirmeyin.
+4. Render otomatik deploy tamamlanınca PRIVATE_MODE=true olarak kalabilir.
+5. Yönetici giriş adresi: https://kadastro360.com.tr/yonetim-giris
+
+Bu paket harita, WMS ve yakın yer dosyalarını değiştirmez.

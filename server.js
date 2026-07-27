@@ -1879,7 +1879,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.8-private-admin-only', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.8-browser-overpass-fallback', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
     }
 
     if (req.method === 'GET' && pathname === '/favicon.ico') {
@@ -1903,7 +1903,7 @@ const server = http.createServer(async (req, res) => {
     // PRIVATE_MODE açıkken yalnızca üç aşamalı yönetici girişiyle doğrulanan
     // yönetici hesabı uygulama ve API'lere erişebilir. Normal kullanıcı oturumları,
     // erişim talepleri, davet/parola sayfaları ve doğrudan URL istekleri kapatılır.
-    if (PRIVATE_MODE && sessionUser?.role !== 'admin') {
+    if (PRIVATE_MODE && !(sessionUser?.role === 'admin' && validAdminSession(req, sessionUser))) {
       const adminLoginRoute = pathname === '/yonetim-giris' && (req.method === 'GET' || req.method === 'POST');
       const logoutRoute = pathname === '/logout' && req.method === 'GET';
       if (!adminLoginRoute && !logoutRoute) {
