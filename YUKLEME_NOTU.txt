@@ -1,15 +1,7 @@
-Kadastro360 v2.0.9.1 - Render Build Düzeltmesi
+Kadastro360 Render ERR_ASSERTION build düzeltmesi
 
-Bu paket SADECE Render build hatasını düzeltir.
+Bu paket uygulama kodunu DEĞİŞTİRMEZ.
+Sadece test-pilot.js içindeki v2.0.8 döneminden kalmış iki eski regresyon beklentisini, mevcut v2.0.9.1 davranışıyla eşleştirir.
 
-Neden:
-Önceki pakette package.json içindeki npm sürümü yanlışlıkla 2.0.9.1 yazılmıştı.
-NPM paket sürümü üç parçalı SemVer olmalıdır; ayrıca mevcut çalışan package-lock.json v2.0.8 kök sürümüyle eşleşiyordu.
-
-Ne yapıldı:
-- package.json kök sürümü tekrar 2.0.8 yapıldı.
-- v2.0.9.1 uygulama düzeltmeleri ve regresyon testi korunuyor.
-- index.html, server.js ve diğer çalışan dosyalara dokunulmadı.
-
-GitHub ana dizinine yalnızca package.json dosyasını mevcut dosyanın üzerine yükleyin.
-YUKLEME_NOTU.txt zorunlu değildir.
+GitHub ana dizininde yalnızca test-pilot.js dosyasını mevcut dosyanın üzerine yükleyin.
+index.html, server.js, package.json, package-lock.json, Render ayarları ve çalışan sistem dosyaları bu pakette yoktur ve değiştirilmez.

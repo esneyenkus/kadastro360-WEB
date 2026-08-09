@@ -64,7 +64,7 @@ const { PNG } = require('pngjs');
   assert(server.includes("pathname === '/request-access'") && account.includes('CREATE TABLE IF NOT EXISTS access_requests'), 'Pilot erişim talep sistemi eksik.');
   assert(server.includes('ADMIN_PANEL_PIN') && server.includes('validAdminSession') && server.includes("pathname === '/yonetim-giris'"), 'İkinci yönetici doğrulaması eksik.');
   assert(admin.includes('Gelen erişim talepleri') && admin.includes('/admin/access-requests'), 'Erişim talepleri yönetici ekranında gösterilmiyor.');
-  assert(server.includes("version: '2.0.8-browser-overpass-fallback'"), 'Sunucu sürümü 2.0.8-browser-overpass-fallback değil.');
+  assert(server.includes("version: '2.0.9.1-pilot-stability-fix'"), 'Sunucu sürümü 2.0.9.1-pilot-stability-fix değil.');
   assert(!server.includes('Kadastro360 Web Pilot</div>') && !html.includes('<title>Kadastro360 — Web Pilot'), 'Görünür Web Pilot ifadesi kaldırılmamış.');
   assert(allCode.includes('info@kadastro360.com.tr') && server.includes('contactEmail'), 'İletişim e-posta alanı eksik.');
   assert(account.includes('history_key') && account.includes('ON CONFLICT(username,history_key)'), 'Mükerrer geçmiş engeli eksik.');
@@ -102,7 +102,7 @@ const { PNG } = require('pngjs');
 
   assert(html.includes('createPersistentViewportWmsLayer') && html.includes('single-viewport-resolution') && html.includes('/api/open-data/wms-snapshot/'), 'Tek görünür alan ve güvenli WMS geri dönüşü eksik.');
   assert(!html.includes("setTimeout(()=>loadRegionalOverviewLayer(item,controller.attempt"), 'Bulanık bölgesel WMS görünümü hâlâ otomatik üst üste bindiriliyor.');
-  assert(html.includes('previous?.dispose?.();') && html.includes('iki farklı çözünürlük üst üste kalmaz'), 'Yeni görünüm hazır olmadan eskiyi koruyan tek katman geçişi eksik.');
+  assert(html.includes('previous?.dispose?.();') && html.includes('controller.current={...result,view}') && html.includes('yeni görünüm tamamen hazır olduğunda tek seferde değiştirilir'), 'Yeni görünüm hazır olmadan eskiyi koruyan tek katman geçişi eksik.');
   assert(html.includes('knownWmsAttempts') && html.includes('findVisibleWmsAttempt') && html.includes('firstViewportSuccess'), 'Görünür WMS katman seçimi ve güvenli geri dönüş eksik.');
   assert(html.includes('raceViewportSources') && html.includes('server-viewport-cache') && html.includes('çalışan görünüm korunuyor'), 'Çalışan katmanı koruyan WMS geri dönüş zinciri eksik.');
   assert(html.includes('parcel-locator') && html.includes('updateParcelLocator'), 'Parsel hedef animasyonu eksik.');
