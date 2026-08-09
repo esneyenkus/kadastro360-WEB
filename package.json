@@ -1,8 +1,8 @@
 {
   "name": "kadastro360-web-pilot",
-  "version": "2.0.9.1",
+  "version": "2.0.8",
   "private": true,
-  "description": "Kadastro360 v2.0.9.1: çalışan v2.0.8/Yozgat düzeni korunarak WMS zoom kararlılığı, geniş ekran oranı, Gönen banka-ATM tarayıcı yedeği ve klavye seçim düzeltmeleri.",
+  "description": "Kadastro360 v2.0.9.1 pilot kararlılık düzeltmeleri; npm/Render uyumluluğu için paket kök sürümü çalışan v2.0.8 lockfile ile aynı tutulur.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

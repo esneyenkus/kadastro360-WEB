@@ -1,21 +1,15 @@
-Kadastro360 v2.0.9.1 - Pilot Kararlılık Düzeltmesi
+Kadastro360 v2.0.9.1 - Render Build Düzeltmesi
 
-Bu paket v2.0.8 / v2.0.8.2 çalışan sistemi temel alır. Tüm sistemi yeniden kurmaz.
-GitHub ana dizininde yalnızca paketteki dosyaları mevcut dosyaların üzerine yazın.
-PRIVATE_MODE=true ayarı değiştirilmeyecek.
+Bu paket SADECE Render build hatasını düzeltir.
 
-Düzeltilenler:
-1) Tekirdağ/Çorlu/Önerler: son çalışan WMS katman seçimi önce denenir; ilk açılış probe turu kısalır.
-2) Zoom/kaydırma: yüklenmekte olan yeni WMS görünümü yüzünden çalışan görüntü iptal edilmez veya başa dönmez. Yeni görünüm tamamen yüklenince tek seferde geçer.
-3) Tekirdağ/Malkara/Camiatik: aday WMS resmi tam yüklenmeden görünür yapılmaz; ayrıca yalnızca ekranın üst/köşe bölümünde veri döndüren katman kabul edilmez. WMS seçim önbelleği il+ilçe bazına ayrılır; Önerler seçimi Malkara’ya körlemesine taşınmaz.
-4) Giresun/Görele: geniş ekranda WMS WIDTH/HEIGHT oranı harita oranıyla birebir korunur; Plan Ölçeğine Git en az zoom 12 kullanır.
-5) Balıkesir/Gönen/Turplu: Render başarısız olduğunda tarayıcı OSM yedeği de ilçe merkezi aşamasını kullanır. Banka ve ATM 30 km sorguları ayrı küçük sorgulara bölünür; komşu ilçe sonuçları yerine Gönen önceliği korunur.
-6) İl / İlçe / Mahalle: Aşağı-Yukarı ok tuşlarıyla seçim ve Enter ile onay eklendi. Fare kullanımı aynen devam eder.
+Neden:
+Önceki pakette package.json içindeki npm sürümü yanlışlıkla 2.0.9.1 yazılmıştı.
+NPM paket sürümü üç parçalı SemVer olmalıdır; ayrıca mevcut çalışan package-lock.json v2.0.8 kök sürümüyle eşleşiyordu.
 
-Korunanlar:
-- Yozgat/Yerköy v2.0.8 çalışan harita ve tek görünüm yaklaşımı
-- Parsel sınırı ve hedef göstergesi
-- Sahte/tahmini yakın yer üretmeme
-- Tarayıcı canlı OSM yedeği
-- Yönetici/pasif mod
-- Kullanıcı, geçmiş, rota, eğim ve diğer mevcut özellikler
+Ne yapıldı:
+- package.json kök sürümü tekrar 2.0.8 yapıldı.
+- v2.0.9.1 uygulama düzeltmeleri ve regresyon testi korunuyor.
+- index.html, server.js ve diğer çalışan dosyalara dokunulmadı.
+
+GitHub ana dizinine yalnızca package.json dosyasını mevcut dosyanın üzerine yükleyin.
+YUKLEME_NOTU.txt zorunlu değildir.
