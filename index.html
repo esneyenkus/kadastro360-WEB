@@ -34,7 +34,7 @@ h1{font-size:15px;margin:0;font-weight:750}.subtitle{font-size:10px;color:var(--
 .combo input:focus,.plain-input:focus,.select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,138,104,.11)}
 .combo input:disabled{background:#f3f5f7;color:#98a2ad}
 .dropdown{display:none;position:absolute;top:38px;left:0;right:0;max-height:220px;overflow:auto;background:#fff;border:1px solid #cfd8e1;border-radius:8px;box-shadow:0 12px 32px rgba(22,33,43,.16);z-index:2000;padding:5px}
-.dropdown.open{display:block}.option{padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px}.option:hover,.option.selected{background:var(--green2);color:#0e6b51}.option.empty{cursor:default;color:var(--muted)}
+.dropdown.open{display:block}.option{padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px}.option:hover,.option.selected,.option.keyboard-active{background:var(--green2);color:#0e6b51}.option.keyboard-active{outline:1px solid #83bea9;outline-offset:-1px}.option.empty{cursor:default;color:var(--muted)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}.primary{width:100%;height:36px;border:0;border-radius:7px;background:var(--green);color:#fff;font-size:12px;font-weight:750;cursor:pointer}.primary:hover{filter:brightness(.96)}.primary:disabled{opacity:.5;cursor:not-allowed}
 .status{min-height:30px;padding:6px 12px;border-bottom:1px solid var(--line);font-size:11px;display:flex;align-items:center;gap:7px;color:var(--muted)}
 .dot{width:7px;height:7px;border-radius:50%;background:#9da7b1;flex:0 0 auto}.dot.ok{background:var(--green)}.dot.warn{background:#e27a18}.dot.loading{background:#e2a100;animation:pulse .8s infinite}.dot.error{background:var(--red)}
@@ -688,12 +688,15 @@ function focusOpenDataPlan(itemIdOrItem,announce=false){
   const item=typeof itemIdOrItem==='string'?store.openDataCatalog?.items?.find(row=>row.id===itemIdOrItem):itemIdOrItem;
   if(!item||item.category!=='plan'||!store.parcelCenter||!store.map) return Promise.resolve(false);
   const active=store.openDataLayers.get(item.id);
+  // 1/100.000 planlarda zoom 10 geniş ekranda yazıları aşırı sıkıştırıyor. Çalışan
+  // Yozgat çözünürlük düzenini bozmadan yalnızca "Plan Ölçeğine Git" görünümünü
+  // daha okunur bir alt sınırda tutuyoruz.
+  const target=Math.max(12,Number(item.wms?.recommendedZoom)||10);
   store.map.stop();
   store.map.invalidateSize(false);
   if(active?.bounds?.isValid?.()){
-    store.map.fitBounds(active.bounds,{padding:[42,42],maxZoom:Number(item.wms?.recommendedZoom)||10,animate:true,duration:.45});
+    store.map.fitBounds(active.bounds,{padding:[42,42],maxZoom:target,animate:true,duration:.45});
   }else{
-    const target=Number(item.wms?.recommendedZoom)||10;
     store.map.setView(L.latLng(store.parcelCenter.lat,store.parcelCenter.lng),target,{animate:true});
   }
   setTimeout(()=>{bringParcelToFront();updateParcelLocator();},500);
@@ -807,10 +810,12 @@ async function imageBitmapFromBlob(blob){
 function analyzeCanvasVisibility(context,width,height){
   const data=context.getImageData(0,0,width,height).data;
   const stride=Math.max(1,Math.floor(Math.sqrt((width*height)/70000)));
-  let sampled=0,visiblePixels=0,opaquePixels=0,variedPixels=0,first=null;
+  let sampled=0,visiblePixels=0,opaquePixels=0,variedPixels=0,first=null,centerSampled=0,centerOpaquePixels=0;
+  const centerLeft=width*.32,centerRight=width*.68,centerTop=height*.32,centerBottom=height*.68;
   for(let y=0;y<height;y+=stride){
     for(let x=0;x<width;x+=stride){
       const i=(y*width+x)*4,r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];sampled++;
+      if(x>=centerLeft&&x<=centerRight&&y>=centerTop&&y<=centerBottom){centerSampled++;if(a>16)centerOpaquePixels++;}
       if(a>16) opaquePixels++;
       if(a>16&&!(r>246&&g>246&&b>246)) visiblePixels++;
       if(a>16){const packed=(r<<16)|(g<<8)|b;if(first===null)first=packed;else if(Math.abs((packed&255)-(first&255))>5||Math.abs(((packed>>8)&255)-((first>>8)&255))>5||Math.abs(((packed>>16)&255)-((first>>16)&255))>5)variedPixels++;}
@@ -818,7 +823,13 @@ function analyzeCanvasVisibility(context,width,height){
   }
   const visibleRatio=sampled?visiblePixels/sampled:0;
   const variedRatio=sampled?variedPixels/sampled:0;
-  return {visible:visiblePixels>=24&&(visibleRatio>=0.0008||variedRatio>=0.0008),sampled,visiblePixels,visibleRatio,opaqueRatio:sampled?opaquePixels/sampled:0,variedRatio};
+  const centerOpaqueRatio=centerSampled?centerOpaquePixels/centerSampled:0;
+  const overallVisible=visiblePixels>=24&&(visibleRatio>=0.0008||variedRatio>=0.0008);
+  // Plan yalnızca ekranın bir köşesinde görünüyorsa (Camiatik örneği) o aday doğru
+  // katman kabul edilmez. Parsel ekranın merkezindedir; merkez bölgede gerçek WMS
+  // pikselleri bulunması gerekir. Böylece kuzeyde veri var diye parsel çevresi boş kalan
+  // katman seçilmez.
+  return {visible:overallVisible&&centerOpaquePixels>=8&&centerOpaqueRatio>=0.002,sampled,visiblePixels,visibleRatio,opaqueRatio:sampled?opaquePixels/sampled:0,variedRatio,centerOpaquePixels,centerOpaqueRatio};
 }
 
 async function probeWmsInBrowser(item,attempt){
@@ -1220,9 +1231,14 @@ function projectedWmsView(item,bounds,{overview=false}={}){
     const ratio=Math.max(.45,Math.min(2.8,(maxX-minX)/Math.max(1,maxY-minY)));
     width=1280;height=Math.max(480,Math.min(1024,Math.round(width/ratio)));
   }else{
-    const pixelRatio=Math.max(1.5,Math.min(2.25,Number(window.devicePixelRatio)||1));
-    width=Math.max(1024,Math.min(2048,Math.round(mapSize.x*pixelRatio)));
-    height=Math.max(720,Math.min(1800,Math.round(mapSize.y*pixelRatio)));
+    // Geniş ekranlarda WIDTH ve HEIGHT ayrı ayrı sınırlandırılırsa WMS görüntüsü
+    // ekran oranından sapıp plan yazılarını yatay/dikey sıkıştırabiliyor. Tek ölçek
+    // katsayısı kullanarak haritanın gerçek en-boy oranını birebir koruyoruz.
+    const rawW=Math.max(320,Number(mapSize.x)||1024),rawH=Math.max(240,Number(mapSize.y)||720);
+    const pixelRatio=Math.max(1.35,Math.min(2.0,Number(window.devicePixelRatio)||1));
+    const scale=Math.max(1,Math.min(pixelRatio,2048/rawW,1536/rawH));
+    width=Math.max(640,Math.round(rawW*scale));
+    height=Math.max(480,Math.round(rawH*scale));
   }
   const centerX=(minX+maxX)/2,centerY=(minY+maxY)/2;
   const radiusMeters=Math.max((maxX-minX)/2,(maxY-minY)/2);
@@ -1308,12 +1324,20 @@ function serverWmsViewportUrl(item,attempt,view){
 
 function waitForImageOverlay(url,bounds,item,group,{timeoutMs=11000,zIndex=245,mode='browser-viewport'}={}){
   return new Promise((resolve,reject)=>{
-    const layer=L.imageOverlay(url,bounds,{pane:'openDataPane',opacity:item.category==='ortho'?.84:.64,interactive:false,crossOrigin:false,zIndex});
+    const finalOpacity=item.category==='ortho'?.84:.64;
+    // Aday görüntü tamamen inmeden görünür yapılmıyor. Böylece Malkara/Çorlu gibi
+    // servis gecikmelerinde ekranda yarım resim veya zoom sırasında iptal olmuş kare
+    // görünmüyor; çalışan eski görünüm yeni resim hazır olana kadar kalıyor.
+    const layer=L.imageOverlay(url,bounds,{pane:'openDataPane',opacity:0,interactive:false,crossOrigin:false,zIndex});
     let settled=false;
     const cleanup=()=>{clearTimeout(timer);layer.off('load',onLoad);layer.off('error',onError);};
     const dispose=()=>{try{if(group.hasLayer(layer))group.removeLayer(layer);}catch{}};
     const fail=message=>{if(settled)return;settled=true;cleanup();dispose();reject(new Error(message));};
-    const onLoad=()=>{if(settled)return;settled=true;cleanup();resolve({layer,bounds,loadMode:mode,dispose});};
+    const onLoad=()=>{
+      if(settled)return;settled=true;cleanup();
+      try{layer.setOpacity(finalOpacity);}catch{}
+      resolve({layer,bounds,loadMode:mode,dispose});
+    };
     const onError=()=>fail('Resmî WMS görüntüsü tarayıcıya yüklenemedi.');
     layer.on('load',onLoad);layer.on('error',onError);layer.addTo(group);
     const timer=setTimeout(()=>fail('Resmî WMS görüntüsü zaman aşımına uğradı.'),timeoutMs);
@@ -1393,18 +1417,50 @@ async function loadRegionalOverviewLayer(item,attempt,group,controller,statusNod
 
 async function createPersistentViewportWmsLayer(item,statusNode,attempts){
   const group=L.layerGroup().addTo(store.map);
-  const controller={layer:group,item,current:null,disposed:false,attempt:null,refreshTimer:null,requestId:0,lastSignature:'',bounds:null};
+  const controller={layer:group,item,current:null,disposed:false,attempt:null,refreshTimer:null,lastSignature:'',bounds:null,loading:false,pendingRefresh:false,pendingForce:false};
+
+  const viewportState=()=>{
+    const view=projectedWmsView(item,store.map.getBounds());
+    return {view,signature:`z${store.map.getZoom()}:${view.signature}`};
+  };
+
+  const scheduleRefresh=(force=false,delay=null)=>{
+    if(controller.disposed)return;
+    if(controller.loading){
+      controller.pendingRefresh=true;
+      controller.pendingForce=controller.pendingForce||Boolean(force);
+      return;
+    }
+    clearTimeout(controller.refreshTimer);
+    controller.refreshTimer=setTimeout(()=>loadCurrentViewport(force),delay===null?(force?80:520):delay);
+  };
 
   const loadCurrentViewport=async(force=false)=>{
     if(controller.disposed||!store.map||!layerOnMap(group))return false;
-    const view=projectedWmsView(item,store.map.getBounds());
-    const signature=`z${store.map.getZoom()}:${view.signature}`;
+    if(controller.loading){
+      controller.pendingRefresh=true;
+      controller.pendingForce=controller.pendingForce||Boolean(force);
+      return false;
+    }
+    const {view,signature}=viewportState();
     if(!force&&signature===controller.lastSignature)return false;
-    const requestId=++controller.requestId;
+    controller.loading=true;
     const candidateAttempts=controller.attempt?[controller.attempt]:attempts;
     try{
       const result=await firstViewportSuccess(item,candidateAttempts,view,group);
-      if(controller.disposed||requestId!==controller.requestId){result.dispose?.();return false;}
+      if(controller.disposed){result.dispose?.();return false;}
+
+      const latest=viewportState();
+      const mapMovedWhileLoading=latest.signature!==signature;
+      // Zoom/kaydırma devam ederken eski çalışan görünümü asla silme. İlk yüklemede
+      // henüz görünüm yoksa gelen kare geçici olarak gösterilir ve en güncel ekran
+      // hemen arkasından tek kez yenilenir.
+      if(mapMovedWhileLoading&&controller.current){
+        result.dispose?.();
+        controller.pendingRefresh=true;
+        return false;
+      }
+
       const previous=controller.current;
       controller.current={...result,view};
       controller.attempt=result.attempt;
@@ -1416,16 +1472,17 @@ async function createPersistentViewportWmsLayer(item,statusNode,attempts){
         result.layer.bringToFront?.();
         bringParcelToFront();
       }catch{}
-      // Yeni görüntü tamamen yüklendikten sonra eski görünüm kaldırılır. Böylece
-      // zoom ve kaydırmada boş ekran oluşmaz; iki farklı çözünürlük üst üste kalmaz.
+      // Yeni görüntü tamamen yüklendikten sonra eski görünüm kaldırılır. Zoom sırasında
+      // yeni istek başlasa bile yüklenmekte olan kare iptal edilip başa dönmez.
       previous?.dispose?.();
+      if(mapMovedWhileLoading)controller.pendingRefresh=true;
       if(statusNode){
         statusNode.className='open-data-load-status notice ok';
-        statusNode.innerHTML='Plan katmanı açık. Haritada görünen alan kendi ölçeğinde yenilendi.<div class="scale-note">Zoom veya kaydırma sonrasında yalnızca yeni görünüm hazır olduğunda eskisi değiştirilir; bulanık bölgesel görüntü ayrıca üst üste bindirilmez.</div>';
+        statusNode.innerHTML='Plan katmanı açık. Haritada görünen alan kendi ölçeğinde yenilendi.<div class="scale-note">Zoom veya kaydırma sırasında çalışan görüntü korunur; yeni görünüm tamamen hazır olduğunda tek seferde değiştirilir.</div>';
       }
       return true;
     }catch(error){
-      if(requestId===controller.requestId&&statusNode){
+      if(statusNode){
         statusNode.className=controller.current?'open-data-load-status notice warn':'open-data-load-status notice error';
         statusNode.innerHTML=controller.current
           ?`Yeni harita görünümü alınamadı; çalışan görünüm korunuyor.<div class="scale-note">${escapeHtml(humanError(error))}</div>`
@@ -1433,12 +1490,14 @@ async function createPersistentViewportWmsLayer(item,statusNode,attempts){
       }
       if(!controller.current)throw error;
       return false;
+    }finally{
+      controller.loading=false;
+      if(controller.pendingRefresh&&!controller.disposed){
+        const pendingForce=controller.pendingForce;
+        controller.pendingRefresh=false;controller.pendingForce=false;
+        scheduleRefresh(pendingForce,140);
+      }
     }
-  };
-
-  const scheduleRefresh=(force=false)=>{
-    clearTimeout(controller.refreshTimer);
-    controller.refreshTimer=setTimeout(()=>loadCurrentViewport(force),force?80:520);
   };
 
   try{
@@ -1455,7 +1514,7 @@ async function createPersistentViewportWmsLayer(item,statusNode,attempts){
     if(controller.disposed)return;
     controller.disposed=true;
     clearTimeout(controller.refreshTimer);
-    controller.requestId++;
+    controller.pendingRefresh=false;controller.pendingForce=false;
     store.map.off('moveend zoomend',mapRefresh);
     controller.current?.dispose?.();
     try{if(layerOnMap(group))store.map.removeLayer(group);}catch{}
@@ -1468,12 +1527,29 @@ async function createSharpWmsLayer(item,statusNode){
   if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Doğru ve görünür plan katmanı belirleniyor…';}
   showMapActivity('Açık plan katmanı doğrulanıyor','loading');
   let lastError='Görünür plan içeriği bulunamadı.';
+  // Aynı WMS servisi farklı ilçelerde farklı alt katman/pafta davranışı gösterebilir.
+  // Önerler'de çalışan seçimi Malkara/Camiatik'e körlemesine taşımamak için son çalışan
+  // katman seçimini il+ilçe bazında saklıyoruz.
+  const choiceScope=[normalizeTr(store.il.selected?.name||''),normalizeTr(store.ilce.selected?.name||'')].filter(Boolean).join('|')||'global';
+  const choiceKey=`k360:wms-choice:${item.wms?.key||item.id}:${choiceScope}`;
+  const saved=wmsCacheRead(choiceKey);
+  // Aynı resmî WMS için son 24 saatte başarıyla çalışan katman adı biliniyorsa tekrar
+  // probe turu yapmadan önce doğrudan onu deneriz. Çorlu/Önerler ilk açılış gecikmesini
+  // azaltır; başarısız olursa mevcut doğrulama zinciri aynen devam eder.
+  if(saved?.layerName){
+    try{
+      if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Son çalışan plan katmanı hızlı biçimde yükleniyor…';}
+      const row=await createPersistentViewportWmsLayer(item,statusNode,[{layerName:saved.layerName,version:saved.version||'1.1.1'}]);
+      item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
+      return row;
+    }catch(error){lastError=humanError(error);}
+  }
   const known=knownWmsAttempts(item).slice(0,4);
   try{
     const selected=await findVisibleWmsAttempt(item,known,statusNode);
     const row=await createPersistentViewportWmsLayer(item,statusNode,[selected]);
     item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
-    wmsCacheWrite(`k360:wms-choice:${item.wms?.key||item.id}`,{layerName:row.attempt.layerName,version:row.attempt.version});
+    wmsCacheWrite(choiceKey,{layerName:row.attempt.layerName,version:row.attempt.version});
     return row;
   }catch(error){lastError=humanError(error);}
 
@@ -1488,7 +1564,7 @@ async function createSharpWmsLayer(item,statusNode){
         const selected=await findVisibleWmsAttempt(item,extras,statusNode);
         const row=await createPersistentViewportWmsLayer(item,statusNode,[selected]);
         item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
-        wmsCacheWrite(`k360:wms-choice:${item.wms?.key||item.id}`,{layerName:row.attempt.layerName,version:row.attempt.version});
+        wmsCacheWrite(choiceKey,{layerName:row.attempt.layerName,version:row.attempt.version});
         return row;
       }catch(error){lastError=humanError(error);}
     }
@@ -1713,6 +1789,16 @@ function parseAdminItems(payload){
 function setupCombo(key){
   const input = $(`input-${key}`);
   const drop = $(`drop-${key}`);
+  const options=()=>[...drop.querySelectorAll('.option:not(.empty)')];
+  const setKeyboardIndex=index=>{
+    const rows=options();
+    if(!rows.length){drop.dataset.keyboardIndex='-1';return null;}
+    const safe=Math.max(0,Math.min(rows.length-1,index));
+    drop.dataset.keyboardIndex=String(safe);
+    rows.forEach((row,i)=>row.classList.toggle('keyboard-active',i===safe));
+    rows[safe].scrollIntoView({block:'nearest'});
+    return rows[safe];
+  };
   input.addEventListener('focus', () => renderCombo(key, input.value, true));
   input.addEventListener('input', () => {
     if(store[key].selected && input.value !== store[key].selected.name){
@@ -1724,7 +1810,31 @@ function setupCombo(key){
     renderCombo(key, input.value, true);
   });
   input.addEventListener('keydown', event => {
-    if(event.key === 'Escape') drop.classList.remove('open');
+    if(event.key === 'Escape'){
+      drop.classList.remove('open');drop.dataset.keyboardIndex='-1';return;
+    }
+    if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+      event.preventDefault();
+      if(!drop.classList.contains('open'))renderCombo(key,input.value,true);
+      const rows=options();if(!rows.length)return;
+      let index=Number(drop.dataset.keyboardIndex);
+      if(!Number.isInteger(index)||index<0)index=event.key==='ArrowDown'?0:rows.length-1;
+      else index=event.key==='ArrowDown'?Math.min(rows.length-1,index+1):Math.max(0,index-1);
+      setKeyboardIndex(index);return;
+    }
+    if(event.key==='Enter'&&drop.classList.contains('open')){
+      const rows=options();if(!rows.length)return;
+      let index=Number(drop.dataset.keyboardIndex);
+      if(!Number.isInteger(index)||index<0||index>=rows.length){
+        const exact=rows.findIndex(row=>normalizeTr(row.textContent)===normalizeTr(input.value));
+        index=exact>=0?exact:(rows.length===1?0:-1);
+      }
+      if(index>=0){
+        event.preventDefault();
+        const row=setKeyboardIndex(index);
+        if(row?._comboItem)selectCombo(key,row._comboItem);
+      }
+    }
   });
 }
 
@@ -1732,7 +1842,7 @@ function renderCombo(key, query = '', open = false){
   const drop = $(`drop-${key}`);
   const wanted = normalizeTr(query);
   const items = wanted ? store[key].items.filter(item => normalizeTr(item.name).includes(wanted)) : store[key].items;
-  drop.innerHTML = '';
+  drop.innerHTML = '';drop.dataset.keyboardIndex='-1';
   if(!items.length){
     const empty = document.createElement('div');
     empty.className = 'option empty'; empty.textContent = 'Kayıt bulunamadı'; drop.appendChild(empty);
@@ -1740,7 +1850,7 @@ function renderCombo(key, query = '', open = false){
     for(const item of items){
       const option = document.createElement('div');
       option.className = `option${store[key].selected?.id === item.id ? ' selected' : ''}`;
-      option.textContent = item.name;
+      option.textContent = item.name;option._comboItem=item;
       option.addEventListener('mousedown', event => {
         event.preventDefault(); selectCombo(key, item);
       });
@@ -2478,48 +2588,83 @@ async function directOverpassRequest(endpoints, query){
   throw new Error(errors.join(' · ')||'Tarayıcı yakın yer servisine ulaşamadı.');
 }
 
-async function runBrowserPoiStage(category, radius, categories){
+async function runBrowserPoiStage(category,radius,categories,options={}){
   const payload=poiRequestPayload(category,radius);
-  const plan=await api('/poi-browser-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,categories})},30000);
+  const queryLat=Number(options.lat??payload.lat),queryLng=Number(options.lng??payload.lng);
+  const scope=options.scope==='district-center'?'district-center':'parcel';
+  const plan=await api('/poi-browser-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,lat:queryLat,lng:queryLng,categories,includeDistrictAnchor:options.includeDistrictAnchor===true})},30000);
   const elementMap=new Map();
   const successful=new Set();
   for(const row of plan.queries||[]){
     try{
       const elements=await directOverpassRequest(plan.endpoints||[],row.query);
-      for(const element of elements){
-        const key=`${element.type||'x'}-${element.id}`;
-        if(!elementMap.has(key))elementMap.set(key,element);
+      for(const raw of elements){
+        const key=`${raw.type||'x'}-${raw.id}`;
+        const previous=elementMap.get(key);
+        const scopes=new Set([...(previous?._k360Scopes||[]),...(raw?._k360Scopes||[])]);
+        if(scope==='district-center')scopes.add('district-center');
+        elementMap.set(key,{...(previous||{}),...raw,_k360Scopes:[...scopes]});
       }
       (row.categories||[]).forEach(key=>successful.add(key));
     }catch{}
   }
-  return {elements:[...elementMap.values()],successfulCategories:[...successful]};
+  return {elements:[...elementMap.values()],successfulCategories:[...successful],districtAnchor:plan.districtAnchor||null};
 }
 
-async function normalizeBrowserPoi(category, radius, elements, successfulCategories){
+async function normalizeBrowserPoi(category,radius,elements,successfulCategories,districtAnchor=null){
   const payload=poiRequestPayload(category,radius);
-  return api('/poi-browser-normalize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,elements,successfulCategories})},45000);
+  return api('/poi-browser-normalize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,elements,successfulCategories,districtAnchor})},45000);
 }
 
-async function fetchPoiBrowserFallback(category, radius){
+async function fetchPoiBrowserFallback(category,radius){
   const requested=category==='all'?PRIORITY_CATEGORIES:[category];
   const firstRadius=radius==='auto'?10000:Math.max(300,Math.min(30000,Number(radius)||1000));
-  const first=await runBrowserPoiStage(category,firstRadius,requested);
+  const first=await runBrowserPoiStage(category,firstRadius,requested,{includeDistrictAnchor:radius==='auto'});
   let elements=[...first.elements];
   let successful=new Set(first.successfulCategories);
-  let normalized=await normalizeBrowserPoi(category,firstRadius,elements,[...successful]);
+  let districtAnchor=first.districtAnchor||null;
+  let normalized=await normalizeBrowserPoi(category,firstRadius,elements,[...successful],districtAnchor);
+  let usedDistrictFallback=[];
+
   if(radius==='auto'){
-    const missing=requested.filter(key=>!(normalized.data||[]).some(item=>item.type===key));
+    let missing=requested.filter(key=>!(normalized.data||[]).some(item=>item.type===key));
+    const districtPriority=new Set(['school','market','mosque','pharmacy','hospital','bank','atm','bus_terminal','train_station','airport']);
+    const districtMissing=missing.filter(key=>districtPriority.has(key));
+    if(districtAnchor&&districtMissing.length){
+      const district=await runBrowserPoiStage(category,10000,districtMissing,{lat:districtAnchor.lat,lng:districtAnchor.lng,scope:'district-center'});
+      const map=new Map(elements.map(element=>[`${element.type||'x'}-${element.id}`,element]));
+      for(const element of district.elements){
+        const key=`${element.type||'x'}-${element.id}`;
+        const previous=map.get(key);
+        const scopes=new Set([...(previous?._k360Scopes||[]),...(element?._k360Scopes||[]),'district-center']);
+        map.set(key,{...(previous||{}),...element,_k360Scopes:[...scopes]});
+      }
+      elements=[...map.values()];
+      district.successfulCategories.forEach(key=>successful.add(key));
+      usedDistrictFallback=[...districtMissing];
+      normalized=await normalizeBrowserPoi(category,firstRadius,elements,[...successful],districtAnchor);
+      missing=requested.filter(key=>!(normalized.data||[]).some(item=>item.type===key));
+    }
+
     if(missing.length){
       const second=await runBrowserPoiStage(category,30000,missing);
       const map=new Map(elements.map(element=>[`${element.type||'x'}-${element.id}`,element]));
-      for(const element of second.elements)map.set(`${element.type||'x'}-${element.id}`,element);
+      for(const element of second.elements){
+        const key=`${element.type||'x'}-${element.id}`;
+        const previous=map.get(key);
+        const scopes=new Set([...(previous?._k360Scopes||[]),...(element?._k360Scopes||[])]);
+        map.set(key,{...(previous||{}),...element,_k360Scopes:[...scopes]});
+      }
       elements=[...map.values()];
       second.successfulCategories.forEach(key=>successful.add(key));
-      normalized=await normalizeBrowserPoi(category,30000,elements,[...successful]);
+      normalized=await normalizeBrowserPoi(category,30000,elements,[...successful],districtAnchor);
       normalized.searchedRadii=[10000,30000];
+    }else{
+      normalized.searchedRadii=[10000];
     }
   }
+  normalized.districtAnchor=districtAnchor;
+  normalized.districtFallbackCategories=usedDistrictFallback;
   normalized.browserFallback=true;
   return normalized;
 }

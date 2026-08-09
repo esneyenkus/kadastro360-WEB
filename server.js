@@ -22,8 +22,6 @@ const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const ADMIN_SESSION_MAX_AGE_SECONDS = 30 * 60;
 const ADMIN_PANEL_PIN = String(process.env.ADMIN_PANEL_PIN || '');
 const COOKIE_SECURE = process.env.COOKIE_SECURE !== '0';
-const PRIVATE_MODE = String(process.env.PRIVATE_MODE || 'false').toLowerCase() === 'true';
-const PRIVATE_MODE_MESSAGE = String(process.env.PRIVATE_MODE_MESSAGE || 'Kamu kurumlarıyla veri kullanım ve entegrasyon görüşmeleri devam etmektedir. Sistem geçici olarak halka açık kullanıma kapalıdır.').trim();
 const ROOT = __dirname;
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const DEFAULT_DAILY_QUOTA = Math.max(1, Number(process.env.DEFAULT_DAILY_QUOTA) || 20);
@@ -79,7 +77,7 @@ function markService(name, ok, message = '') {
 
 const tkgmClient = new TKGMClient({
   sources: sourcesFromEnvironment(),
-  userAgent: 'Kadastro360/2.0.8'
+  userAgent: 'Kadastro360/2.0.9'
 });
 
 // Yakın yer sorguları bütün bölgelerde aynı canlı OSM akışını kullanır.
@@ -206,25 +204,6 @@ function adminLoginPage(message = '', configured = Boolean(ADMIN_PANEL_PIN)) {
   const setup = configured ? '' : '<div class="setup">Render Environment bölümüne <strong>ADMIN_PANEL_PIN</strong> adında, tahmin edilmesi zor ayrı bir güvenlik kodu eklenmeden yönetim paneli açılmaz.</div>';
   return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kadastro360 Yönetici Girişi</title><link rel="icon" href="/assets/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png"><style>
   *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#173d4d,#0d1f29 60%,#08141b);font-family:Arial,sans-serif;color:#17212b;padding:20px}.box{width:min(440px,100%);background:#fff;border-radius:20px;padding:26px;box-shadow:0 30px 90px rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.5)}.login-logo{display:block;width:min(290px,90%);height:auto;margin:0 0 16px}.mark{display:inline-flex;padding:6px 10px;border-radius:99px;background:#eef8f4;color:#0e6b51;font-size:11px;font-weight:900}.title{font-size:28px;font-weight:900;margin:14px 0 5px}.sub{color:#62727c;font-size:13px;line-height:1.6;margin-bottom:18px}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:12px;font-weight:800;color:#2c4350}.field input{width:100%;height:43px;border:1px solid #c8d3da;border-radius:11px;padding:0 12px;font-size:15px}.button{width:100%;border:0;border-radius:11px;padding:13px;background:#0e6b51;color:#fff;font-size:14px;font-weight:900;cursor:pointer;margin-top:8px}.alert,.setup{padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.55;margin-bottom:12px}.alert{background:#fff0f0;color:#982d2d;border:1px solid #efc3c3}.setup{background:#fff8e7;color:#72520d;border:1px solid #ecd69e}.foot{display:flex;justify-content:space-between;gap:12px;margin-top:16px;font-size:12px}.foot a{color:#315fae;text-decoration:none;font-weight:800}</style></head><body><main class="box"><img class="login-logo" src="/assets/kadastro360-logo-horizontal.png" alt="Kadastro360"><div class="mark">KORUMALI YÖNETİM ALANI</div><div class="title">Kadastro360 Yönetici</div><div class="sub">Normal kullanıcı girişinden bağımsız olarak yönetici hesabı, parolası ve ikinci güvenlik kodu birlikte doğrulanır. Yönetici yetkisi 30 dakika sonra yeniden istenir.</div>${alert}${setup}<form method="post" action="/yonetim-giris"><div class="field"><label>Yönetici kullanıcı adı</label><input name="username" autocomplete="username" required></div><div class="field"><label>Yönetici parolası</label><input name="password" type="password" autocomplete="current-password" required></div><div class="field"><label>Yönetim güvenlik kodu</label><input name="adminPin" type="password" inputmode="numeric" autocomplete="one-time-code" required></div><button class="button" type="submit" ${configured ? '' : 'disabled'}>Yönetim paneline gir</button></form><div class="foot"><a href="/">Ana sayfa</a><a href="/app">Uygulama</a></div></main></body></html>`;
-}
-
-function privateModePage() {
-  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>Kadastro360</title><link rel="icon" href="/assets/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png"><style>
-  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top,#173d4d,#0d1f29 60%,#08141b);font-family:Arial,sans-serif;color:#17212b}.card{width:min(620px,100%);background:#fff;border-radius:24px;padding:34px;box-shadow:0 30px 90px rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.5);text-align:center}.logo{display:block;width:min(330px,88%);height:auto;margin:0 auto 24px}.badge{display:inline-flex;padding:7px 12px;border-radius:99px;background:#fff5df;color:#79560c;font-size:12px;font-weight:900;border:1px solid #ecd49c}.title{font-size:30px;font-weight:900;margin:18px 0 10px}.text{color:#5a6c77;font-size:15px;line-height:1.75;margin:0 auto 22px;max-width:520px}.contact{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;background:#eef8f4;color:#0e6b51;font-weight:900;text-decoration:none;border:1px solid #c8ddd4}.note{margin-top:20px;color:#84919a;font-size:12px;line-height:1.6}</style></head><body><main class="card"><img class="logo" src="/assets/kadastro360-logo-horizontal.png" alt="Kadastro360"><div class="badge">GEÇİCİ OLARAK KAPALI</div><div class="title">Kadastro360 geliştirme aşamasındadır</div><p class="text">${escapeHtml(PRIVATE_MODE_MESSAGE)}</p><a class="contact" href="mailto:info@kadastro360.com.tr">info@kadastro360.com.tr</a><div class="note">Parsel sorgulama, açık katman ve yakın yer hizmetleri halka açık kullanıma kapatılmıştır.</div></main></body></html>`;
-}
-
-function sendPrivateModePage(res, status = 503, clearSession = false) {
-  const headers = {
-    'Retry-After': '3600',
-    'X-Robots-Tag': 'noindex, nofollow, noarchive'
-  };
-  if (clearSession) {
-    headers['Set-Cookie'] = [
-      `kadastro360_session=; Path=/; Max-Age=0; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Lax`,
-      `kadastro360_admin=; Path=/; Max-Age=0; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Strict`
-    ];
-  }
-  return sendHtml(res, status, privateModePage(), headers);
 }
 
 function sendHtml(res, status, html, extraHeaders = {}) {
@@ -408,7 +387,7 @@ function secureEqual(a, b) {
   return crypto.timingSafeEqual(left, right);
 }
 
-function sendJson(res, status, payload, extraHeaders = {}) {
+function sendJson(res, status, payload) {
   const body = JSON.stringify(payload);
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
@@ -417,8 +396,7 @@ function sendJson(res, status, payload, extraHeaders = {}) {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'X-Content-Type-Options': 'nosniff',
-    'Referrer-Policy': 'same-origin',
-    ...extraHeaders
+    'Referrer-Policy': 'same-origin'
   });
   res.end(body);
 }
@@ -970,7 +948,7 @@ async function fetchOverpassTransport(endpoint, query, requestTimeoutMs) {
     Accept: 'application/json',
     'Accept-Language': 'tr-TR,tr;q=0.9',
     Referer: 'https://kadastro360.com.tr/',
-    'User-Agent': 'Kadastro360/2.0.8 (https://kadastro360.com.tr; info@kadastro360.com.tr)'
+    'User-Agent': 'Kadastro360/2.0.9 (https://kadastro360.com.tr; info@kadastro360.com.tr)'
   };
   const body = new URLSearchParams({ data: query }).toString();
   const transportErrors = [];
@@ -1511,18 +1489,38 @@ function buildBrowserPoiPlan(lat, lng, radius, categories) {
   if (!Number.isFinite(safeLat) || !Number.isFinite(safeLng)) throw new Error('Geçersiz parsel koordinatı.');
   const requested = [...new Set(Array.isArray(categories) ? categories : [])].filter(key => CATEGORY_QUERIES[key]);
   if (!requested.length) throw new Error('Geçerli yakın yer türü bulunamadı.');
-  const queries = POI_CATEGORY_BATCHES
-    .map(batch => batch.filter(key => requested.includes(key)))
-    .filter(batch => batch.length)
-    .map(keys => ({
+
+  const queries = [];
+  const addQuery = (keys, mode = 'all') => {
+    const selectors = selectorsForCategories(keys, mode);
+    if (!selectors.length) return;
+    queries.push({
       categories: keys,
-      query: buildOverpassQueryFromSelectors(safeLat, safeLng, safeRadius, selectorsForCategories(keys, 'all'))
+      mode,
+      query: buildOverpassQueryFromSelectors(safeLat, safeLng, safeRadius, selectors)
         .replace(/out center tags qt;$/, 'out center tags qt 700;')
-    }));
+    });
+  };
+
+  for (const batch of POI_CATEGORY_BATCHES) {
+    const keys = batch.filter(key => requested.includes(key));
+    if (!keys.length) continue;
+    // Banka + ATM sorgusu 30 km kırsal aramada çok sayıda node/way/relation seçicisi
+    // üretiyordu. Tarayıcı yedeğinde bu iki türü ayrı ve küçük sorgulara bölüyoruz;
+    // temel sorgu cevap verdiyse yedek ad/marka sorgusunun hatası kategoriyi düşürmez.
+    if (keys.some(key => key === 'bank' || key === 'atm')) {
+      for (const key of keys) {
+        addQuery([key], 'core');
+        if ((CATEGORY_QUERIES[key].fallback || []).length) addQuery([key], 'fallback');
+      }
+    } else {
+      addQuery(keys, 'all');
+    }
+  }
   return { endpoints: BROWSER_OVERPASS_ENDPOINTS, radius: safeRadius, queries };
 }
 
-function normalizeBrowserPoiElements({ lat, lng, radius, category, geometry, adminContext, elements, successfulCategories }) {
+function normalizeBrowserPoiElements({ lat, lng, radius, category, geometry, adminContext, elements, successfulCategories, districtAnchor }) {
   const safeLat = Number(lat);
   const safeLng = Number(lng);
   const safeRadius = Math.max(300, Math.min(30000, Number(radius) || 10000));
@@ -1534,12 +1532,14 @@ function normalizeBrowserPoiElements({ lat, lng, radius, category, geometry, adm
   for (const element of Array.isArray(elements) ? elements.slice(0, 5000) : []) {
     if (!element || typeof element !== 'object' || !element.id) continue;
     const key = `${element.type || 'x'}-${element.id}`;
-    if (!unique.has(key)) unique.set(key, element);
+    const previous = unique.get(key);
+    const scopes = new Set([...(previous?._k360Scopes || []), ...(element?._k360Scopes || [])]);
+    unique.set(key, { ...(previous || {}), ...element, _k360Scopes: [...scopes] });
   }
   const seenLocations = new Set();
   let items = [...unique.values()]
     .flatMap(element => itemsFromElement(element, safeLat, safeLng, geometry, selectedCategory, context))
-    .filter(item => item.centerDistance <= safeRadius * 1.03)
+    .filter(item => item.searchScope === 'district-center' || item.centerDistance <= safeRadius * 1.03)
     .filter(item => {
       const key = `${item.type}|${item.lat.toFixed(6)}|${item.lng.toFixed(6)}`;
       if (seenLocations.has(key)) return false;
@@ -1547,6 +1547,33 @@ function normalizeBrowserPoiElements({ lat, lng, radius, category, geometry, adm
       return true;
     })
     .sort(comparePoi);
+
+  if (districtAnchor?.boundingbox) {
+    items = items.map(item => {
+      const inside = pointInsideDistrictBoundingBox(item.lat, item.lng, districtAnchor);
+      if (inside === null) return item;
+      if (item.searchScope === 'district-center' || item.districtMatch === null) return { ...item, districtMatch: inside };
+      if (item.districtMatch === true && inside === false) return { ...item, districtMatch: false };
+      return item;
+    });
+    const strictDistrictTypes = new Set(['school', 'market', 'mosque', 'pharmacy', 'hospital', 'bank', 'atm', 'bus_terminal']);
+    items = items.filter(item => !(strictDistrictTypes.has(item.type) && item.districtMatch === false));
+  }
+
+  const preferredTypeState = new Map();
+  for (const item of items) {
+    const row = preferredTypeState.get(item.type) || { hasDistrictCenter: false, hasDistrictTrue: false };
+    if (item.searchScope === 'district-center') row.hasDistrictCenter = true;
+    if (item.districtMatch === true) row.hasDistrictTrue = true;
+    preferredTypeState.set(item.type, row);
+  }
+  items = items.filter(item => {
+    const state = preferredTypeState.get(item.type) || {};
+    if (state.hasDistrictCenter) return item.searchScope === 'district-center' || item.districtMatch === true;
+    if (state.hasDistrictTrue) return item.districtMatch !== false;
+    return true;
+  });
+
   items = limitBalanced(items, selectedCategory);
   const counts = categoryCounts(items);
   const coverage = {};
@@ -1570,6 +1597,7 @@ function normalizeBrowserPoiElements({ lat, lng, radius, category, geometry, adm
     failedCategories: requestedCategories.filter(key => !successSet.has(key)),
     cachedFallbackCategories: [],
     coverage,
+    districtAnchor: districtAnchor || null,
     browserFallback: true
   };
 }
@@ -1879,7 +1907,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.8-browser-overpass-fallback', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
+      return sendJson(res, 200, { ok: true, service: 'kadastro360', version: '2.0.9.1-pilot-stability-fix', dataMode: 'live-only', mockData: false, tucbsBridge: true, accounts: true, brandingAssets: true, database: accounts.provider, mail: mailer.enabled });
     }
 
     if (req.method === 'GET' && pathname === '/favicon.ico') {
@@ -1899,23 +1927,6 @@ const server = http.createServer(async (req, res) => {
     }
 
     const sessionUser = await validSession(req);
-
-    // PRIVATE_MODE açıkken yalnızca üç aşamalı yönetici girişiyle doğrulanan
-    // yönetici hesabı uygulama ve API'lere erişebilir. Normal kullanıcı oturumları,
-    // erişim talepleri, davet/parola sayfaları ve doğrudan URL istekleri kapatılır.
-    if (PRIVATE_MODE && !(sessionUser?.role === 'admin' && validAdminSession(req, sessionUser))) {
-      const adminLoginRoute = pathname === '/yonetim-giris' && (req.method === 'GET' || req.method === 'POST');
-      const logoutRoute = pathname === '/logout' && req.method === 'GET';
-      if (!adminLoginRoute && !logoutRoute) {
-        if (pathname.startsWith('/api/')) {
-          return sendJson(res, 503, { error: 'Kadastro360 geçici olarak halka açık kullanıma kapalıdır.' }, {
-            'Retry-After': '3600',
-            'X-Robots-Tag': 'noindex, nofollow, noarchive'
-          });
-        }
-        return sendPrivateModePage(res, 503, Boolean(sessionUser));
-      }
-    }
 
     if (req.method === 'GET' && pathname === '/') {
       return sendHtml(res, 200, marketingPage({ user: sessionUser ? await accounts.publicUser(sessionUser) : null }));
@@ -2413,7 +2424,11 @@ const server = http.createServer(async (req, res) => {
         ? body.categories
         : category === 'all' ? Object.keys(CATEGORY_QUERIES) : [category];
       const result = buildBrowserPoiPlan(body.lat, body.lng, body.radius, categories);
-      return sendJson(res, 200, { success: true, ...result });
+      let districtAnchor = null;
+      if (body.includeDistrictAnchor === true && body.province && body.district) {
+        districtAnchor = await getDistrictSearchAnchor({ province: body.province, district: body.district, neighborhood: body.neighborhood }).catch(() => null);
+      }
+      return sendJson(res, 200, { success: true, ...result, districtAnchor });
     }
 
     if (req.method === 'POST' && pathname === '/api/poi-browser-normalize') {
@@ -2428,7 +2443,8 @@ const server = http.createServer(async (req, res) => {
         geometry: body.geometry && typeof body.geometry === 'object' ? body.geometry : null,
         adminContext: { province: body.province, district: body.district, neighborhood: body.neighborhood },
         elements: body.elements,
-        successfulCategories: body.successfulCategories
+        successfulCategories: body.successfulCategories,
+        districtAnchor: body.districtAnchor && typeof body.districtAnchor === 'object' ? body.districtAnchor : null
       });
       return sendJson(res, 200, { success: true, data: result.items, ...result });
     }

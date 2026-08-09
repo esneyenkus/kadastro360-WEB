@@ -1,9 +1,21 @@
-Kadastro360 v2.0.8.2 - Pasif Mod Render Build Düzeltmesi
+Kadastro360 v2.0.9.1 - Pilot Kararlılık Düzeltmesi
 
-Bu paket yalnızca Render build testlerinin PRIVATE_MODE=true ortam değişkeninden etkilenmesini düzeltir.
-Çalışan harita, WMS, yakın yer, kullanıcı, yönetim ve pasif mod sunucu kodu değiştirilmemiştir.
+Bu paket v2.0.8 / v2.0.8.2 çalışan sistemi temel alır. Tüm sistemi yeniden kurmaz.
+GitHub ana dizininde yalnızca paketteki dosyaları mevcut dosyaların üzerine yazın.
+PRIVATE_MODE=true ayarı değiştirilmeyecek.
 
-GitHub ana dizinine paketteki 3 dosyayı birlikte yükleyin.
-package.json mevcut dosyanın üzerine yazılacaktır.
-test-private-mode.js yeni dosyadır.
-PRIVATE_MODE=true Render ortam değişkeni aynı kalacaktır.
+Düzeltilenler:
+1) Tekirdağ/Çorlu/Önerler: son çalışan WMS katman seçimi önce denenir; ilk açılış probe turu kısalır.
+2) Zoom/kaydırma: yüklenmekte olan yeni WMS görünümü yüzünden çalışan görüntü iptal edilmez veya başa dönmez. Yeni görünüm tamamen yüklenince tek seferde geçer.
+3) Tekirdağ/Malkara/Camiatik: aday WMS resmi tam yüklenmeden görünür yapılmaz; ayrıca yalnızca ekranın üst/köşe bölümünde veri döndüren katman kabul edilmez. WMS seçim önbelleği il+ilçe bazına ayrılır; Önerler seçimi Malkara’ya körlemesine taşınmaz.
+4) Giresun/Görele: geniş ekranda WMS WIDTH/HEIGHT oranı harita oranıyla birebir korunur; Plan Ölçeğine Git en az zoom 12 kullanır.
+5) Balıkesir/Gönen/Turplu: Render başarısız olduğunda tarayıcı OSM yedeği de ilçe merkezi aşamasını kullanır. Banka ve ATM 30 km sorguları ayrı küçük sorgulara bölünür; komşu ilçe sonuçları yerine Gönen önceliği korunur.
+6) İl / İlçe / Mahalle: Aşağı-Yukarı ok tuşlarıyla seçim ve Enter ile onay eklendi. Fare kullanımı aynen devam eder.
+
+Korunanlar:
+- Yozgat/Yerköy v2.0.8 çalışan harita ve tek görünüm yaklaşımı
+- Parsel sınırı ve hedef göstergesi
+- Sahte/tahmini yakın yer üretmeme
+- Tarayıcı canlı OSM yedeği
+- Yönetici/pasif mod
+- Kullanıcı, geçmiş, rota, eğim ve diğer mevcut özellikler
