@@ -125,6 +125,25 @@ function responseCookies(response) {
     const appAdmin = await fetch(`${base}/app`, { headers: authHeaders, redirect: 'manual' });
     assert.strictEqual(appAdmin.status, 200, 'Yönetici uygulamaya pasif modda erişemedi.');
 
+    // İkinci yönetim güvenlik çerezi 30 dakika sonra sona erebilir. Bu durumda
+    // ana yönetici oturumu devam ettiği için /app ve uygulama API'leri çalışmaya
+    // devam etmeli; yalnızca /admin tekrar ikinci doğrulamaya yönlendirmelidir.
+    const sessionOnly = cookies.split('; ').filter(row => row.startsWith('kadastro360_session=')).join('; ');
+    assert(sessionOnly.includes('kadastro360_session='), 'Yalnız ana yönetici oturumu hazırlanamadı.');
+
+    const appAfterAdminFactorExpiry = await fetch(`${base}/app`, { headers: { Cookie: sessionOnly }, redirect: 'manual' });
+    assert.strictEqual(appAfterAdminFactorExpiry.status, 200, 'İkinci yönetim doğrulaması bitince yönetici uygulama erişimi kesilmemeli.');
+
+    const servicesAfterAdminFactorExpiry = await fetch(`${base}/api/services`, { headers: { Cookie: sessionOnly }, redirect: 'manual' });
+    assert.strictEqual(servicesAfterAdminFactorExpiry.status, 200, 'İkinci yönetim doğrulaması bitince yönetici API erişimi kesilmemeli.');
+
+    const catalogAfterAdminFactorExpiry = await fetch(`${base}/api/open-data/catalog?province=${encodeURIComponent('Tekirdağ')}&district=${encodeURIComponent('Malkara')}`, { headers: { Cookie: sessionOnly }, redirect: 'manual' });
+    assert.strictEqual(catalogAfterAdminFactorExpiry.status, 200, 'İkinci yönetim doğrulaması bitince açık veri katalog API erişimi kesilmemeli.');
+
+    const adminAfterAdminFactorExpiry = await fetch(`${base}/admin`, { headers: { Cookie: sessionOnly }, redirect: 'manual' });
+    assert([302, 303].includes(adminAfterAdminFactorExpiry.status), 'Yönetim paneli ikinci doğrulama olmadan açılmamalı.');
+    assert.strictEqual(adminAfterAdminFactorExpiry.headers.get('location'), '/yonetim-giris', 'Yönetim paneli ikinci doğrulama için yönetici girişine dönmeli.');
+
     const health = await fetch(`${base}/api/health`, { redirect: 'manual' });
     assert.strictEqual(health.status, 200, 'Render sağlık kontrolü pasif modda açık kalmalı.');
 

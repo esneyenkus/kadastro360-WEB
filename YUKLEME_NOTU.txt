@@ -1,20 +1,28 @@
-Kadastro360 v2.0.9.4 - Camiatik WMS yanlış "yüklendi" durumu düzeltmesi
+Kadastro360 v2.0.9.5 - PRIVATE_MODE yönetici oturumu düzeltmesi
 
-Bu paket yalnızca 2 çalışma dosyasını değiştirir:
-- index.html
-- open-data.js
-
-package.json, package-lock.json, server.js, test-private-mode.js, kullanıcı sistemi,
-pasif mod, yakın yer, rota, eğim ve veritabanı dosyalarına dokunulmamıştır.
+Kök neden:
+- PRIVATE_MODE=true iken uygulama/API erişimi hem ana yönetici oturumuna hem de 30 dakikalık ikinci yönetim güvenlik çerezine bağlanmıştı.
+- İkinci çerez süresi dolduğunda açık duran /app ekranı kalıyor ancak /api/open-data/* dahil API çağrıları 503 dönüyordu.
+- Arayüz bunu "Kadastro360 geçici olarak halka açık kullanıma kapalıdır" / "Açık veri hata" şeklinde gösteriyordu.
 
 Düzeltme:
-1) WMS doğrulamasında plan görüntüsünün yalnız başka bir köşede bulunması artık yeterli değildir;
-   parsel merkezinde de görünür içerik aranır.
-2) Tarayıcı "boş" derken sunucu "görünür" derse artık boş sonuç önceliklidir.
-3) İl/ilçe bazında kaydedilmiş eski WMS seçimi her parselde yeniden doğrulanır; boşsa silinir.
-4) Doğrulanamayan WMS yalnız HTTP 200 / image load verdi diye "katman açık" sayılmaz.
-5) Görünür katman bulunamazsa buton aktif duruma geçmez ve "katman haritaya eklenmedi" mesajı gösterilir.
-6) Plan doğrulama yarıçapı 24 km yerine 6 km yapılarak parsel merkezinden uzak plan piksellerinin yanlış pozitif oluşturması azaltılmıştır.
+- Halka açık kullanım ve normal kullanıcılar kapalı kalır.
+- Yönetici, üç aşamalı giriş yaptıktan sonra 7 günlük ana yönetici oturumu süresince /app ve uygulama API'lerini kullanmaya devam eder.
+- 30 dakikalık ikinci güvenlik süresi yalnız /admin yönetim panelini korur; süresi dolunca /admin tekrar /yonetim-giris'e yönlendirir.
+- WMS, yakın yer, eğim, TKGM, package.json ve diğer uygulama dosyalarına dokunulmadı.
 
-Yükleme: ZIP içindeki index.html ve open-data.js dosyalarını GitHub kök dizinindeki
-aynı dosyaların üzerine yükleyin. Diğer dosyalara dokunmayın.
+Yüklenecek dosyalar:
+- server.js
+- test-private-mode.js
+
+Doğrulama:
+- node --check server.js: geçti
+- node --check test-private-mode.js: geçti
+- Hata eski server.js ile yeniden üretildi: ikinci yönetim çerezi olmadan /app = 503
+- Düzeltilmiş server.js ile yeni regresyon testi geçti:
+  * halka açık /, /app ve API = 503
+  * yönetici girişi = başarılı
+  * ikinci yönetim çerezi yokken /app = 200
+  * ikinci yönetim çerezi yokken /api/services = 200
+  * ikinci yönetim çerezi yokken /api/open-data/catalog = 200
+  * ikinci yönetim çerezi yokken /admin = /yonetim-giris yönlendirmesi

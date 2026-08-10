@@ -1949,10 +1949,12 @@ const server = http.createServer(async (req, res) => {
 
     const sessionUser = await validSession(req);
 
-    // PRIVATE_MODE açıkken yalnızca üç aşamalı yönetici girişiyle doğrulanan
-    // yönetici hesabı uygulama ve API'lere erişebilir. Normal kullanıcı oturumları,
-    // erişim talepleri, davet/parola sayfaları ve doğrudan URL istekleri kapatılır.
-    if (PRIVATE_MODE && !(sessionUser?.role === 'admin' && validAdminSession(req, sessionUser))) {
+    // PRIVATE_MODE açıkken yalnızca yönetici hesabı uygulama ve API'lere erişebilir.
+    // Üç aşamalı yönetici girişi ilk erişimde hem ana yönetici oturumunu hem de
+    // kısa süreli yönetim-paneli güvenlik oturumunu oluşturur. Kısa süreli ikinci
+    // doğrulama süresi dolsa bile yönetici uygulama/API erişimi kesilmez; yalnızca
+    // /admin alanı yeniden ikinci doğrulama ister. Normal kullanıcılar kapalı kalır.
+    if (PRIVATE_MODE && sessionUser?.role !== 'admin') {
       const adminLoginRoute = pathname === '/yonetim-giris' && (req.method === 'GET' || req.method === 'POST');
       const logoutRoute = pathname === '/logout' && req.method === 'GET';
       if (!adminLoginRoute && !logoutRoute) {
