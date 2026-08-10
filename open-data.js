@@ -32,7 +32,14 @@ const WMS_CONFIGS = [
     bounds: [39.845453, 25.412765, 42.261958, 30.364822],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Tekirdağ Kırklareli Edirne Çevre Düzeni Planı')}`,
-    description: 'Trakya planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.'
+    description: 'Trakya planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.',
+    // Malkara/Camiatik canlı testinde 6 km'lik GetMap istekleri tüm adaylarda
+    // boş/şeffaf döndü. Bu 1/100.000 plan servisi için doğrulama ve sabit görüntü
+    // 24 km yarıçapla yapılır; Yozgat ve diğer çalışan pilotların 6 km davranışı
+    // değiştirilmez.
+    probeRadiusKm: 24,
+    snapshotRadiusKm: 24,
+    stableRadiusKm: 24
   },
   {
     key: 'cdp-kirikkale',
@@ -294,10 +301,10 @@ function directWmsDefinition(config, resolved = null) {
     bounds: config.bounds || null,
     supportsFeatureInfo: config.category === 'plan',
     recommendedZoom: config.category === 'plan' ? 10 : null,
-    probeRadiusKm: config.category === 'plan' ? 6 : 8,
-    snapshotRadiusKm: config.category === 'plan' ? 6 : 8,
-    snapshotSize: config.category === 'plan' ? 1280 : 768,
-    stableRadiusKm: config.category === 'plan' ? 6 : 8,
+    probeRadiusKm: Number(config.probeRadiusKm) || (config.category === 'plan' ? 6 : 8),
+    snapshotRadiusKm: Number(config.snapshotRadiusKm) || (config.category === 'plan' ? 6 : 8),
+    snapshotSize: Number(config.snapshotSize) || (config.category === 'plan' ? 1280 : 768),
+    stableRadiusKm: Number(config.stableRadiusKm) || (config.category === 'plan' ? 6 : 8),
     stableSize: config.category === 'plan' ? 1280 : 768,
     infoFormats: resolved?.infoFormats || [],
     legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
