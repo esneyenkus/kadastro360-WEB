@@ -294,7 +294,7 @@ function directWmsDefinition(config, resolved = null) {
     bounds: config.bounds || null,
     supportsFeatureInfo: config.category === 'plan',
     recommendedZoom: config.category === 'plan' ? 10 : null,
-    probeRadiusKm: config.category === 'plan' ? 24 : 8,
+    probeRadiusKm: config.category === 'plan' ? 6 : 8,
     snapshotRadiusKm: config.category === 'plan' ? 6 : 8,
     snapshotSize: config.category === 'plan' ? 1280 : 768,
     stableRadiusKm: config.category === 'plan' ? 6 : 8,
@@ -614,7 +614,13 @@ function analyzePngVisibility(buffer) {
   let visiblePixels = 0;
   let opaquePixels = 0;
   let variedPixels = 0;
+  let centerSampled = 0;
+  let centerOpaquePixels = 0;
   let first = null;
+  const centerLeft = png.width * 0.32;
+  const centerRight = png.width * 0.68;
+  const centerTop = png.height * 0.32;
+  const centerBottom = png.height * 0.68;
   for (let y = 0; y < png.height; y += stride) {
     for (let x = 0; x < png.width; x += stride) {
       const index = (png.width * y + x) << 2;
@@ -623,6 +629,10 @@ function analyzePngVisibility(buffer) {
       const b = png.data[index + 2];
       const a = png.data[index + 3];
       sampled++;
+      if (x >= centerLeft && x <= centerRight && y >= centerTop && y <= centerBottom) {
+        centerSampled++;
+        if (a > 16) centerOpaquePixels++;
+      }
       if (a > 16) opaquePixels++;
       const nearWhite = r > 246 && g > 246 && b > 246;
       const nearTransparent = a <= 16;
@@ -637,8 +647,13 @@ function analyzePngVisibility(buffer) {
   const visibleRatio = sampled ? visiblePixels / sampled : 0;
   const opaqueRatio = sampled ? opaquePixels / sampled : 0;
   const variedRatio = sampled ? variedPixels / sampled : 0;
-  const visible = visiblePixels >= 24 && (visibleRatio >= 0.0008 || variedRatio >= 0.0008);
-  return { visible, width: png.width, height: png.height, sampled, visiblePixels, visibleRatio, opaqueRatio, variedRatio, reason: visible ? 'visual-content' : 'transparent-or-empty' };
+  const centerOpaqueRatio = centerSampled ? centerOpaquePixels / centerSampled : 0;
+  const overallVisible = visiblePixels >= 24 && (visibleRatio >= 0.0008 || variedRatio >= 0.0008);
+  // Camiatik hatasının kökü: görüntünün başka bölümünde plan pikselleri varsa sunucu
+  // "görünür" diyordu. Artık parselin bulunduğu merkez bölgede de gerçek opak içerik
+  // bulunması zorunlu; aksi halde katman boş sayılır ve haritaya eklenmez.
+  const visible = overallVisible && centerOpaquePixels >= 8 && centerOpaqueRatio >= 0.002;
+  return { visible, width: png.width, height: png.height, sampled, visiblePixels, visibleRatio, opaqueRatio, variedRatio, centerSampled, centerOpaquePixels, centerOpaqueRatio, reason: visible ? 'visual-content-at-center' : 'transparent-or-empty-at-center' };
 }
 
 function wmsMapUrl(config, { layerName, version = '1.1.1', latitude, longitude, radiusKm = 24, width = 512, height = 512 }) {

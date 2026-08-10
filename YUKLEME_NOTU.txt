@@ -1,18 +1,20 @@
-Kadastro360 Render PRIVATE_MODE düzeltmesi
+Kadastro360 v2.0.9.4 - Camiatik WMS yanlış "yüklendi" durumu düzeltmesi
 
-Bu paket SADECE server.js dosyasını değiştirir.
-GitHub ana dizinindeki mevcut server.js dosyasının üzerine yükleyin.
-Başka hiçbir dosyayı değiştirmeyin.
+Bu paket yalnızca 2 çalışma dosyasını değiştirir:
+- index.html
+- open-data.js
+
+package.json, package-lock.json, server.js, test-private-mode.js, kullanıcı sistemi,
+pasif mod, yakın yer, rota, eğim ve veritabanı dosyalarına dokunulmamıştır.
 
 Düzeltme:
-- v2.0.9.1 sırasında yanlışlıkla kaybolan PRIVATE_MODE sabitleri geri eklendi.
-- Pasif mod bilgilendirme sayfası geri eklendi.
-- PRIVATE_MODE=true iken halka açık /, /app ve API istekleri yeniden 503 döndürür.
-- Yönetici girişi ve /api/health açık kalır.
-- v2.0.9.1 WMS, Gönen ve klavye düzeltmelerine dokunulmadı.
+1) WMS doğrulamasında plan görüntüsünün yalnız başka bir köşede bulunması artık yeterli değildir;
+   parsel merkezinde de görünür içerik aranır.
+2) Tarayıcı "boş" derken sunucu "görünür" derse artık boş sonuç önceliklidir.
+3) İl/ilçe bazında kaydedilmiş eski WMS seçimi her parselde yeniden doğrulanır; boşsa silinir.
+4) Doğrulanamayan WMS yalnız HTTP 200 / image load verdi diye "katman açık" sayılmaz.
+5) Görünür katman bulunamazsa buton aktif duruma geçmez ve "katman haritaya eklenmedi" mesajı gösterilir.
+6) Plan doğrulama yarıçapı 24 km yerine 6 km yapılarak parsel merkezinden uzak plan piksellerinin yanlış pozitif oluşturması azaltılmıştır.
 
-Doğrulama:
-- node --check server.js: GEÇTİ
-- PRIVATE_MODE=true node test-private-mode.js: GEÇTİ
-- node test-v2091-regression.js: GEÇTİ
-- npm run check (tüm proje test zinciri): GEÇTİ
+Yükleme: ZIP içindeki index.html ve open-data.js dosyalarını GitHub kök dizinindeki
+aynı dosyaların üzerine yükleyin. Diğer dosyalara dokunmayın.
