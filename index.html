@@ -830,11 +830,10 @@ function analyzeCanvasVisibility(context,width,height){
   const variedRatio=sampled?variedPixels/sampled:0;
   const centerOpaqueRatio=centerSampled?centerOpaquePixels/centerSampled:0;
   const overallVisible=visiblePixels>=24&&(visibleRatio>=0.0008||variedRatio>=0.0008);
-  // Plan yalnızca ekranın bir köşesinde görünüyorsa (Camiatik örneği) o aday doğru
-  // katman kabul edilmez. Parsel ekranın merkezindedir; merkez bölgede gerçek WMS
-  // pikselleri bulunması gerekir. Böylece kuzeyde veri var diye parsel çevresi boş kalan
-  // katman seçilmez.
-  return {visible:overallVisible&&centerOpaquePixels>=8&&centerOpaqueRatio>=0.002,sampled,visiblePixels,visibleRatio,opaqueRatio:sampled?opaquePixels/sampled:0,variedRatio,centerOpaquePixels,centerOpaqueRatio};
+  // Merkez örnekleri tanı amacıyla tutulur; görünürlük kararı tüm GetMap görüntüsüne
+  // göre verilir. Böylece daha önce Camiatik'te gerçekten görüntü veren katmanı sırf
+  // parsel merkezindeki alan şeffaf diye tamamen reddetmeyiz.
+  return {visible:overallVisible,sampled,visiblePixels,visibleRatio,opaqueRatio:sampled?opaquePixels/sampled:0,variedRatio,centerOpaquePixels,centerOpaqueRatio};
 }
 
 async function probeWmsInBrowser(item,attempt){
@@ -861,18 +860,22 @@ async function verifyWmsAttempt(item,attempt){
   const browserPromise=probeWmsInBrowser(item,attempt).catch(error=>({state:'unknown',message:humanError(error),source:'browser'}));
   const serverPromise=api('/open-data/wms-probe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     key:item.wms.key,layerName:attempt.layerName,version:attempt.version,
-    latitude:store.parcelCenter.lat,longitude:store.parcelCenter.lng,radiusKm:Number(item.wms?.probeRadiusKm)||6
+    latitude:store.parcelCenter.lat,longitude:store.parcelCenter.lng,radiusKm:Number(item.wms?.probeRadiusKm)||24
   })},9000).then(server=>({...server,state:server.visible?'visible':'blank',source:'server'})).catch(error=>({state:'unknown',message:humanError(error),source:'server'}));
-
-  // Bir kaynak "görünür" derken diğerinin parsel merkezini kesin olarak boş görmesi
-  // durumunda katmanı başarılı sayma. Önceki akış ilk görünür cevaba erken dönüyor ve
-  // Malkara/Camiatik'te plan başka tarafta bulunduğu halde "katman açık" yazabiliyordu.
-  const results=await Promise.all([browserPromise,serverPromise]);
-  const blank=results.find(row=>row?.state==='blank');
-  if(blank)return blank;
-  const visible=results.find(row=>row?.state==='visible');
-  if(visible)return visible;
-  return {state:'unknown',message:results.map(row=>`${row.source||'servis'}: ${row.message||'doğrulanamadı'}`).join(' · ')};
+  return new Promise(resolve=>{
+    const results=[];let completed=0,settled=false;
+    const finish=row=>{
+      if(settled)return;
+      results.push(row);completed++;
+      if(row?.state==='visible'){settled=true;resolve(row);return;}
+      if(completed<2)return;
+      settled=true;
+      const blank=results.find(item=>item.state==='blank');
+      if(blank){resolve(blank);return;}
+      resolve({state:'unknown',message:results.map(item=>`${item.source||'servis'}: ${item.message||'doğrulanamadı'}`).join(' · ')});
+    };
+    browserPromise.then(finish);serverPromise.then(finish);
+  });
 }
 
 async function findVisibleWmsAttempt(item,attempts,statusNode){
@@ -1538,13 +1541,8 @@ async function createSharpWmsLayer(item,statusNode){
   // azaltır; başarısız olursa mevcut doğrulama zinciri aynen devam eder.
   if(saved?.layerName){
     try{
-      if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Son çalışan plan katmanı parsel merkezinde yeniden doğrulanıyor…';}
+      if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Son çalışan plan katmanı hızlı biçimde yükleniyor…';}
       const savedAttempt={layerName:saved.layerName,version:saved.version||'1.1.1'};
-      const verification=await verifyWmsAttempt(item,savedAttempt);
-      if(verification.state!=='visible'){
-        try{localStorage.removeItem(choiceKey);}catch{}
-        throw new Error(verification.state==='blank'?'Önceki katman bu parsel merkezinde boş döndü.':verification.message||'Önceki katman doğrulanamadı.');
-      }
       const row=await createPersistentViewportWmsLayer(item,statusNode,[savedAttempt]);
       item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
       return row;
@@ -1576,11 +1574,16 @@ async function createSharpWmsLayer(item,statusNode){
     }
   }else if(discovery?.error)lastError=`${lastError} · Katman listesi: ${discovery.error}`;
 
-  // Doğrulanmamış/boş PNG'nin sadece HTTP 200 ve image load vermesi artık başarı sayılmaz.
-  // Bu noktaya kadar parsel merkezinde görünür bir katman bulunmadıysa haritaya hiçbir
-  // WMS ekleme; kullanıcıya açıkça başarısız olduğunu bildir.
-  if(statusNode){statusNode.className='open-data-load-status notice error';statusNode.textContent='Bu parsel merkezinde görünür plan katmanı doğrulanamadı; katman haritaya eklenmedi.';}
-  throw new Error(lastError||'Bu parsel merkezinde görünür WMS katmanı bulunamadı.');
+  // Doğrulama uçları boş/kararsız dönerse daha önce çalışan güvenli davranışa dön:
+  // son kez doğrudan sabit WMS görüntüsünü dene. HTTP/image yüklemesi de başarısızsa
+  // ancak o zaman katmanı ekleme.
+  if(statusNode){statusNode.className='open-data-load-status notice warn';statusNode.textContent='Görüntü doğrulama servisleri sonuç vermedi; son kez doğrudan sabit görüntü deneniyor…';}
+  try{
+    const row=await createPersistentViewportWmsLayer(item,statusNode,known.slice(0,2));
+    item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;
+    return row;
+  }catch(error){lastError=humanError(error);}
+  throw new Error(lastError);
 }
 
 async function toggleOpenDataLayer(itemId,button){

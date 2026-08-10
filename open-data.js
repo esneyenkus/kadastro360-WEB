@@ -32,14 +32,7 @@ const WMS_CONFIGS = [
     bounds: [39.845453, 25.412765, 42.261958, 30.364822],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Tekirdağ Kırklareli Edirne Çevre Düzeni Planı')}`,
-    description: 'Trakya planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.',
-    // Malkara/Camiatik canlı testinde 6 km'lik GetMap istekleri tüm adaylarda
-    // boş/şeffaf döndü. Bu 1/100.000 plan servisi için doğrulama ve sabit görüntü
-    // 24 km yarıçapla yapılır; Yozgat ve diğer çalışan pilotların 6 km davranışı
-    // değiştirilmez.
-    probeRadiusKm: 24,
-    snapshotRadiusKm: 24,
-    stableRadiusKm: 24
+    description: 'Trakya planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.'
   },
   {
     key: 'cdp-kirikkale',
@@ -301,7 +294,7 @@ function directWmsDefinition(config, resolved = null) {
     bounds: config.bounds || null,
     supportsFeatureInfo: config.category === 'plan',
     recommendedZoom: config.category === 'plan' ? 10 : null,
-    probeRadiusKm: Number(config.probeRadiusKm) || (config.category === 'plan' ? 6 : 8),
+    probeRadiusKm: Number(config.probeRadiusKm) || (config.category === 'plan' ? 24 : 8),
     snapshotRadiusKm: Number(config.snapshotRadiusKm) || (config.category === 'plan' ? 6 : 8),
     snapshotSize: Number(config.snapshotSize) || (config.category === 'plan' ? 1280 : 768),
     stableRadiusKm: Number(config.stableRadiusKm) || (config.category === 'plan' ? 6 : 8),
@@ -656,11 +649,11 @@ function analyzePngVisibility(buffer) {
   const variedRatio = sampled ? variedPixels / sampled : 0;
   const centerOpaqueRatio = centerSampled ? centerOpaquePixels / centerSampled : 0;
   const overallVisible = visiblePixels >= 24 && (visibleRatio >= 0.0008 || variedRatio >= 0.0008);
-  // Camiatik hatasının kökü: görüntünün başka bölümünde plan pikselleri varsa sunucu
-  // "görünür" diyordu. Artık parselin bulunduğu merkez bölgede de gerçek opak içerik
-  // bulunması zorunlu; aksi halde katman boş sayılır ve haritaya eklenmez.
-  const visible = overallVisible && centerOpaquePixels >= 8 && centerOpaqueRatio >= 0.002;
-  return { visible, width: png.width, height: png.height, sampled, visiblePixels, visibleRatio, opaqueRatio, variedRatio, centerSampled, centerOpaquePixels, centerOpaqueRatio, reason: visible ? 'visual-content-at-center' : 'transparent-or-empty-at-center' };
+  // Merkez ölçümü tanı bilgisidir; görünürlük bütün GetMap görüntüsüne göre belirlenir.
+  // Camiatik'te daha önce gerçekten görüntü veren planı merkez şeffaflığı nedeniyle
+  // tamamen reddetmek yerine eski güvenli görünürlük davranışı korunur.
+  const visible = overallVisible;
+  return { visible, width: png.width, height: png.height, sampled, visiblePixels, visibleRatio, opaqueRatio, variedRatio, centerSampled, centerOpaquePixels, centerOpaqueRatio, reason: visible ? 'visual-content' : 'transparent-or-empty' };
 }
 
 function wmsMapUrl(config, { layerName, version = '1.1.1', latitude, longitude, radiusKm = 24, width = 512, height = 512 }) {
