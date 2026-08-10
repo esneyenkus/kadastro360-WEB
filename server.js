@@ -22,6 +22,8 @@ const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const ADMIN_SESSION_MAX_AGE_SECONDS = 30 * 60;
 const ADMIN_PANEL_PIN = String(process.env.ADMIN_PANEL_PIN || '');
 const COOKIE_SECURE = process.env.COOKIE_SECURE !== '0';
+const PRIVATE_MODE = String(process.env.PRIVATE_MODE || 'false').toLowerCase() === 'true';
+const PRIVATE_MODE_MESSAGE = String(process.env.PRIVATE_MODE_MESSAGE || 'Kamu kurumlarıyla veri kullanım ve entegrasyon görüşmeleri devam etmektedir. Sistem geçici olarak halka açık kullanıma kapalıdır.').trim();
 const ROOT = __dirname;
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const DEFAULT_DAILY_QUOTA = Math.max(1, Number(process.env.DEFAULT_DAILY_QUOTA) || 20);
@@ -204,6 +206,25 @@ function adminLoginPage(message = '', configured = Boolean(ADMIN_PANEL_PIN)) {
   const setup = configured ? '' : '<div class="setup">Render Environment bölümüne <strong>ADMIN_PANEL_PIN</strong> adında, tahmin edilmesi zor ayrı bir güvenlik kodu eklenmeden yönetim paneli açılmaz.</div>';
   return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kadastro360 Yönetici Girişi</title><link rel="icon" href="/assets/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png"><style>
   *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#173d4d,#0d1f29 60%,#08141b);font-family:Arial,sans-serif;color:#17212b;padding:20px}.box{width:min(440px,100%);background:#fff;border-radius:20px;padding:26px;box-shadow:0 30px 90px rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.5)}.login-logo{display:block;width:min(290px,90%);height:auto;margin:0 0 16px}.mark{display:inline-flex;padding:6px 10px;border-radius:99px;background:#eef8f4;color:#0e6b51;font-size:11px;font-weight:900}.title{font-size:28px;font-weight:900;margin:14px 0 5px}.sub{color:#62727c;font-size:13px;line-height:1.6;margin-bottom:18px}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:12px;font-weight:800;color:#2c4350}.field input{width:100%;height:43px;border:1px solid #c8d3da;border-radius:11px;padding:0 12px;font-size:15px}.button{width:100%;border:0;border-radius:11px;padding:13px;background:#0e6b51;color:#fff;font-size:14px;font-weight:900;cursor:pointer;margin-top:8px}.alert,.setup{padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.55;margin-bottom:12px}.alert{background:#fff0f0;color:#982d2d;border:1px solid #efc3c3}.setup{background:#fff8e7;color:#72520d;border:1px solid #ecd69e}.foot{display:flex;justify-content:space-between;gap:12px;margin-top:16px;font-size:12px}.foot a{color:#315fae;text-decoration:none;font-weight:800}</style></head><body><main class="box"><img class="login-logo" src="/assets/kadastro360-logo-horizontal.png" alt="Kadastro360"><div class="mark">KORUMALI YÖNETİM ALANI</div><div class="title">Kadastro360 Yönetici</div><div class="sub">Normal kullanıcı girişinden bağımsız olarak yönetici hesabı, parolası ve ikinci güvenlik kodu birlikte doğrulanır. Yönetici yetkisi 30 dakika sonra yeniden istenir.</div>${alert}${setup}<form method="post" action="/yonetim-giris"><div class="field"><label>Yönetici kullanıcı adı</label><input name="username" autocomplete="username" required></div><div class="field"><label>Yönetici parolası</label><input name="password" type="password" autocomplete="current-password" required></div><div class="field"><label>Yönetim güvenlik kodu</label><input name="adminPin" type="password" inputmode="numeric" autocomplete="one-time-code" required></div><button class="button" type="submit" ${configured ? '' : 'disabled'}>Yönetim paneline gir</button></form><div class="foot"><a href="/">Ana sayfa</a><a href="/app">Uygulama</a></div></main></body></html>`;
+}
+
+function privateModePage() {
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>Kadastro360</title><link rel="icon" href="/assets/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png"><style>
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top,#173d4d,#0d1f29 60%,#08141b);font-family:Arial,sans-serif;color:#17212b}.card{width:min(620px,100%);background:#fff;border-radius:24px;padding:34px;box-shadow:0 30px 90px rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.5);text-align:center}.logo{display:block;width:min(330px,88%);height:auto;margin:0 auto 24px}.badge{display:inline-flex;padding:7px 12px;border-radius:99px;background:#fff5df;color:#79560c;font-size:12px;font-weight:900;border:1px solid #ecd49c}.title{font-size:30px;font-weight:900;margin:18px 0 10px}.text{color:#5a6c77;font-size:15px;line-height:1.75;margin:0 auto 22px;max-width:520px}.contact{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;background:#eef8f4;color:#0e6b51;font-weight:900;text-decoration:none;border:1px solid #c8ddd4}.note{margin-top:20px;color:#84919a;font-size:12px;line-height:1.6}</style></head><body><main class="card"><img class="logo" src="/assets/kadastro360-logo-horizontal.png" alt="Kadastro360"><div class="badge">GEÇİCİ OLARAK KAPALI</div><div class="title">Kadastro360 geliştirme aşamasındadır</div><p class="text">${escapeHtml(PRIVATE_MODE_MESSAGE)}</p><a class="contact" href="mailto:info@kadastro360.com.tr">info@kadastro360.com.tr</a><div class="note">Parsel sorgulama, açık katman ve yakın yer hizmetleri halka açık kullanıma kapatılmıştır.</div></main></body></html>`;
+}
+
+function sendPrivateModePage(res, status = 503, clearSession = false) {
+  const headers = {
+    'Retry-After': '3600',
+    'X-Robots-Tag': 'noindex, nofollow, noarchive'
+  };
+  if (clearSession) {
+    headers['Set-Cookie'] = [
+      `kadastro360_session=; Path=/; Max-Age=0; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Lax`,
+      `kadastro360_admin=; Path=/; Max-Age=0; HttpOnly; ${COOKIE_SECURE ? 'Secure; ' : ''}SameSite=Strict`
+    ];
+  }
+  return sendHtml(res, status, privateModePage(), headers);
 }
 
 function sendHtml(res, status, html, extraHeaders = {}) {
@@ -1927,6 +1948,23 @@ const server = http.createServer(async (req, res) => {
     }
 
     const sessionUser = await validSession(req);
+
+    // PRIVATE_MODE açıkken yalnızca üç aşamalı yönetici girişiyle doğrulanan
+    // yönetici hesabı uygulama ve API'lere erişebilir. Normal kullanıcı oturumları,
+    // erişim talepleri, davet/parola sayfaları ve doğrudan URL istekleri kapatılır.
+    if (PRIVATE_MODE && !(sessionUser?.role === 'admin' && validAdminSession(req, sessionUser))) {
+      const adminLoginRoute = pathname === '/yonetim-giris' && (req.method === 'GET' || req.method === 'POST');
+      const logoutRoute = pathname === '/logout' && req.method === 'GET';
+      if (!adminLoginRoute && !logoutRoute) {
+        if (pathname.startsWith('/api/')) {
+          return sendJson(res, 503, { error: 'Kadastro360 geçici olarak halka açık kullanıma kapalıdır.' }, {
+            'Retry-After': '3600',
+            'X-Robots-Tag': 'noindex, nofollow, noarchive'
+          });
+        }
+        return sendPrivateModePage(res, 503, Boolean(sessionUser));
+      }
+    }
 
     if (req.method === 'GET' && pathname === '/') {
       return sendHtml(res, 200, marketingPage({ user: sessionUser ? await accounts.publicUser(sessionUser) : null }));
