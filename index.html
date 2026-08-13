@@ -649,7 +649,8 @@ function renderLegendRows(targetId,items){
 
 function currentWmsChoiceKey(item){
   const choiceScope=[normalizeTr(store.il.selected?.name||''),normalizeTr(store.ilce.selected?.name||'')].filter(Boolean).join('|')||'global';
-  return `k360:wms-choice:${item?.wms?.key||item?.id}:${choiceScope}`;
+  const revision=String(item?.wms?.choiceRevision||'reference-1');
+  return `k360:wms-choice:${item?.wms?.key||item?.id}:${choiceScope}:${revision}`;
 }
 
 function activeLegendAttempt(item){
@@ -951,14 +952,14 @@ async function cachedWmsDiscovery(item){
 
 function fastWmsAttempts(item,discovery={}){
   const choice=wmsCacheRead(currentWmsChoiceKey(item));
-  const layers=[
-    choice?.layerName,
-    ...(discovery.compositeCandidates||[]).slice(0,1),
-    item.wms?.activeLayerName,
-    item.wms?.layerName,
-    ...(item.wms?.layerCandidates||[]),
-    ...(discovery.leafNames||[]).slice(0,3)
-  ].filter(Boolean);
+  const composite=(discovery.compositeCandidates||[]).slice(0,2);
+  const layers=(item.wms?.preferCompositeLayers?[
+    ...composite,choice?.layerName,item.wms?.activeLayerName,item.wms?.layerName,
+    ...(item.wms?.layerCandidates||[]),...(discovery.leafNames||[]).slice(0,8)
+  ]:[
+    choice?.layerName,...composite.slice(0,1),item.wms?.activeLayerName,item.wms?.layerName,
+    ...(item.wms?.layerCandidates||[]),...(discovery.leafNames||[]).slice(0,3)
+  ]).filter(Boolean);
   const versions=[choice?.version,'1.1.1',discovery.version,...(item.wms?.versionCandidates||[]),item.wms?.version,'1.3.0'].filter(Boolean);
   const result=[];
   for(const layerName of [...new Set(layers)]){
@@ -999,6 +1000,83 @@ function waitForProxyWmsLayer(item,attempt){
     const timer=setTimeout(()=>finish(false,new Error('WMS karo katmanı zaman aşımına uğradı.')),10000);
     layer.addTo(store.map);
   });
+}
+
+function useKayseriTileProfile(item){
+  if(item?.category!=='plan'||!item?.wms?.kayseriTileProfile)return false;
+  // Yozgat/Yerköy is already a separately proven single-view reference. Do not change it.
+  return normalizeTr(store.il.selected?.name||'')!=='yozgat';
+}
+
+function kayseriProfileProxyWmsTileUrl(item,attempt){
+  const key=encodeURIComponent(item.wms?.key||item.id);
+  const layers=encodeURIComponent(attempt.layerName);
+  const version=encodeURIComponent(attempt.version||'1.1.1');
+  const size=Math.max(256,Math.min(512,Number(item.wms?.tileRequestSize)||512));
+  return `/api/open-data/wms-tile/${key}/{z}/{x}/{y}.png?layers=${layers}&version=${version}&size=${size}`;
+}
+
+function waitForKayseriProfileWmsLayer(item,attempt){
+  return new Promise((resolve,reject)=>{
+    let settled=false,loaded=0,errors=0;
+    const options={
+      pane:'openDataPane',tileSize:256,opacity:item.category==='ortho'?.84:.64,
+      attribution:'ULASAV / TUCBS Açık Veri',keepBuffer:2,updateWhenIdle:false,
+      updateWhenZooming:false,maxZoom:20,minZoom:4,crossOrigin:false,className:'k360-wms-retina-tile'
+    };
+    if(Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4){
+      const [south,west,north,east]=item.wms.bounds;options.bounds=L.latLngBounds([[south,west],[north,east]]);
+    }
+    const layer=L.tileLayer(kayseriProfileProxyWmsTileUrl(item,attempt),options);
+    const finish=(ok,error)=>{
+      if(settled)return;settled=true;clearTimeout(timer);layer.off('tileload',onLoad);layer.off('tileerror',onError);
+      if(ok)resolve(layer);else{try{if(layerOnMap(layer))store.map.removeLayer(layer);}catch{}reject(error||new Error('WMS karo katmanı yüklenemedi.'));}
+    };
+    const onLoad=()=>{loaded++;if(loaded>=1)finish(true);};
+    const onError=()=>{errors++;if(errors>=2)finish(false,new Error('WMS karo servisi görüntü döndürmedi.'));};
+    layer.on('tileload',onLoad);layer.on('tileerror',onError);
+    const timer=setTimeout(()=>finish(false,new Error('WMS karo katmanı zaman aşımına uğradı.')),23000);
+    layer.addTo(store.map);
+  });
+}
+
+async function createKayseriProfileWmsLayer(item,statusNode,attempts){
+  const unique=[...new Map((attempts||[]).filter(Boolean).map(row=>[`${row.layerName}|${row.version}`,row])).values()];
+  const errors=[];
+  for(const attempt of unique.slice(0,6)){
+    try{
+      const layer=await waitForKayseriProfileWmsLayer(item,attempt);
+      try{layer.setZIndex?.(245);layer.bringToFront?.();}catch{}
+      const maxUsefulZoom=Number(item.wms?.maxUsefulZoom)||14;
+      let lastScaleBand='';
+      const applyScale=()=>{
+        if(!store.map||!layerOnMap(layer))return;
+        const close=store.map.getZoom()>maxUsefulZoom;
+        const band=close?'close':'normal';
+        try{layer.setOpacity?.(close?.46:.64);bringParcelToFront();}catch{}
+        if(lastScaleBand!==band&&statusNode){
+          lastScaleBand=band;statusNode.className='open-data-load-status notice ok';
+          statusNode.innerHTML=close
+            ?'Plan katmanı açık. Üst ölçekli kaynak çok yakın görünümde saydamlaştırıldı; parsel sınırı üstte tutuldu.<div class="scale-note">Kayseri’de doğrulanan yöntem: zoom değiştikçe resmî WMS karoları 2× çözünürlükte yeniden istenir; eski ekran görüntüsü büyütülmez.</div>'
+            :'Plan katmanı Kayseri’de doğrulanan yüksek çözünürlüklü WMS karo yöntemiyle açık.<div class="scale-note">Kaydırma ve yakınlaştırmada yalnız görünen karolar yenilenir; bulanık tek parça plan görüntüsü kullanılmaz.</div>';
+        }
+      };
+      store.map.on('zoomend',applyScale);
+      const row={
+        layer,item,attempt,visualVerified:true,loadMode:'retina-proxy-tiles',
+        bounds:Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4?L.latLngBounds([[item.wms.bounds[0],item.wms.bounds[1]],[item.wms.bounds[2],item.wms.bounds[3]]]):null,
+        refresh(force=false){try{if(force)layer.redraw?.();}catch{}return Promise.resolve(true);},
+        dispose(){store.map?.off('zoomend',applyScale);try{if(layerOnMap(layer))store.map.removeLayer(layer);}catch{}}
+      };
+      applyScale();return row;
+    }catch(error){errors.push(humanError(error));}
+  }
+  throw new Error([...new Set(errors.filter(Boolean))].join(' · ')||'Yüksek çözünürlüklü WMS karo katmanı yüklenemedi.');
+}
+
+async function createRegionWmsLayer(item,statusNode,attempts){
+  if(useKayseriTileProfile(item))return createKayseriProfileWmsLayer(item,statusNode,attempts);
+  return createPersistentViewportWmsLayer(item,statusNode,attempts);
 }
 
 function knownWmsAttempts(item){
@@ -1536,6 +1614,22 @@ async function createSharpWmsLayer(item,statusNode){
   // katman seçimini il+ilçe bazında saklıyoruz.
   const choiceKey=currentWmsChoiceKey(item);
   const saved=wmsCacheRead(choiceKey);
+
+  if(item.wms?.preferCompositeLayers){
+    try{
+      if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Plan paftaları Kayseri yöntemiyle hazırlanıyor…';}
+      const discovery=await cachedWmsDiscovery(item);
+      const compositeAttempts=fastWmsAttempts(item,discovery).filter(attempt=>String(attempt.layerName||'').includes(',')).slice(0,6);
+      if(compositeAttempts.length){
+        const selected=await findVisibleWmsAttempt(item,compositeAttempts,statusNode);
+        const row=await createRegionWmsLayer(item,statusNode,[selected]);
+        item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
+        wmsCacheWrite(choiceKey,{layerName:row.attempt.layerName,version:row.attempt.version});
+        return row;
+      }
+    }catch(error){lastError=humanError(error);}
+  }
+
   // Aynı resmî WMS için son 24 saatte başarıyla çalışan katman adı biliniyorsa tekrar
   // probe turu yapmadan önce doğrudan onu deneriz. Çorlu/Önerler ilk açılış gecikmesini
   // azaltır; başarısız olursa mevcut doğrulama zinciri aynen devam eder.
@@ -1543,7 +1637,7 @@ async function createSharpWmsLayer(item,statusNode){
     try{
       if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Son çalışan plan katmanı hızlı biçimde yükleniyor…';}
       const savedAttempt={layerName:saved.layerName,version:saved.version||'1.1.1'};
-      const row=await createPersistentViewportWmsLayer(item,statusNode,[savedAttempt]);
+      const row=await createRegionWmsLayer(item,statusNode,[savedAttempt]);
       item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
       return row;
     }catch(error){lastError=humanError(error);}
@@ -1551,7 +1645,7 @@ async function createSharpWmsLayer(item,statusNode){
   const known=knownWmsAttempts(item).slice(0,4);
   try{
     const selected=await findVisibleWmsAttempt(item,known,statusNode);
-    const row=await createPersistentViewportWmsLayer(item,statusNode,[selected]);
+    const row=await createRegionWmsLayer(item,statusNode,[selected]);
     item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
     wmsCacheWrite(choiceKey,{layerName:row.attempt.layerName,version:row.attempt.version});
     return row;
@@ -1566,7 +1660,7 @@ async function createSharpWmsLayer(item,statusNode){
     if(extras.length){
       try{
         const selected=await findVisibleWmsAttempt(item,extras,statusNode);
-        const row=await createPersistentViewportWmsLayer(item,statusNode,[selected]);
+        const row=await createRegionWmsLayer(item,statusNode,[selected]);
         item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
         wmsCacheWrite(choiceKey,{layerName:row.attempt.layerName,version:row.attempt.version});
         return row;
@@ -1579,7 +1673,7 @@ async function createSharpWmsLayer(item,statusNode){
   // ancak o zaman katmanı ekleme.
   if(statusNode){statusNode.className='open-data-load-status notice warn';statusNode.textContent='Görüntü doğrulama servisleri sonuç vermedi; son kez doğrudan sabit görüntü deneniyor…';}
   try{
-    const row=await createPersistentViewportWmsLayer(item,statusNode,known.slice(0,2));
+    const row=await createRegionWmsLayer(item,statusNode,known.slice(0,2));
     item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;
     return row;
   }catch(error){lastError=humanError(error);}

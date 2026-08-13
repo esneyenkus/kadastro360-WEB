@@ -1,8 +1,23 @@
-Kadastro360 v2.0.9.7 — WMS stabil geri kazanım
+Kadastro360 v2.0.9.8 - Kayseri Profil Pilot Uyarlamasi
 
-Yalnızca şu iki dosyayı GitHub kök dizinindeki mevcut dosyaların üzerine yükleyin:
+GitHub ana dizininde SADECE su iki dosyayi mevcutlarin uzerine yukleyin:
 - index.html
 - open-data.js
 
-Bu paket server.js, package.json, private mode, hesap sistemi, TKGM, eğim veya diğer dosyalara dokunmaz.
-Amaç: Camiatik'te katmanı tamamen reddeden son deneysel merkez/şeffaflık kontrollerini kaldırmak; v2.0.8'deki çalışan WMS görünürlük/fallback davranışına dönmek. v2.0.9.1 klavye, geniş ekran/zoom koruması ve Gönen yakın yer istemci akışı korunur.
+DOKUNULMAYANLAR:
+server.js, package.json, package-lock.json, private mode, hesaplar, TKGM, egim, yakin yer, rota ve gecmis.
+
+KORUNAN REFERANS:
+- Yozgat/Yerkoy: mevcut tek-gorunum WMS motoru aynen korunur.
+- Kayseri/Kocasinan: v2.0.4'te iyi calisan 2x cozumunurluklu proxy WMS karo profili geri kullanilir.
+
+AYNI KAYSERI PROFILI UYGULANAN TEST BOLGELERI:
+- Kayseri / Kocasinan
+- Sivas / Merkez
+- Tekirdag / Corlu ve Malkara
+- Kirikkale / Yahsihan
+- Giresun ve Dogu Karadeniz plan bolgesi
+- Konya / Karaman
+- Balikesir / Canakkale
+
+Ergene, Dogu Karadeniz, Konya-Karaman ve Balikesir-Canakkale gibi cok parcali plan servislerinde once servis alt katmanlarinin birlesimi denenir; basarisiz olursa eski guvenli katman sirasi devam eder.

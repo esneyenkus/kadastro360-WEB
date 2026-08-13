@@ -19,7 +19,9 @@ const WMS_CONFIGS = [
     bounds: [37.335310, 32.378300, 40.687798, 38.957376],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Yozgat Sivas Kayseri Çevre Düzeni Planı')}`,
-    description: 'Üst ölçekli arazi kullanım kararlarını renkli plan katmanı olarak gösterir.'
+    description: 'Üst ölçekli arazi kullanım kararlarını renkli plan katmanı olarak gösterir.',
+    kayseriTileProfile: true,
+    choiceRevision: 'kayseri-tile-1'
   },
   {
     key: 'cdp-ergene',
@@ -32,7 +34,10 @@ const WMS_CONFIGS = [
     bounds: [39.845453, 25.412765, 42.261958, 30.364822],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Tekirdağ Kırklareli Edirne Çevre Düzeni Planı')}`,
-    description: 'Trakya planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.'
+    description: 'Trakya planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.',
+    kayseriTileProfile: true,
+    preferCompositeLayers: true,
+    choiceRevision: 'kayseri-tile-composite-1'
   },
   {
     key: 'cdp-kirikkale',
@@ -45,7 +50,9 @@ const WMS_CONFIGS = [
     bounds: [39.354056, 32.854130, 40.386116, 34.649764],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Kırıkkale Çevre Düzeni Planı')}`,
-    description: 'Kırıkkale için renkli üst ölçek plan kararlarını gösterir.'
+    description: 'Kırıkkale için renkli üst ölçek plan kararlarını gösterir.',
+    kayseriTileProfile: true,
+    choiceRevision: 'kayseri-tile-1'
   },
   {
     key: 'cdp-otrgga',
@@ -58,7 +65,42 @@ const WMS_CONFIGS = [
     bounds: [38.618676, 36.176773, 42.897070, 43.324884],
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Ordu Trabzon Rize Gümüşhane Giresun Artvin Çevre Düzeni Planı')}`,
-    description: 'Doğu Karadeniz planlama bölgesindeki renkli arazi kullanım kararlarını gösterir.'
+    description: 'Doğu Karadeniz planlama bölgesindeki renkli arazi kullanım kararlarını gösterir.',
+    kayseriTileProfile: true,
+    preferCompositeLayers: true,
+    choiceRevision: 'kayseri-tile-composite-1'
+  },
+  {
+    key: 'cdp-kk',
+    provinces: ['Konya', 'Karaman'],
+    title: 'Konya–Karaman Çevre Düzeni Planı',
+    category: 'plan',
+    baseUrl: 'https://tucbs-public-api.csb.gov.tr/csb_cdp_kk_wms',
+    layerCandidates: ['0'],
+    versionCandidates: ['1.1.1', '1.3.0'],
+    bounds: [36.414182, 31.232204, 39.292928, 34.507302],
+    provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
+    sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Konya Karaman Çevre Düzeni Planı')}`,
+    description: 'Konya–Karaman planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.',
+    kayseriTileProfile: true,
+    preferCompositeLayers: true,
+    choiceRevision: 'kayseri-tile-composite-1'
+  },
+  {
+    key: 'cdp-cb',
+    provinces: ['Balıkesir', 'Çanakkale'],
+    title: 'Balıkesir–Çanakkale Çevre Düzeni Planı',
+    category: 'plan',
+    baseUrl: 'https://tucbs-public-api.csb.gov.tr/csb_cdp_cb_wms',
+    layerCandidates: ['0'],
+    versionCandidates: ['1.1.1', '1.3.0'],
+    bounds: [38.818504, 25.155116, 42.064769, 29.863585],
+    provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
+    sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Balıkesir Çanakkale Çevre Düzeni Planı')}`,
+    description: 'Balıkesir–Çanakkale planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.',
+    kayseriTileProfile: true,
+    preferCompositeLayers: true,
+    choiceRevision: 'kayseri-tile-composite-1'
   },
   {
     key: 'ortho-gorele',
@@ -299,6 +341,11 @@ function directWmsDefinition(config, resolved = null) {
     snapshotSize: Number(config.snapshotSize) || (config.category === 'plan' ? 1280 : 768),
     stableRadiusKm: Number(config.stableRadiusKm) || (config.category === 'plan' ? 6 : 8),
     stableSize: config.category === 'plan' ? 1280 : 768,
+    kayseriTileProfile: Boolean(config.kayseriTileProfile),
+    preferCompositeLayers: Boolean(config.preferCompositeLayers),
+    choiceRevision: String(config.choiceRevision || 'reference-1'),
+    tileRequestSize: Number(config.tileRequestSize) || 512,
+    maxUsefulZoom: Number(config.maxUsefulZoom) || 14,
     infoFormats: resolved?.infoFormats || [],
     legendUrl: resolved?.legendUrl || `${config.baseUrl}?service=WMS&request=GetLegendGraphic&version=1.1.1&format=image/png&layer=${encodeURIComponent(layerCandidates[0] || '0')}`,
     verifiedAt: resolved?.verifiedAt || null,
@@ -592,7 +639,9 @@ async function buildPilotCatalog({ province, district, detailed = false }) {
       'Kayseri: çevre düzeni planı ve idari sınırlar',
       'Tekirdağ / Çorlu: çevre düzeni planı ve belediye rayiç kayıtları',
       'Kırıkkale / Yahşihan: çevre düzeni planı ve yayımlanmış rayiç kayıtları',
-      'Giresun / Görele: çevre düzeni planı ve ortofoto'
+      'Giresun / Görele: çevre düzeni planı ve ortofoto',
+      'Konya / Karaman: çevre düzeni planı',
+      'Balıkesir / Çanakkale: çevre düzeni planı'
     ]
   };
 }
@@ -868,7 +917,7 @@ async function wmsTile({ key, layerName, version, z, x, y, size = 512 }) {
   else params.SRS = 'EPSG:3857';
   for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
 
-  const result = await fetchBuffer(url.toString(), {}, 14000, 4_000_000);
+  const result = await fetchBufferRetry(url.toString(), { headers: { Referer: 'https://kadastro360.com.tr/', Origin: 'https://kadastro360.com.tr' } }, 10000, 6_000_000, 2);
   const isPng = /image\/png/i.test(result.contentType) || result.buffer.slice(1, 4).toString() === 'PNG';
   if (!isPng) {
     const text = decodeBuffer(result.buffer).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 500);
