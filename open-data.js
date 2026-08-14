@@ -35,9 +35,8 @@ const WMS_CONFIGS = [
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Tekirdağ Kırklareli Edirne Çevre Düzeni Planı')}`,
     description: 'Trakya planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.',
-    kayseriTileProfile: true,
     preferCompositeLayers: true,
-    choiceRevision: 'kayseri-tile-composite-1'
+    choiceRevision: 'stable-viewport-composite-2'
   },
   {
     key: 'cdp-kirikkale',
@@ -66,9 +65,8 @@ const WMS_CONFIGS = [
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Ordu Trabzon Rize Gümüşhane Giresun Artvin Çevre Düzeni Planı')}`,
     description: 'Doğu Karadeniz planlama bölgesindeki renkli arazi kullanım kararlarını gösterir.',
-    kayseriTileProfile: true,
     preferCompositeLayers: true,
-    choiceRevision: 'kayseri-tile-composite-1'
+    choiceRevision: 'stable-viewport-composite-2'
   },
   {
     key: 'cdp-kk',
@@ -82,9 +80,8 @@ const WMS_CONFIGS = [
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Konya Karaman Çevre Düzeni Planı')}`,
     description: 'Konya–Karaman planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.',
-    kayseriTileProfile: true,
     preferCompositeLayers: true,
-    choiceRevision: 'kayseri-tile-composite-1'
+    choiceRevision: 'stable-viewport-composite-2'
   },
   {
     key: 'cdp-cb',
@@ -98,9 +95,8 @@ const WMS_CONFIGS = [
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Balıkesir Çanakkale Çevre Düzeni Planı')}`,
     description: 'Balıkesir–Çanakkale planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.',
-    kayseriTileProfile: true,
     preferCompositeLayers: true,
-    choiceRevision: 'kayseri-tile-composite-1'
+    choiceRevision: 'stable-viewport-composite-2'
   },
   {
     key: 'ortho-gorele',

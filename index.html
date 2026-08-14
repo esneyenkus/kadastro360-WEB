@@ -693,23 +693,18 @@ function redrawOpenDataLayer(itemId){
 function focusOpenDataPlan(itemIdOrItem,announce=false){
   const item=typeof itemIdOrItem==='string'?store.openDataCatalog?.items?.find(row=>row.id===itemIdOrItem):itemIdOrItem;
   if(!item||item.category!=='plan'||!store.parcelCenter||!store.map) return Promise.resolve(false);
-  const active=store.openDataLayers.get(item.id);
-  // 1/100.000 planlarda zoom 10 geniş ekranda yazıları aşırı sıkıştırıyor. Çalışan
-  // Yozgat çözünürlük düzenini bozmadan yalnızca "Plan Ölçeğine Git" görünümünü
-  // daha okunur bir alt sınırda tutuyoruz.
+  // WMS kapsama alanı birden fazla ili içerebilir. "Plan Ölçeğine Git" bölge sınırına
+  // değil sorgulanan parsele odaklanır; böylece Giresun'da tüm Doğu Karadeniz kadraja
+  // girmez ve parsel ekranda kaybolmaz.
   const target=Math.max(12,Number(item.wms?.recommendedZoom)||10);
   store.map.stop();
   store.map.invalidateSize(false);
-  if(active?.bounds?.isValid?.()){
-    store.map.fitBounds(active.bounds,{padding:[42,42],maxZoom:target,animate:true,duration:.45});
-  }else{
-    store.map.setView(L.latLng(store.parcelCenter.lat,store.parcelCenter.lng),target,{animate:true});
-  }
+  store.map.setView(L.latLng(store.parcelCenter.lat,store.parcelCenter.lng),target,{animate:true});
   setTimeout(()=>{bringParcelToFront();updateParcelLocator();},500);
   if(announce){
     const status=document.querySelector(`.open-data-card[data-item-id="${CSS.escape(item.id)}"] .open-data-load-status`);
-    if(status){status.className='open-data-load-status notice info';status.textContent='Plan görünümüne geçildi. Kırmızı hedef işareti parselin yerini gösterir; yakınlaştıkça küçülür.';}
-    showMapActivity('Plan görünümüne geçildi · Parsel hedefi aktif','ok');
+    if(status){status.className='open-data-load-status notice info';status.textContent='Plan ölçeğine parsel merkezinde geçildi. Kırmızı hedef işareti sorgulanan parseli gösterir.';}
+    showMapActivity('Plan ölçeği · Parsel merkezinde','ok');
   }
   return Promise.resolve(true);
 }
@@ -1064,7 +1059,8 @@ async function createKayseriProfileWmsLayer(item,statusNode,attempts){
       store.map.on('zoomend',applyScale);
       const row={
         layer,item,attempt,visualVerified:true,loadMode:'retina-proxy-tiles',
-        bounds:Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4?L.latLngBounds([[item.wms.bounds[0],item.wms.bounds[1]],[item.wms.bounds[2],item.wms.bounds[3]]]):null,
+        bounds:null,
+        coverageBounds:Array.isArray(item.wms?.bounds)&&item.wms.bounds.length===4?L.latLngBounds([[item.wms.bounds[0],item.wms.bounds[1]],[item.wms.bounds[2],item.wms.bounds[3]]]):null,
         refresh(force=false){try{if(force)layer.redraw?.();}catch{}return Promise.resolve(true);},
         dispose(){store.map?.off('zoomend',applyScale);try{if(layerOnMap(layer))store.map.removeLayer(layer);}catch{}}
       };
@@ -1617,7 +1613,7 @@ async function createSharpWmsLayer(item,statusNode){
 
   if(item.wms?.preferCompositeLayers){
     try{
-      if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Plan paftaları Kayseri yöntemiyle hazırlanıyor…';}
+      if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Plan paftaları birlikte hazırlanıyor…';}
       const discovery=await cachedWmsDiscovery(item);
       const compositeAttempts=fastWmsAttempts(item,discovery).filter(attempt=>String(attempt.layerName||'').includes(',')).slice(0,6);
       if(compositeAttempts.length){
@@ -1708,7 +1704,7 @@ async function toggleOpenDataLayer(itemId,button){
     if(statusNode){
       statusNode.className='open-data-load-status notice ok';
       if(item.type==='wms'){
-        const modeText=['detail-plus-region-overview','adaptive-resolution-overview'].includes(row.loadMode)?'Plan, çalışan sabit görünüm ve güvenli ayrıntı yenilemesiyle yüklendi.':row.loadMode==='stable-pilot-snapshot'?'Plan, parsel çevresini kapsayan sabit görüntü olarak yüklendi.':'Resmî servis için yedek WMS modu açıldı.';
+        const modeText=['detail-plus-region-overview','adaptive-resolution-overview'].includes(row.loadMode)?'Plan, çalışan sabit görünüm ve güvenli ayrıntı yenilemesiyle yüklendi.':row.loadMode==='stable-pilot-snapshot'?'Plan, parsel çevresini kapsayan sabit görüntü olarak yüklendi.':row.loadMode==='single-viewport-resolution'?'Plan, stabil görünüm motoruyla mevcut harita alanında yüklendi.':'Resmî servis için WMS modu açıldı.';
         statusNode.innerHTML=`${modeText}<div class="scale-note">Eski bölgesel görsel yakın ölçekte büyütülmez. Görünen alan karoları önbellekli olarak yenilenir ve parsel sınırı her zaman üstte tutulur.</div>`;
       }else statusNode.textContent='Katman yüklendi; mevcut harita konumu korundu.';
     }
