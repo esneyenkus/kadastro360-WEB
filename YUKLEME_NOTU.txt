@@ -1,6 +1,16 @@
-Kadastro360 v2.0.9.14 - Önerler son çalışan WMS motoruna dönüş
+Kadastro360 v2.0.9.15 — Önerler izole geri kazanım
 
-Yalnız index.html ve open-data.js dosyalarını GitHub ana dizininde değiştirin.
-Bu sürüm 2.0.9.13'te eklenen Ergene özel bölgesel overview kodunu tamamen kaldırır.
-Tekirdağ/Kırklareli/Edirne yeniden v2.0.9.7'de çalışan genel createPersistentViewportWmsLayer yolunu kullanır.
-Kayseri/Kırıkkale/Giresun/Yozgat profillerine dokunulmamıştır.
+TABAN: Render olan v2.0.9.12.
+DEĞİŞEN YALNIZCA:
+1) index.html içindeki createErgeneStableWmsLayer fonksiyonu (sadece cdp-ergene çağırır)
+2) open-data.js içindeki cdp-ergene yapılandırma nesnesi
+
+DİĞER WMS PROFİLLERİ v2.0.9.12 İLE BYTE-BYTE AYNI:
+- Kayseri / Sivas / Yozgat
+- Kırıkkale
+- Giresun / Doğu Karadeniz
+- Konya / Karaman
+- Balıkesir / Çanakkale
+- Görele ortofoto
+
+Render regresyon kontrolü ve JavaScript syntax kontrolleri paketten önce çalıştırıldı.
