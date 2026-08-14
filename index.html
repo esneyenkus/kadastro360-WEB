@@ -1602,27 +1602,24 @@ async function createPersistentViewportWmsLayer(item,statusNode,attempts){
 }
 
 async function createErgeneStableWmsLayer(item,statusNode){
-  if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Doğru ve görünür plan katmanı belirleniyor…';}
-  showMapActivity('Açık plan katmanı doğrulanıyor','loading');
+  // Tekirdağ-Kırklareli-Edirne için daha önce çalışan tek-katman viewport yolu.
+  // Composite paftaları ve daha önce composite olarak kaydedilmiş seçimleri burada kullanma.
   let lastError='Görünür plan içeriği bulunamadı.';
-  // Aynı WMS servisi farklı ilçelerde farklı alt katman/pafta davranışı gösterebilir.
-  // Önerler'de çalışan seçimi Malkara/Camiatik'e körlemesine taşımamak için son çalışan
-  // katman seçimini il+ilçe bazında saklıyoruz.
-  const choiceKey=currentWmsChoiceKey(item);
+  const choiceKey=`${currentWmsChoiceKey(item)}:ergene-single-viewport-v1`;
   const saved=wmsCacheRead(choiceKey);
-  // Aynı resmî WMS için son 24 saatte başarıyla çalışan katman adı biliniyorsa tekrar
-  // probe turu yapmadan önce doğrudan onu deneriz. Çorlu/Önerler ilk açılış gecikmesini
-  // azaltır; başarısız olursa mevcut doğrulama zinciri aynen devam eder.
-  if(saved?.layerName){
+  if(saved?.layerName&&!String(saved.layerName).includes(',')){
     try{
-      if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Son çalışan plan katmanı hızlı biçimde yükleniyor…';}
+      if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Son çalışan Tekirdağ plan katmanı yükleniyor…';}
       const savedAttempt={layerName:saved.layerName,version:saved.version||'1.1.1'};
       const row=await createPersistentViewportWmsLayer(item,statusNode,[savedAttempt]);
       item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
       return row;
     }catch(error){lastError=humanError(error);}
   }
-  const known=knownWmsAttempts(item).slice(0,4);
+
+  const known=knownWmsAttempts(item)
+    .filter(attempt=>!String(attempt.layerName||'').includes(','))
+    .slice(0,4);
   try{
     const selected=await findVisibleWmsAttempt(item,known,statusNode);
     const row=await createPersistentViewportWmsLayer(item,statusNode,[selected]);
@@ -1631,10 +1628,11 @@ async function createErgeneStableWmsLayer(item,statusNode){
     return row;
   }catch(error){lastError=humanError(error);}
 
-  if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Hazır katman boş döndü; resmî katman listesi kontrol ediliyor…';}
+  if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Tekirdağ plan katman listesi kontrol ediliyor…';}
   const discovery=await cachedWmsDiscovery(item);
   if(discovery?.leafNames?.length||discovery?.compositeCandidates?.length){
     const extras=fastWmsAttempts(item,discovery)
+      .filter(attempt=>!String(attempt.layerName||'').includes(','))
       .filter(attempt=>!known.some(row=>row.layerName===attempt.layerName&&row.version===attempt.version))
       .slice(0,8);
     if(extras.length){
@@ -1648,10 +1646,7 @@ async function createErgeneStableWmsLayer(item,statusNode){
     }
   }else if(discovery?.error)lastError=`${lastError} · Katman listesi: ${discovery.error}`;
 
-  // Doğrulama uçları boş/kararsız dönerse daha önce çalışan güvenli davranışa dön:
-  // son kez doğrudan sabit WMS görüntüsünü dene. HTTP/image yüklemesi de başarısızsa
-  // ancak o zaman katmanı ekleme.
-  if(statusNode){statusNode.className='open-data-load-status notice warn';statusNode.textContent='Görüntü doğrulama servisleri sonuç vermedi; son kez doğrudan sabit görüntü deneniyor…';}
+  if(statusNode){statusNode.className='open-data-load-status notice warn';statusNode.textContent='Tek katmanlı güvenli WMS görünümü son kez deneniyor…';}
   try{
     const row=await createPersistentViewportWmsLayer(item,statusNode,known.slice(0,2));
     item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;
@@ -1664,7 +1659,6 @@ async function createSharpWmsLayer(item,statusNode){
   if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Doğru ve görünür plan katmanı belirleniyor…';}
   showMapActivity('Açık plan katmanı doğrulanıyor','loading');
   let lastError='Görünür plan içeriği bulunamadı.';
-  if(item.wms?.key==='cdp-ergene')return createErgeneStableWmsLayer(item,statusNode);
   // Aynı WMS servisi farklı ilçelerde farklı alt katman/pafta davranışı gösterebilir.
   // Önerler'de çalışan seçimi Malkara/Camiatik'e körlemesine taşımamak için son çalışan
   // katman seçimini il+ilçe bazında saklıyoruz.
