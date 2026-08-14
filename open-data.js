@@ -36,7 +36,8 @@ const WMS_CONFIGS = [
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Tekirdağ Kırklareli Edirne Çevre Düzeni Planı')}`,
     description: 'Trakya planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.',
     preferCompositeLayers: true,
-    choiceRevision: 'stable-viewport-composite-2'
+    regionalOverviewProfile: true,
+    choiceRevision: 'trakyahybrid-overview-3'
   },
   {
     key: 'cdp-kirikkale',
@@ -339,6 +340,7 @@ function directWmsDefinition(config, resolved = null) {
     stableSize: config.category === 'plan' ? 1280 : 768,
     kayseriTileProfile: Boolean(config.kayseriTileProfile),
     preferCompositeLayers: Boolean(config.preferCompositeLayers),
+    regionalOverviewProfile: Boolean(config.regionalOverviewProfile),
     choiceRevision: String(config.choiceRevision || 'reference-1'),
     tileRequestSize: Number(config.tileRequestSize) || 512,
     maxUsefulZoom: Number(config.maxUsefulZoom) || 14,
