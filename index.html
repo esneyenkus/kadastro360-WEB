@@ -1357,8 +1357,8 @@ function regionalOverviewWmsView(item){
   const minX=Math.min(sw.x,ne.x),maxX=Math.max(sw.x,ne.x),minY=Math.min(sw.y,ne.y),maxY=Math.max(sw.y,ne.y);
   const spanX=Math.max(1,maxX-minX),spanY=Math.max(1,maxY-minY);
   const ratio=Math.max(.45,Math.min(2.8,spanX/spanY));
-  const width=1280;
-  const height=Math.max(560,Math.min(1280,Math.round(width/ratio)));
+  const width=1536;
+  const height=Math.max(640,Math.min(1536,Math.round(width/ratio)));
   const centerX=(minX+maxX)/2,centerY=(minY+maxY)/2;
   const center=L.CRS.EPSG3857.unproject(L.point(centerX,centerY));
   const radiusMeters=Math.max(spanX,spanY)/2;
@@ -1466,15 +1466,7 @@ async function loadRegionalOverviewLayer(item,attempt,group,controller,statusNod
   const view=regionalOverviewWmsView(item);
   if(!view||controller.disposed)return false;
   try{
-    // Bölgesel görünüm tek kez doğrudan resmî WMS'ten alınır. Sunucu snapshot ucu
-    // güvenlik için yarıçapı 50 km ile sınırlar; Trakya gibi geniş bölgelerde onu
-    // kullanmak görüntüyü yanlış ölçeğe esnetebilir. Bu nedenle genel görünümde
-    // yalnız gerçek bölge BBOX'u kullanılır ve görüntü bir daha zoom ile yenilenmez.
-    const result=await waitForImageOverlay(
-      externalWmsViewportUrl(item,attempt,view),view.bounds,item,group,
-      {timeoutMs:18000,zIndex:225,mode:'browser-regional-overview'}
-    );
-    result.attempt=attempt;result.view=view;
+    const result=await raceViewportSources(item,attempt,view,group);
     if(controller.disposed){result.dispose?.();return false;}
     controller.overview?.dispose?.();
     controller.overview={...result,view};
@@ -1483,14 +1475,14 @@ async function loadRegionalOverviewLayer(item,attempt,group,controller,statusNod
       result.layer.setZIndex?.(225);result.layer.bringToBack?.();
       controller.current?.layer?.setZIndex?.(245);controller.current?.layer?.bringToFront?.();
     }catch{}
-    showMapActivity('Katman tamamlandı · Bölgesel görünüm hazır','ok',2200);
+    showMapActivity('Katman tamamlandı · Bölgesel görünüm hazır','ok',2600);
     if(statusNode){
       statusNode.className='open-data-load-status notice ok';
-      statusNode.innerHTML='Plan katmanı hazır: uzak görünüm için sabit bölgesel plan ve yakın görünüm için ayrıntı katmanı birlikte açık.<div class="scale-note">Zoom out sırasında yeni WMS görüntüsü beklenmez; bölgesel plan ekranda kalır. Zoom 12 ve üzerinde yalnız görünen alan daha net görüntüyle yenilenir.</div>';
+      statusNode.innerHTML='Plan katmanı tamamlandı: hızlı parsel ayrıntısı ve bölgesel genel görünüm birlikte açık.<div class="scale-note">Uzak görünümde bölgenin tamamı korunur. Zoom 13 ve üzerinde görünen alan arka planda daha net görüntüyle yenilenir; mevcut görüntü yenisi hazır olana kadar kaybolmaz.</div>';
     }
     return true;
   }catch(error){
-    if(!controller.disposed)showMapActivity('Parsel ayrıntısı açık · Bölgesel görünüm alınamadı','warn',2800);
+    if(!controller.disposed)showMapActivity('Parsel ayrıntısı açık · Bölgesel görünüm alınamadı','warn',3200);
     if(statusNode&&!controller.disposed){
       statusNode.className='open-data-load-status notice warn';
       statusNode.innerHTML=`Parsel çevresindeki ayrıntılı plan açık; bölgesel genel görünüm alınamadı. <button type="button" class="open-data-retry-overview" style="margin-left:6px;border:1px solid #c8a452;border-radius:7px;background:#fff;padding:5px 8px;font-weight:800;cursor:pointer">Genel görünümü tekrar dene</button><div class="scale-note">${escapeHtml(humanError(error))}</div>`;
@@ -1503,50 +1495,26 @@ async function loadRegionalOverviewLayer(item,attempt,group,controller,statusNod
 
 async function createPersistentViewportWmsLayer(item,statusNode,attempts){
   const group=L.layerGroup().addTo(store.map);
-  const useRegionalOverview=Boolean(item.wms?.regionalOverviewProfile);
-  const controller={layer:group,item,current:null,overview:null,disposed:false,attempt:null,refreshTimer:null,lastSignature:'',bounds:null,loading:false,pendingRefresh:false,pendingForce:false,detailMinZoom:useRegionalOverview?12:0};
-  const detailOpacity=item.category==='ortho'?.88:.68;
+  const controller={layer:group,item,current:null,disposed:false,attempt:null,refreshTimer:null,lastSignature:'',bounds:null,loading:false,pendingRefresh:false,pendingForce:false};
 
   const viewportState=()=>{
     const view=projectedWmsView(item,store.map.getBounds());
     return {view,signature:`z${store.map.getZoom()}:${view.signature}`};
   };
 
-  const applyScaleVisibility=()=>{
-    if(controller.disposed||!store.map)return;
-    const lowZoom=useRegionalOverview&&store.map.getZoom()<controller.detailMinZoom;
-    const hasOverview=Boolean(controller.overview?.layer);
-    try{
-      controller.overview?.layer?.setOpacity?.(item.category==='ortho'?.78:.58);
-      controller.overview?.layer?.setZIndex?.(225);
-      if(controller.current?.layer){
-        // Uzak görünümde küçük bir eski viewport karesini ekranda bırakmak "yarım
-        // katman" hissi oluşturuyordu. Bölgesel altlık hazırsa ayrıntı katmanı
-        // tamamen gizlenir; yakınlaşınca aynı katman anında geri gelir.
-        controller.current.layer.setOpacity?.(lowZoom&&hasOverview?0:detailOpacity);
-        controller.current.layer.setZIndex?.(245);
-      }
-      bringParcelToFront();
-    }catch{}
-  };
-
   const scheduleRefresh=(force=false,delay=null)=>{
     if(controller.disposed)return;
-    if(useRegionalOverview&&!force&&store.map?.getZoom?.()<controller.detailMinZoom&&controller.overview){
-      clearTimeout(controller.refreshTimer);applyScaleVisibility();return;
-    }
     if(controller.loading){
       controller.pendingRefresh=true;
       controller.pendingForce=controller.pendingForce||Boolean(force);
       return;
     }
     clearTimeout(controller.refreshTimer);
-    controller.refreshTimer=setTimeout(()=>loadCurrentViewport(force),delay===null?(force?60:320):delay);
+    controller.refreshTimer=setTimeout(()=>loadCurrentViewport(force),delay===null?(force?80:520):delay);
   };
 
   const loadCurrentViewport=async(force=false)=>{
     if(controller.disposed||!store.map||!layerOnMap(group))return false;
-    if(useRegionalOverview&&!force&&store.map.getZoom()<controller.detailMinZoom&&controller.overview){applyScaleVisibility();return false;}
     if(controller.loading){
       controller.pendingRefresh=true;
       controller.pendingForce=controller.pendingForce||Boolean(force);
@@ -1577,10 +1545,10 @@ async function createPersistentViewportWmsLayer(item,statusNode,attempts){
       controller.bounds=view.bounds;
       controller.lastSignature=signature;
       try{
-        result.layer.setOpacity?.(detailOpacity);
+        result.layer.setOpacity?.(item.category==='ortho'?.88:.68);
         result.layer.setZIndex?.(245);
         result.layer.bringToFront?.();
-        applyScaleVisibility();
+        bringParcelToFront();
       }catch{}
       // Yeni görüntü tamamen yüklendikten sonra eski görünüm kaldırılır. Zoom sırasında
       // yeni istek başlasa bile yüklenmekte olan kare iptal edilip başa dönmez.
@@ -1588,60 +1556,36 @@ async function createPersistentViewportWmsLayer(item,statusNode,attempts){
       if(mapMovedWhileLoading)controller.pendingRefresh=true;
       if(statusNode){
         statusNode.className='open-data-load-status notice ok';
-        statusNode.innerHTML=controller.overview
-          ?'Plan katmanı açık. Bölgesel altlık korunurken yakın görünüm kendi ölçeğinde yenilendi.<div class="scale-note">Zoom out sırasında yeniden yükleme yapılmaz; zoom 12 ve üzerinde yeni ayrıntı tamamen hazır olduğunda eski görüntünün yerine geçer.</div>'
-          :'Plan katmanı açık. Haritada görünen alan kendi ölçeğinde yenilendi.<div class="scale-note">Yeni görünüm tamamen hazır olana kadar çalışan görüntü korunur.</div>';
+        statusNode.innerHTML='Plan katmanı açık. Haritada görünen alan kendi ölçeğinde yenilendi.<div class="scale-note">Zoom veya kaydırma sırasında çalışan görüntü korunur; yeni görünüm tamamen hazır olduğunda tek seferde değiştirilir.</div>';
       }
       return true;
     }catch(error){
       if(statusNode){
-        statusNode.className=(controller.current||controller.overview)?'open-data-load-status notice warn':'open-data-load-status notice error';
-        statusNode.innerHTML=(controller.current||controller.overview)
-          ?`Yeni ayrıntı görünümü alınamadı; çalışan plan görüntüsü korunuyor.<div class="scale-note">${escapeHtml(humanError(error))}</div>`
+        statusNode.className=controller.current?'open-data-load-status notice warn':'open-data-load-status notice error';
+        statusNode.innerHTML=controller.current
+          ?`Yeni harita görünümü alınamadı; çalışan görünüm korunuyor.<div class="scale-note">${escapeHtml(humanError(error))}</div>`
           :`Plan görüntüsü yüklenemedi.<div class="scale-note">${escapeHtml(humanError(error))}</div>`;
       }
-      if(!controller.current&&!controller.overview)throw error;
+      if(!controller.current)throw error;
       return false;
     }finally{
       controller.loading=false;
       if(controller.pendingRefresh&&!controller.disposed){
         const pendingForce=controller.pendingForce;
         controller.pendingRefresh=false;controller.pendingForce=false;
-        if(!useRegionalOverview||store.map?.getZoom?.()>=controller.detailMinZoom||!controller.overview)scheduleRefresh(pendingForce,120);
-        else applyScaleVisibility();
+        scheduleRefresh(pendingForce,140);
       }
     }
   };
-
-  // Önerler/Malkara için bölgesel planı ilk açılışla eşzamanlı arka planda hazırla.
-  // Böylece kullanıcı zoom out yaptığında yeni ve büyük bir WMS isteğini beklemez.
-  const overviewAttempt=useRegionalOverview?((attempts||[])[0]||null):null;
-  const overviewTask=overviewAttempt
-    ?loadRegionalOverviewLayer(item,overviewAttempt,group,controller,statusNode).then(ok=>{if(ok)applyScaleVisibility();return ok;})
-    :Promise.resolve(false);
 
   try{
     await loadCurrentViewport(true);
-    void overviewTask;
   }catch(error){
-    // Ayrıntı ilk denemede başarısız olsa bile bölgesel görüntü hazırlandıysa katmanı
-    // kullanılabilir bırak. İkisi de yoksa eski davranışla hata ver.
-    const overviewReady=await overviewTask.catch(()=>false);
-    if(!overviewReady){try{store.map.removeLayer(group);}catch{}throw error;}
+    try{store.map.removeLayer(group);}catch{}
+    throw error;
   }
 
-  const mapRefresh=()=>{
-    applyScaleVisibility();
-    if(useRegionalOverview&&store.map.getZoom()<controller.detailMinZoom&&controller.overview){
-      clearTimeout(controller.refreshTimer);
-      if(statusNode){
-        statusNode.className='open-data-load-status notice ok';
-        statusNode.innerHTML='Bölgesel plan görünümü açık.<div class="scale-note">Bu ölçekte yeni WMS isteği yapılmıyor; zoom out sırasında katman beklemeden ve yarım kalmadan korunuyor. Yakınlaşınca ayrıntı otomatik yenilenir.</div>';
-      }
-      return;
-    }
-    scheduleRefresh(false);
-  };
+  const mapRefresh=()=>scheduleRefresh(false);
   store.map.on('moveend zoomend',mapRefresh);
   controller.refresh=force=>{scheduleRefresh(Boolean(force));return Promise.resolve(true);};
   controller.dispose=()=>{
@@ -1651,18 +1595,71 @@ async function createPersistentViewportWmsLayer(item,statusNode,attempts){
     controller.pendingRefresh=false;controller.pendingForce=false;
     store.map.off('moveend zoomend',mapRefresh);
     controller.current?.dispose?.();
-    controller.overview?.dispose?.();
     try{if(layerOnMap(group))store.map.removeLayer(group);}catch{}
   };
-  controller.loadMode=useRegionalOverview?'detail-plus-region-overview':'single-viewport-resolution';
-  applyScaleVisibility();
+  controller.loadMode='single-viewport-resolution';
   return controller;
+}
+
+async function createErgeneStableWmsLayer(item,statusNode){
+  // Tekirdağ-Kırklareli-Edirne için daha önce çalışan tek-katman viewport yolu.
+  // Composite paftaları ve daha önce composite olarak kaydedilmiş seçimleri burada kullanma.
+  let lastError='Görünür plan içeriği bulunamadı.';
+  const choiceKey=`${currentWmsChoiceKey(item)}:ergene-single-viewport-v1`;
+  const saved=wmsCacheRead(choiceKey);
+  if(saved?.layerName&&!String(saved.layerName).includes(',')){
+    try{
+      if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Son çalışan Tekirdağ plan katmanı yükleniyor…';}
+      const savedAttempt={layerName:saved.layerName,version:saved.version||'1.1.1'};
+      const row=await createPersistentViewportWmsLayer(item,statusNode,[savedAttempt]);
+      item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
+      return row;
+    }catch(error){lastError=humanError(error);}
+  }
+
+  const known=knownWmsAttempts(item)
+    .filter(attempt=>!String(attempt.layerName||'').includes(','))
+    .slice(0,4);
+  try{
+    const selected=await findVisibleWmsAttempt(item,known,statusNode);
+    const row=await createPersistentViewportWmsLayer(item,statusNode,[selected]);
+    item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
+    wmsCacheWrite(choiceKey,{layerName:row.attempt.layerName,version:row.attempt.version});
+    return row;
+  }catch(error){lastError=humanError(error);}
+
+  if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Tekirdağ plan katman listesi kontrol ediliyor…';}
+  const discovery=await cachedWmsDiscovery(item);
+  if(discovery?.leafNames?.length||discovery?.compositeCandidates?.length){
+    const extras=fastWmsAttempts(item,discovery)
+      .filter(attempt=>!String(attempt.layerName||'').includes(','))
+      .filter(attempt=>!known.some(row=>row.layerName===attempt.layerName&&row.version===attempt.version))
+      .slice(0,8);
+    if(extras.length){
+      try{
+        const selected=await findVisibleWmsAttempt(item,extras,statusNode);
+        const row=await createPersistentViewportWmsLayer(item,statusNode,[selected]);
+        item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;item.wms.visualVerified=true;
+        wmsCacheWrite(choiceKey,{layerName:row.attempt.layerName,version:row.attempt.version});
+        return row;
+      }catch(error){lastError=humanError(error);}
+    }
+  }else if(discovery?.error)lastError=`${lastError} · Katman listesi: ${discovery.error}`;
+
+  if(statusNode){statusNode.className='open-data-load-status notice warn';statusNode.textContent='Tek katmanlı güvenli WMS görünümü son kez deneniyor…';}
+  try{
+    const row=await createPersistentViewportWmsLayer(item,statusNode,known.slice(0,2));
+    item.wms.activeLayerName=row.attempt.layerName;item.wms.activeVersion=row.attempt.version;
+    return row;
+  }catch(error){lastError=humanError(error);}
+  throw new Error(lastError);
 }
 
 async function createSharpWmsLayer(item,statusNode){
   if(statusNode){statusNode.className='open-data-load-status notice info';statusNode.textContent='Doğru ve görünür plan katmanı belirleniyor…';}
   showMapActivity('Açık plan katmanı doğrulanıyor','loading');
   let lastError='Görünür plan içeriği bulunamadı.';
+  if(item.wms?.key==='cdp-ergene')return createErgeneStableWmsLayer(item,statusNode);
   // Aynı WMS servisi farklı ilçelerde farklı alt katman/pafta davranışı gösterebilir.
   // Önerler'de çalışan seçimi Malkara/Camiatik'e körlemesine taşımamak için son çalışan
   // katman seçimini il+ilçe bazında saklıyoruz.
