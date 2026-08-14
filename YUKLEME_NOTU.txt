@@ -1,17 +1,4 @@
-Kadastro360 v2.0.9.10 — Önerler Hibrit WMS Düzeltmesi
+Kadastro360 v2.0.9.13 — Önerler v1.9.3 WMS geri kazanımı
 
-Yalnız değişen dosyalar:
-- index.html
-- open-data.js
-
-Düzeltme kapsamı:
-1. Tekirdağ/Kırklareli/Edirne planı için Trakya'ya özel hibrit görünüm profili eklendi.
-2. Bölgesel plan görüntüsü ilk açılışta arka planda bir kez hazırlanır ve zoom out sırasında korunur.
-3. Zoom 12 altındayken yeni büyük WMS görüntüsü istenmez; bu sayede zoom out sonrası bekleme/boşalma engellenir.
-4. Zoom 12 ve üzerinde yalnız yakın ayrıntı görünümü yenilenir; eski çalışan görüntü yenisi hazır olana kadar tutulur.
-5. Uzak görünümde küçük eski viewport karesinin görünmesi engellendi; bölgesel altlık hazırsa ayrıntı karesi gizlenir.
-6. Bölgesel görüntüde 50 km ile sınırlı sunucu snapshot yolu kullanılmaz; gerçek Trakya BBOX'u tek parça resmî WMS isteğiyle alınır.
-7. Kayseri, Kırıkkale, Yozgat, Giresun, Konya-Karaman ve Balıkesir-Çanakkale çalışma profilleri değiştirilmedi.
-
-Kurulum:
-GitHub ana dizinindeki index.html ve open-data.js dosyalarının üzerine yazın ve Render deploy edin.
+GitHub ana dizininde yalnız index.html ve open-data.js dosyalarını değiştirin.
+open-data.js, deploy olan v2.0.9.12 ile birebir aynıdır; yalnız index.html içindeki cdp-ergene WMS renderer yolu değişmiştir.
