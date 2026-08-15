@@ -1,0 +1,71 @@
+{
+  "createKayseriProfileWmsLayer": {
+    "same": true,
+    "base_sha": "02a062c30bbd1dc713ed0d3764f9833ca9dde3d339e465e82c21e8d3552bad37",
+    "new_sha": "02a062c30bbd1dc713ed0d3764f9833ca9dde3d339e465e82c21e8d3552bad37"
+  },
+  "createRegionWmsLayer": {
+    "same": true,
+    "base_sha": "16ce03abf362f0eb149141f6fb6900e93da758603923f03fdcbeb7c405d3c76a",
+    "new_sha": "16ce03abf362f0eb149141f6fb6900e93da758603923f03fdcbeb7c405d3c76a"
+  },
+  "createPersistentViewportWmsLayer": {
+    "same": true,
+    "base_sha": "17c9949eac7f3c468177514db797489d63334a684591f4e06d52d18cae2ab291",
+    "new_sha": "17c9949eac7f3c468177514db797489d63334a684591f4e06d52d18cae2ab291"
+  },
+  "createSharpWmsLayer": {
+    "same": true,
+    "base_sha": "33c44b0ffd74a852765c36fdb74360376c04c3f8a69a138c1fe07ef122c86161",
+    "new_sha": "33c44b0ffd74a852765c36fdb74360376c04c3f8a69a138c1fe07ef122c86161"
+  },
+  "waitForWmsLayer": {
+    "same": true,
+    "base_sha": "2961745207c72e3f186af6ebc123bbebdca918ae1815c1159837cc9a0decac42",
+    "new_sha": "2961745207c72e3f186af6ebc123bbebdca918ae1815c1159837cc9a0decac42"
+  },
+  "raceViewportSources": {
+    "same": true,
+    "base_sha": "754a56e2bd5bfbed4aaa5ede68e97ca4c22c0dd41de04b8e44aa75d1034c9bbf",
+    "new_sha": "754a56e2bd5bfbed4aaa5ede68e97ca4c22c0dd41de04b8e44aa75d1034c9bbf"
+  },
+  "projectedWmsView": {
+    "same": true,
+    "base_sha": "d38d5a3681d6a3fd8e8deea402ffd70cfde50683a9bc5f2f9e957e5b858729a4",
+    "new_sha": "d38d5a3681d6a3fd8e8deea402ffd70cfde50683a9bc5f2f9e957e5b858729a4"
+  },
+  "open-data.js": {
+    "same": true,
+    "base_sha": "d917ee7ac289f6f029af9110b3e41425eb10f9039f75f8869afe0eb3b6d0af5f",
+    "new_sha": "d917ee7ac289f6f029af9110b3e41425eb10f9039f75f8869afe0eb3b6d0af5f"
+  },
+  "server.js": {
+    "same": true,
+    "base_sha": "2d78e74dfe47ee8a4670e2949bfbe483ac37bb502e9f8991e554789e4d324b75",
+    "new_sha": "2d78e74dfe47ee8a4670e2949bfbe483ac37bb502e9f8991e554789e4d324b75"
+  },
+  "package.json": {
+    "same": true,
+    "base_sha": "0b7ec11d7ef2fa4c9c7c09e75533791cf1db78786f52ae0487835e00e7eeab52",
+    "new_sha": "0b7ec11d7ef2fa4c9c7c09e75533791cf1db78786f52ae0487835e00e7eeab52"
+  },
+  "package-lock.json": {
+    "same": true,
+    "base_sha": "c599749baa50d158eda18fe13704be0acd66ec34e5a97ff9e31893f052c27a60",
+    "new_sha": "c599749baa50d158eda18fe13704be0acd66ec34e5a97ff9e31893f052c27a60"
+  },
+  "ergene_isolated": {
+    "route_present": true,
+    "direct_wms_helper": true,
+    "no_kayseri_call": true,
+    "no_shared_persistent": true,
+    "no_proxy_call": true,
+    "atomic_keep": true
+  },
+  "ergene_helpers": {
+    "max_1280_960": true,
+    "safe_12km": true,
+    "opacity_zero": true,
+    "one_getmap": true
+  }
+}

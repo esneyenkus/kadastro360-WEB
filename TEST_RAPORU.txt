@@ -1,13 +1,28 @@
-PASS - Ergene Kayseri/Sivas yüksek çözünürlüklü karo motoruna bağlandı
-PASS - Ergene 512 px WMS isteği kullanıyor
-PASS - Ergene composite/pafta birleştirmeye zorlanmıyor
-PASS - Eski Ergene tarayıcı seçimi cache anahtarı yenilendi
-PASS - İstemci runtime Kayseri profilini destekliyor
-PASS - Kayseri profilinde 2x/512 tile endpoint kullanımı mevcut
-PASS - Önerler config dışında open-data farkı yok
-PASS - cdp-ysk profili byte-byte korundu
-PASS - cdp-kirikkale profili byte-byte korundu
-PASS - cdp-otrgga profili byte-byte korundu
-PASS - cdp-kk profili byte-byte korundu
-PASS - cdp-cb profili byte-byte korundu
-PASS - ortho-gorele profili byte-byte korundu
+Kadastro360 v2.0.9.19 TEST RAPORU
+
+PASS — index.html inline JavaScript node --check
+PASS — open-data.js node --check
+PASS — server.js node --check
+PASS — test-v2091-regression.js
+PASS — bölge kilit/hash kontrolü (REGION_LOCK_PASS)
+PASS — projenin npm run check zincirindeki tüm uygulama/regresyon testleri yerel izole test harness'ında tamamlandı:
+  * marka dosyaları
+  * test-pilot
+  * TKGM regresyonu
+  * rota
+  * WMS tile/snapshot/legend/önbellek
+  * POI hızlı/kırsal/ilçe/dayanıklılık/kuyruk/browser fallback
+  * rota görselleştirme
+  * admin/hesap
+  * private mode
+  * v2.0.9.1 regresyon kilitleri
+
+TEST ORTAMI NOTU:
+- Çalışma konteynerinde dış npm indirmesi yoktu. Bu nedenle yalnız test sırasında pngjs API'sini taklit eden geçici bir test fixture kullanıldı; node_modules pakete DAHİL DEĞİLDİR ve üretim kaynak dosyaları değiştirilmedi.
+- Bu ortam gerçek tucbs-public-api.csb.gov.tr GetMap görüntüsünü ağ üzerinden render edemediği için canlı WMS görüntü sonucu burada 'PASS' olarak ilan edilmemiştir.
+- Resmî Ergene WMS endpointinin varlığı, kapsama sınırı ve EPSG:3857 desteği kamu WMS kayıtlarından ayrıca kontrol edilmiştir.
+
+MİMARİ TEST SONUCU:
+- v2.0.9.17'de hata veren 512px Render proxy tile yolu Ergene için tamamen bypass edildi.
+- Önerler artık tek doğrudan WMS görüntüsü + atomik swap kullanır.
+- Hedef dışı ortak WMS fonksiyonları hash karşılaştırmasında değişmemiştir.

@@ -1,0 +1,5 @@
+ff86925e8f72fe7f0eccd334c0fca02d4d1503af81b0085fc2c82c3f9c3871bc  /mnt/data/v19release/index.html
+184377300b37260c3e7830b08ac1c47be30e17c38e55afa7272ca96445bb68e8  /mnt/data/v19release/DIFF_KONTROL.txt
+2ee32692f5ada5b25086d8194b758039e0d1593915f8f8dddbb944e5eec4cd94  /mnt/data/v19release/README_YUKLEME.txt
+5b2d6243c25c7ba0b75ccaf29c3792c63ab941a496d80e384c0288f77b61db71  /mnt/data/v19release/TEST_RAPORU.txt
+ff42e07a6b1c930ff96b91b1be682834bb25f5357e1809564c228e397febe450  /mnt/data/v19release/REGION_LOCK.json

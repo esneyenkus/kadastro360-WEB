@@ -1,45 +1,36 @@
-{
-  "cdp-ysk": {
-    "same": true,
-    "base_sha256": "09be0646e122e19b4649f335bd49242b032e887223207777c2600ac10f4e2b8b",
-    "new_sha256": "09be0646e122e19b4649f335bd49242b032e887223207777c2600ac10f4e2b8b"
-  },
-  "cdp-ergene": {
-    "same": false,
-    "base_sha256": "d96e6b7f0107f14e03ece3422080ae2684771ba3033a6bc55fae71d48ef44da0",
-    "new_sha256": "129705b5ee24272cb877d56bd640836ad627169600a78da00f5463fa81286c8c"
-  },
-  "cdp-kirikkale": {
-    "same": true,
-    "base_sha256": "4fb6f54d57028e024d17cb39dc08b70a863dd4ac35a9b2accf1b92a3541ffa78",
-    "new_sha256": "4fb6f54d57028e024d17cb39dc08b70a863dd4ac35a9b2accf1b92a3541ffa78"
-  },
-  "cdp-otrgga": {
-    "same": true,
-    "base_sha256": "3365bac38cd21ace09109a18b47b59dd78c1642613d0d7f20026476b00863d1c",
-    "new_sha256": "3365bac38cd21ace09109a18b47b59dd78c1642613d0d7f20026476b00863d1c"
-  },
-  "cdp-kk": {
-    "same": true,
-    "base_sha256": "5f238bd6fb32338227923862f3098eeb172e56e528709d24b0c91c14da533ca6",
-    "new_sha256": "5f238bd6fb32338227923862f3098eeb172e56e528709d24b0c91c14da533ca6"
-  },
-  "cdp-cb": {
-    "same": true,
-    "base_sha256": "721d0096e5ed3ee2487c552cabc1f4e115739285fcf0bc72557c011f03a39fb5",
-    "new_sha256": "721d0096e5ed3ee2487c552cabc1f4e115739285fcf0bc72557c011f03a39fb5"
-  },
-  "ortho-gorele": {
-    "same": true,
-    "base_sha256": "f322c5ee608d58dff080c8da4c6e49087d29f6b55d40ac73d0b238632c0e9516",
-    "new_sha256": "f322c5ee608d58dff080c8da4c6e49087d29f6b55d40ac73d0b238632c0e9516"
-  }
-}
+Kadastro360 v2.0.9.19 DIFF / BÖLGE KİLİT RAPORU
 
-DEGISEN SATIRLAR:
--    preferCompositeLayers: true,
--    choiceRevision: 'stable-viewport-composite-2'
-+    kayseriTileProfile: true,
-+    tileRequestSize: 512,
-+    maxUsefulZoom: 14,
-+    choiceRevision: 'ergene-kayseri-tile-1'
+TABAN:
+- GitHub main index.html blob: 94994299a372c4739cc0e9273f5e205f5b814372
+- GitHub main open-data.js blob: cfea2ab531fe471130f0307a0bd958bdb168c318
+
+DEĞİŞEN:
+- index.html: yalnız Ergene'ye özel görüntü hazırlama yardımcıları, createErgeneStableWmsLayer gövdesi ve cdp-ergene yönlendirmesi.
+
+DEĞİŞMEYEN / HASH KİLİTLİ:
+- open-data.js: AYNI
+- server.js: AYNI
+- package.json: AYNI
+- package-lock.json: AYNI
+- createKayseriProfileWmsLayer: AYNI
+- createRegionWmsLayer: AYNI
+- createPersistentViewportWmsLayer: AYNI
+- createSharpWmsLayer: AYNI
+- waitForWmsLayer: AYNI
+- raceViewportSources: AYNI
+- projectedWmsView: AYNI
+
+ERGENE YENİ YOLU:
+- cdp-ergene -> createErgeneStableWmsLayer
+- Kayseri tile motoru çağrısı: YOK
+- createRegionWmsLayer çağrısı: YOK
+- createPersistentViewportWmsLayer çağrısı: YOK
+- Render wms-tile/proxy çağrısı: YOK
+- Composite layer seçimi: YOK
+- Doğrudan resmî WMS GetMap: VAR
+- Aday görüntü opacity=0 ile tamamen yüklenmeden gösterilmez: VAR
+- Eski görüntü yeni görüntü tam yüklenene kadar korunur: VAR
+- Görüntü üst sınırı: 1280x960
+- İlk açılış güvenli yedeği: 12 km / 1024x1024
+
+Makine doğrulamasının ayrıntısı REGION_LOCK.json içindedir.
