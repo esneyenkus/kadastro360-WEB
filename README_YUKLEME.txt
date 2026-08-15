@@ -1,20 +1,18 @@
-Kadastro360 v2.0.9.19 — ÖNERLER / ERGENE DOĞRUDAN WMS GÖRÜNÜMÜ
+KADASTRO360 v2.0.9.20 — ÖNERLER v1.9.0 DOĞRULANMIŞ GÖRÜNÜM
 
-YÜKLENECEK TEK DOSYA:
+GITHUB'A YÜKLENECEK TEK DOSYA:
 - index.html
 
-GitHub ana dizinindeki index.html dosyasını bu paketteki index.html ile değiştirin.
-open-data.js, server.js, package.json, package-lock.json veya başka hiçbir dosyayı değiştirmeyin.
+YÜKLEME:
+1) GitHub ana dizinindeki index.html dosyasını bu paketteki index.html ile değiştirin.
+2) open-data.js, server.js, package.json veya başka dosyaya dokunmayın.
+3) Render mevcut servisin normal deploy'unu tamamlasın.
+4) Tarayıcıda Ctrl+F5 yapın.
+5) Yalnız Tekirdağ / Çorlu / Önerler 323/2 üzerinde katmanı kontrol edin.
 
-Bu sürüm mevcut GitHub main (v2.0.9.17 open-data.js + mevcut index tabanı) üzerine hazırlanmıştır.
-
-Amaç:
-1. Önerler/Ergene'yi Kayseri tipi 512 px Render proxy karo yolundan çıkarmak.
-2. Composite/çok paftalı yolu Ergene için kullanmamak.
-3. Ergene WMS'yi doğrudan tarayıcıdan, sadece görünen alan için TEK GetMap görüntüsü olarak almak.
-4. Görüntüyü en fazla 1280x960 ile sınırlayarak gereksiz 2K/çoklu istek yükünü azaltmak.
-5. Zoom/kaydırmada eski çalışan görüntüyü yeni görüntü TAM yüklenene kadar ekranda tutmak.
-6. İlk çok-yakın görünüm servis tarafından reddedilirse yalnız ilk açılışta v1.9.0 hattındaki 12 km güvenli pencereyi yedek olarak denemek.
-7. Kayseri/Kırıkkale/Giresun/Balıkesir/Konya/Yozgat ortak WMS fonksiyonlarına dokunmamak.
-
-Not: Tarayıcıda deploy sonrası Ctrl+F5 ile önbelleği yenileyin.
+BU SÜRÜMÜN AMACI:
+- v2.0.9.19'da HTTP/image load olayı geldiği için boş/şeffaf Ergene resmi yanlışlıkla başarılı sayılabiliyordu.
+- v2.0.9.20 önce görünür WMS katmanını doğrular; 0 grup katmanı boşsa resmî alt katmanları tarar.
+- Önerler için 22.07.2026'da olumlu kullanıcı geri bildirimi alınan v1.9.0 viewport davranışı geri uygulanır:
+  ekran alanı + %16 tampon, en az 12 km görüntü, tek ImageOverlay, yeni görüntü tam gelene kadar eskisini koruma.
+- Kayseri/Kırıkkale/Giresun/Balıkesir/Yozgat ortak motorları değiştirilmemiştir.

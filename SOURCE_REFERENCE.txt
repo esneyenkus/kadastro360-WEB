@@ -1,0 +1,13 @@
+REFERANS KAYNAKLAR
+
+1) Kullanıcı tarafından Önerler 323/2 için olumlu geri bildirim alınan tarihsel hat:
+   Kadastro360 v1.9.0 — commit ba618dce377194429abfdf3eb447bc784354b36c
+   Davranış: görünür ekran alanı, %16 tampon, min 12 km, tek WMS resmi, atomik değiştirme.
+
+2) Boş/şeffaf WMS'i başarılı saymama davranışı:
+   Kadastro360 v1.9.1 — commit 177d3baf35878b3da1894310444f3b2e24852776
+
+3) Güncel taban:
+   v2.0.9.19 index.html
+
+Bu sürüm v1.9.0 davranışını tüm projeye geri getirmez; yalnız cdp-ergene özel fonksiyonuna taşır.

@@ -1,28 +1,25 @@
-Kadastro360 v2.0.9.19 TEST RAPORU
+KADASTRO360 v2.0.9.20 TEST RAPORU
 
-PASS — index.html inline JavaScript node --check
-PASS — open-data.js node --check
-PASS — server.js node --check
-PASS — test-v2091-regression.js
-PASS — bölge kilit/hash kontrolü (REGION_LOCK_PASS)
-PASS — projenin npm run check zincirindeki tüm uygulama/regresyon testleri yerel izole test harness'ında tamamlandı:
-  * marka dosyaları
-  * test-pilot
-  * TKGM regresyonu
-  * rota
-  * WMS tile/snapshot/legend/önbellek
-  * POI hızlı/kırsal/ilçe/dayanıklılık/kuyruk/browser fallback
-  * rota görselleştirme
-  * admin/hesap
-  * private mode
-  * v2.0.9.1 regresyon kilitleri
+[PASS] index.html içindeki inline JavaScript node --check
+[PASS] open-data.js node --check
+[PASS] server.js node --check
+[PASS] kök dizindeki tüm JavaScript dosyalarının syntax kontrolü
+[PASS] test-v2091-regression.js
+[PASS] test-ergene-v20-static.js
+[PASS] test-ergene-v20-behavior.js
 
-TEST ORTAMI NOTU:
-- Çalışma konteynerinde dış npm indirmesi yoktu. Bu nedenle yalnız test sırasında pngjs API'sini taklit eden geçici bir test fixture kullanıldı; node_modules pakete DAHİL DEĞİLDİR ve üretim kaynak dosyaları değiştirilmedi.
-- Bu ortam gerçek tucbs-public-api.csb.gov.tr GetMap görüntüsünü ağ üzerinden render edemediği için canlı WMS görüntü sonucu burada 'PASS' olarak ilan edilmemiştir.
-- Resmî Ergene WMS endpointinin varlığı, kapsama sınırı ve EPSG:3857 desteği kamu WMS kayıtlarından ayrıca kontrol edilmiştir.
+ÖZEL ERGENE DAVRANIŞ TESTLERİ:
+[PASS] Aşırı yakın harita görünümü en az 12 km WMS isteğine genişletiliyor.
+[PASS] Bilinen görünür katman doğrulanıp seçiliyor.
+[PASS] Grup katmanı 0 boş/şeffaf ise keşfedilen görünür alt katmana geçiliyor.
+[PASS] Açıkça boş/şeffaf sonuç geldiğinde sahte başarı üretilmiyor.
+[PASS] Yalnız ağ/timeout nedeniyle doğrulama yapılamazsa tarihsel 0 / 1.1.1 son çare olarak deneniyor.
+[PASS] Ergene özel kodu Kayseri tile/proxy motorunu doğrudan çağırmıyor.
 
-MİMARİ TEST SONUCU:
-- v2.0.9.17'de hata veren 512px Render proxy tile yolu Ergene için tamamen bypass edildi.
-- Önerler artık tek doğrudan WMS görüntüsü + atomik swap kullanır.
-- Hedef dışı ortak WMS fonksiyonları hash karşılaştırmasında değişmemiştir.
+CANLI SERVİS SINIRI:
+Bu çalışma ortamında tucbs-public-api.csb.gov.tr DNS/ağ erişimi bulunmadığı için gerçek TUCBS GetMap pikseli burada uçtan uca indirilemedi.
+Bu nedenle 'canlı serviste kesin çalıştı' iddiası yapılmamaktadır. Kod regresyonu, görünürlük seçimi ve davranış akışı yerel/mock testlerle doğrulanmıştır.
+
+NPM NOTU:
+npm ci bu sandbox'ta dış npm ağı/cache olmadığı için tamamlanamadı. Bu nedenle package.json içindeki tam npm run check zinciri bu ortamda çalıştırılamadı.
+Ancak ilgili kaynak syntax testleri, v2.0.9.1 regresyon testi ve iki yeni Ergene özel regresyon testi geçti.

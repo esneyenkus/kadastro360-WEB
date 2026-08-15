@@ -1,36 +1,21 @@
-Kadastro360 v2.0.9.19 DIFF / BÖLGE KİLİT RAPORU
+KADASTRO360 v2.0.9.20 DIFF KONTROL
 
-TABAN:
-- GitHub main index.html blob: 94994299a372c4739cc0e9273f5e205f5b814372
-- GitHub main open-data.js blob: cfea2ab531fe471130f0307a0bd958bdb168c318
+Taban: v2.0.9.19
+Değişen uygulama dosyası: index.html
+Değişmeyen uygulama dosyaları: open-data.js, server.js, package.json
 
-DEĞİŞEN:
-- index.html: yalnız Ergene'ye özel görüntü hazırlama yardımcıları, createErgeneStableWmsLayer gövdesi ve cdp-ergene yönlendirmesi.
+KORUNAN ORTAK FONKSİYONLAR:
+[PASS] createKayseriProfileWmsLayer — SHA256 02a062c30bbd1dc713ed0d3764f9833ca9dde3d339e465e82c21e8d3552bad37
+[PASS] createRegionWmsLayer — SHA256 16ce03abf362f0eb149141f6fb6900e93da758603923f03fdcbeb7c405d3c76a
+[PASS] createPersistentViewportWmsLayer — SHA256 17c9949eac7f3c468177514db797489d63334a684591f4e06d52d18cae2ab291
+[PASS] createSharpWmsLayer — SHA256 33c44b0ffd74a852765c36fdb74360376c04c3f8a69a138c1fe07ef122c86161
+[PASS] useKayseriTileProfile — SHA256 414af62ed84cd73c9cb8614544750fef3707f962c140607f31859d00862f7e17
+[PASS] waitForKayseriProfileWmsLayer — SHA256 3ebadbd392c029ebd8707b9d4bec9c8e9c5e7b63d4c12ee02c7cb8ab7f5372cf
 
-DEĞİŞMEYEN / HASH KİLİTLİ:
-- open-data.js: AYNI
-- server.js: AYNI
-- package.json: AYNI
-- package-lock.json: AYNI
-- createKayseriProfileWmsLayer: AYNI
-- createRegionWmsLayer: AYNI
-- createPersistentViewportWmsLayer: AYNI
-- createSharpWmsLayer: AYNI
-- waitForWmsLayer: AYNI
-- raceViewportSources: AYNI
-- projectedWmsView: AYNI
+DEĞİŞEN KAPSAM:
+- ergeneViewportView: v1.9.0 ekran alanı + %16 tampon + en az 12 km görünüm
+- chooseVisibleErgeneAttempt: boş/şeffaf katmanı reddetme, alt katman keşfi
+- waitForErgeneImageOverlay: aday görünümü eski katmanı silmeden yükleme
+- createErgeneStableWmsLayer: yalnız cdp-ergene için izole akış
 
-ERGENE YENİ YOLU:
-- cdp-ergene -> createErgeneStableWmsLayer
-- Kayseri tile motoru çağrısı: YOK
-- createRegionWmsLayer çağrısı: YOK
-- createPersistentViewportWmsLayer çağrısı: YOK
-- Render wms-tile/proxy çağrısı: YOK
-- Composite layer seçimi: YOK
-- Doğrudan resmî WMS GetMap: VAR
-- Aday görüntü opacity=0 ile tamamen yüklenmeden gösterilmez: VAR
-- Eski görüntü yeni görüntü tam yüklenene kadar korunur: VAR
-- Görüntü üst sınırı: 1280x960
-- İlk açılış güvenli yedeği: 12 km / 1024x1024
-
-Makine doğrulamasının ayrıntısı REGION_LOCK.json içindedir.
+Kayseri/Sivas/Yozgat, Kırıkkale, Giresun, Balıkesir ve diğer bölgelerin ortak motor fonksiyonları değiştirilmedi.
