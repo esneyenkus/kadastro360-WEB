@@ -1,0 +1,13 @@
+PASS - Ergene Kayseri/Sivas yüksek çözünürlüklü karo motoruna bağlandı
+PASS - Ergene 512 px WMS isteği kullanıyor
+PASS - Ergene composite/pafta birleştirmeye zorlanmıyor
+PASS - Eski Ergene tarayıcı seçimi cache anahtarı yenilendi
+PASS - İstemci runtime Kayseri profilini destekliyor
+PASS - Kayseri profilinde 2x/512 tile endpoint kullanımı mevcut
+PASS - Önerler config dışında open-data farkı yok
+PASS - cdp-ysk profili byte-byte korundu
+PASS - cdp-kirikkale profili byte-byte korundu
+PASS - cdp-otrgga profili byte-byte korundu
+PASS - cdp-kk profili byte-byte korundu
+PASS - cdp-cb profili byte-byte korundu
+PASS - ortho-gorele profili byte-byte korundu

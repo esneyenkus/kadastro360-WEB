@@ -1,8 +1,13 @@
-Kadastro360 v2.0.9.16 — Kayseri kilitli / Önerler v2.0.9.7 akış geri kazanımı
+Kadastro360 v2.0.9.17 - Önerler izole yüksek çözünürlüklü WMS düzeltmesi
 
-TABAN: Render olmuş v2.0.9.12.
-DEĞİŞİKLİK: index.html içinde yalnızca cdp-ergene için eklenmiş özel tek-katman erken dönüşü kaldırıldı.
-SONUÇ: Tekirdağ/Kırklareli/Edirne yeniden genel, görünür/composite katman doğrulama akışına girer.
-KAYSERİ: open-data.js ve Kayseri WMS fonksiyonları v2.0.9.12 ile birebir korunmuştur.
+TABAN: v2.0.9.16
+DEĞİŞEN DOSYA: yalnız open-data.js
 
-Yükleme: ZIP içindeki index.html ve open-data.js dosyalarını GitHub kök dizinindeki aynı dosyaların üzerine yükleyin.
+Yalnız cdp-ergene (Tekirdağ-Kırklareli-Edirne) profili değiştirildi:
+- composite/pafta birleştirme kapatıldı
+- Kayseri/Sivas'ta çalışan 512 px yüksek çözünürlüklü WMS karo motoru etkinleştirildi
+- eski tarayıcı WMS seçimi yeni choiceRevision ile devre dışı bırakıldı
+
+Kayseri/Sivas/Yozgat, Kırıkkale, Giresun/Doğu Karadeniz, Konya-Karaman,
+Balıkesir-Çanakkale ve Görele profilleri v2.0.9.16 ile birebir aynıdır.
+index.html değiştirilmemiştir.

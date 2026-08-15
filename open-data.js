@@ -35,8 +35,10 @@ const WMS_CONFIGS = [
     provider: 'Coğrafi Bilgi Sistemleri Genel Müdürlüğü',
     sourceUrl: `${ULASAV_ROOT}/dataset/?q=${encodeURIComponent('Tekirdağ Kırklareli Edirne Çevre Düzeni Planı')}`,
     description: 'Trakya planlama bölgesindeki üst ölçekli arazi kullanım kararlarını gösterir.',
-    preferCompositeLayers: true,
-    choiceRevision: 'stable-viewport-composite-2'
+    kayseriTileProfile: true,
+    tileRequestSize: 512,
+    maxUsefulZoom: 14,
+    choiceRevision: 'ergene-kayseri-tile-1'
   },
   {
     key: 'cdp-kirikkale',
